@@ -1,0 +1,107 @@
+
+flapone_batchschedule-------------
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    batch_id VARCHAR(255) unique,
+    batch_name VARCHAR(255) NOT NULL,
+    course_id VARCHAR(255) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    max_student INT NOT NULL,
+    min_student INT NOT NULL,
+    mode VARCHAR(50) NOT NULL,
+    batch_center VARCHAR(255) NOT NULL,
+    batch_online_class_link VARCHAR(255) NOT NULL,
+    batch_room_no VARCHAR(255) NOT NULL,
+    on_days VARCHAR(255) NOT NULL,
+    batch_status (0:inactive,1:Active,2:Running:3:completed);
+    all_session_json_data longtext
+    create_by 
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+flapone_class-------------
+
+    class_id INT PRIMARY KEY AUTO_INCREMENT,
+    fk_batch_id INT,
+    date_of_week VARCHAR(10) NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    session_mode VARCHAR(50) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    instructor_id VARCHAR(255),
+    co_instructor_id VARCHAR(255),
+    class_sess_status (0:delete,1:approved)
+    notets TEXT,
+    Repeat_freq VARCHAR(50)
+    created_date 
+    updated_date
+
+
+-----flapone_subject
+subject_id  INT PRIMARY KEY AUTO_INCREMENT,
+course_category_id  VARCHAR(10) NOT NULL,
+course_id,VARCHAR(10) NOT NULL,
+chapter,VARCHAR(10) NOT NULL,
+all_topic_list_json
+create_by
+status (0:inactive, 1:active);
+show_after
+created_date 
+updated_date
+
+
+----------flapone_subject_topic
+id INT PRIMARY KEY AUTO_INCREMENT,
+fk_subject_id INT
+toipc TEXT
+course_material longtext
+status (0:inactive, 1:active);
+created_date 
+updated_date
+
+
+------flapone_course_batch_exam
+exam_id INT PRIMARY KEY AUTO_INCREMENT,
+course_id
+category_id,
+batch_id,
+exam_date,
+exam_start_time
+exam_end_time
+subject_of_exam
+create_by
+status (0:cancel,1:approved,2:draft)
+created_date 
+updated_date
+
+
+
+-----flapone_holidays_calender
+id INT PRIMARY KEY AUTO_INCREMENT,
+holiday_name,
+holiday_date,
+holiday_type,
+holiday_for_center,
+regions,
+department,
+Recurring_holiday,
+holiday_notes,
+status (0:cancelled,1:approved,2:draft)
+created_date 
+updated_date
+
+
+
+student_course mapping batch mpping issue company level
+
+
+
+
+
+
+
+
+
+

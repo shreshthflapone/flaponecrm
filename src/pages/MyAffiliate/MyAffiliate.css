@@ -1,0 +1,161 @@
+.mb0 {
+  margin-bottom: 0 !important;
+}
+.mb24 {
+  margin-bottom: 24px !important;
+}
+.fdr {
+  flex-direction: row;
+}
+.fs18 {
+  font-size: 18px !important;
+}
+.plr0 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.actions-dropdown {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 6px 0;
+  width: 160px;
+  z-index: 99;
+  left: auto;
+  right: 20px;
+}
+.actions-dropdown div {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.actions-dropdown div:hover {
+  background: #f3f3f3;
+}
+.action-wrapper {
+  position: relative;
+}
+.affiliates-grp textarea {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 100%;
+  outline: none;
+  padding: 13px 12px;
+  resize: none;
+  width: 100%;
+  height: 85px;
+}
+
+.terms-wrapper {
+  background: #f7f9fc;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.term-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.term-checkbox {
+  margin-right: 10px;
+  margin-top: 4px;
+}
+
+.term-label {
+  line-height: 1.45;
+}
+
+.terms-link {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.terms-link:hover {
+  text-decoration: underline;
+}
+.affiliate-image .image-upload-container {
+    align-items: flex-start !important;
+    padding: 0 !important;
+}
+.affiliate-image .image-preview {
+    width: 100%;
+    height: 70px !important;
+    min-height: 85px !important;
+    max-width: 173px !important;
+    min-width: 100% !important;
+}
+
+.affiliate-image .image-preview img {
+    max-height: 70px !important;
+}
+.custom-toggle {
+  cursor: pointer;
+  font-size: 22px;
+  transition: color 0.3s ease;
+}
+
+.toggle-on {
+  color: #28a745; 
+}
+
+.toggle-off {
+  color: #dc3545;
+}
+.sale-status {
+  font-size: 14px;
+  margin-bottom: 8px;
+  margin-right: 12px;
+  min-width: 140px;
+  padding: 1%;
+}
+.sale-status {
+  box-shadow: 0 4px 12px #0000001a;
+}
+.sale-status p {
+    letter-spacing: .4px;
+    padding-top: 4px;
+    text-align: center;
+    width: 100%;
+}
+.affiliate-dropdown .dropdown-container  {
+  display: flex;
+  flex-direction: row;
+}
+.affiliate-dropdown .dropdown-container label {
+  margin-right: 15px;
+  margin-top: 6px;
+  position: relative;
+}
+.affiliate-dropdown .dropdown-container label:before {
+  content: ":- ";
+  color: #27244e;
+  position: absolute;
+  top: -1px;
+  right: -9px;
+}
+.detail-side-bar.affiliate-dropdown .selected-role {
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  padding: 4px 0 !important;
+  height: auto !important;
+  margin-top: 2px;
+}
+.category-filter.searching-drop .selected-role {
+  color: #000;
+}
+.timeline.history-timeline{
+  padding: 1%;
+}
+.timeline.history-timeline h6{
+  margin-top: 8px;
+}

@@ -1,0 +1,60 @@
+
+.ctimeline-date {
+    align-items: center;
+    border-radius: 4px;
+    color: #f4836c;
+    display: flex;
+    font-size: 14px;
+    justify-content: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #f4836c;
+    background-color: #fff;
+  }
+  
+  .ctimeline {
+    position: relative;
+    border-left: 1px solid #f4836c;
+    margin-left: 24px;
+    padding-left: 30px;
+  }
+  
+  .ctimeline-item {
+    position: relative;
+    margin-bottom: 25px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex: 1 1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ctimeline-item::before {
+    content: "";
+    position: absolute;
+    left: -37px;
+    top: 15px;
+    width: 8px;
+    height: 8px;
+    background: #f4836c;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #f4836c;
+  }
+  
+  .cheader {
+    margin-bottom: 5px;
+  }
+  
+  .cstatus {
+    color: green;
+    margin-left: 10px;
+  }
+    
+  .ccomment {
+    margin-top: 5px;
+  }
+  

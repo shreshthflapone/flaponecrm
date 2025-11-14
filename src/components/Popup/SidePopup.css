@@ -1,0 +1,60 @@
+.lead-popup-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 999;
+}
+
+.lead-popup-content {
+  background: #fff;
+  max-width: 40%;
+  width: 100%;
+  padding-bottom: 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  position: relative;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  top: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.lead-close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.blurred-text {
+  color: transparent;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 1);
+}
+.lead-popup-content .fixed-buttons {
+  padding-bottom: 8px;
+}
+
+@media only screen and (max-width: 480px) {
+  .lead-popup-content {
+    max-width: 100%;
+  }
+}
+
+@media only screen and (min-width: 481px) and (max-width: 768px) {
+  .lead-popup-content {
+    max-width: 75%;
+  }
+}
+
+@media only screen and (min-width: 769px) and (max-width: 1024px) {
+    .lead-popup-content {
+      max-width: 60%;
+    }
+  }

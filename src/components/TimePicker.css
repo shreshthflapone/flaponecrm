@@ -1,0 +1,52 @@
+.time-picker {
+  display: flex;
+  align-items: center;
+}
+
+.time-row {
+  display: flex;
+}
+
+.time-row label {
+  margin-right: 5px;
+}
+
+.time-picker input[type="text"],
+.time-picker select {
+  max-width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  height: 40px;
+  padding: 8px;
+  width: 60px;
+
+}
+.time-picker input[type="text"] {
+  text-align: center;
+}
+.error {
+  color: red;
+  margin-left: 10px;
+  font-size: 12px;
+}
+.hy{
+  margin-right: 6px;
+  margin-left: 6px;
+}
+.custom-select {
+  position: relative;
+}
+
+.custom-select select {
+  padding-right: 8px;
+  appearance: none;
+  background: url('../assets/arrow-down.svg') no-repeat right 5px center;
+  background-size: 16px;
+  background-color: #FFF;
+}
+
+.log-select.custom-select select{
+  width: 100px;
+}

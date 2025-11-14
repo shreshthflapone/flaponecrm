@@ -1,0 +1,2010 @@
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import Card from "../../components/Card.js";
+import Tabs from "../../components/Tabs.js";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import AllStudents from "./AllStudents.js";
+import NewStudent from "./NewStudent.js";
+import BatchAlloted from "./BatchAlloted.js";
+import ClassesEnded from "./ClassesEnded.js";
+import InnerHeader from "../../components/InnerHeader.js";
+import "../MyReports/MyReports.css";
+import Dropdown from "../../components/Dropdown.js";
+import "react-datepicker/dist/react-datepicker.css";
+import MultiSelectDropdown from "../../components/SearchMultiSelectDropdown.js";
+import MultiLevelDropdown from "../../components/MultiLevelDropdown.js";
+import "react-datepicker/dist/react-datepicker.css";
+import "react-date-range/dist/styles.css";
+import "../Feedback/Feedback.css";
+import "react-date-range/dist/theme/default.css";
+import { DateRangePicker } from "react-date-range";
+import { 
+  startOfMonth,
+  endOfMonth,
+  format,
+  addDays,
+  subMonths,
+  addMonths,
+  startOfToday,
+  startOfYesterday,
+  startOfWeek,
+  endOfWeek,
+  subWeeks,
+} from "date-fns";
+import SearchInput from "../../components/SearchInput.js";
+import Running from "./Running.js";
+import Completed from "./Completed.js";
+import MultiDropdown from "../../components/MultiDropdown.js";
+import SidePopup from "../../components/Popup/SidePopup.js";
+import Tooltip from "../../components/Tooltip.js";
+import { FaFilter } from "react-icons/fa";
+import StudentAttendance from "./StudentAttendance.js";
+import moment from "moment";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../store/authSlice.js";
+import axios from "axios";
+import constant from "../../constant/constant.js";
+import stateList from "../../constant/stateList.js";
+import SmallLoader from "../../components/SmallLoader.js";
+import StudentRoaster from "./StudentRoaster.js";
+import { ToastContainer, toast } from "react-toastify";
+import { useTitle } from "../../hooks/useTitle.js";
+import FilteredDataDisplay from "../../components/FilteredDataDisplay.js";
+
+
+const MyStudents = () => {
+  const { id } = useParams();
+  const user = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+    useTitle("My Students - Flapone Aviation");
+  
+  const limit = 50;
+  const [recordList, setRecordList] = useState([]);
+  const [recordListHistory, setRecordListHistory] = useState([]);
+  const [allApiFilter, setAllApiFilter] = useState([]);
+  const [totalPageNum, setTotalPageNum] = useState(0);
+  const [allApidata, setAllApiData] = useState([]);
+  const [pageNum, setPageNum] = useState(1);
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [displayMsg, setDisplayMsg] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
+  const [dataStatus, setDataStatus] = useState(false);
+  const [filterApiStatus, setFilterApiStatus] = useState(false);
+  const [filterStatus, setFilterStatus] = useState(0);
+  const tabs = [
+    { label: "New", value: "new"},
+    { label: "Batch Allotted", value: "batchalloted"},
+    { label: "Batch Running", value: "running" },
+    { label: "Batch Completed", value: "classesended"},
+    { label: "Course Completed", value: "completed" },
+    { label: "All", value: "all" },
+    // { label: "Attendance", value: "attendance" },
+    { label: "Student Roster", value: "studroaster" },
+  ];
+  const [teamsData, setTeamsData] = useState([]);
+  const [checkedTeamItems, setCheckedTeamItems] = useState([]);
+
+  const [categoryDataOptions, setCategoryDataOptions] = useState([]);
+  const [categoryCheckedItems, setCategoryCheckedItems] = useState([]);
+
+  const currentYear = moment().year();
+  const startYear = 2021;
+  const yearOptions = Array.from(
+    { length: currentYear - startYear + 1 },
+    (v, i) => ({
+      label: (startYear + i).toString(),
+      value: (startYear + i).toString(),
+    })
+  );
+  const [selectedTab, setSelectedTab] = useState(id ? id : "new");
+  //const [selectedTab, setSelectedTab] = useState("new");
+  const [selectedState, setSelectedState] = useState([]);
+  const [bucket, setBucket] = useState([]);
+  const [leadVia, setLeadVia] = useState([]);
+  const [destination, setDestinaion] = useState("");
+  const [pymntStatus, setPymntStatus] = useState({label:"Select Payment Status", value:""});
+  const [courseStatus, setCourseStatus] = useState({});
+  const [workOrderStatus, setWorkOrderStatus] = useState("");
+  const [serviceStatus, setServiceStatus] = useState("");
+  const [assigneeBatch, setAssigneeBatch] = useState({});
+  const [assigneeCoordinator, setAssigneeCoordinator] = useState({label: "Select Assigned", "value": ""});
+  const [certificateStatus, setCertificateStatus] = useState({label: "Select Certificate Status", "value": ""});
+  const [profileStatus, setProfileStatus] = useState({label: "Select Profile Status", "value": ""});
+  const [docStatus, setDocStatus] = useState({label: "Select Document Status", "value": ""});
+  const [userType, setUserType] = useState({label: "Select User Type",value: ""});
+  const [branchData, setBranchData] = useState([]);
+  const [companyType, setCompanyType] = useState("");
+  const [leadStatus, setLeadStatus] = useState("");
+  const [date, setDate] = useState("");
+  const [month, setMonth] = useState({ label: "Select Month", value: "" });
+  const [year, setYear] = useState({ label: "Select Year", value: "" });
+  const [clearSignal, setClearSignal] = useState(false);
+  const [checkedCoordinator, setCheckedCoordinator] = useState([]);
+  const [coordinatordata, setcoordinatordata] = useState([]);
+  
+  const [center, setCenter] = useState([]);
+  const [batch, setBatch] = useState([]);
+  const [attendanceType, setAttendanceType] = useState([]);
+  const [examType, setExamType] = useState([]);
+  const [showDateInput, setShowDateInput] = useState(false);
+  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
+  const [showDateRangeCalendar, setShowDateRangeCalendar] = useState(false);
+  const [searchBy, setSearchBy] = useState("");
+  const [searchLabel, setSearchLabel] = useState("Search By");
+  const [showSearchInput, setShowSearchInput] = useState(false);
+  const [searchLead, setSearchLead] = useState("");
+  const [dateLabel, setDateLabel] = useState("Select Date");
+  const [dayMonth, setDayMonth] = useState("");
+  const [dateTimeType, setDateTimeType] = useState("");
+  const [batchStatus, setBatchStatus] = useState("");
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState([]);
+  
+  const [department, setDepatment] = useState([]);
+  const [holidayType, setHolidayType] = useState([]);
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [leadSourceOptions, setLeadSourceOptions] = useState([]);
+  const [leadSource, setLeadSource] = useState({label : "Source Type", value :""});
+
+  const [sortBy, setSortBy] = useState("id");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [activeSortColumn, setActiveSortColumn] = useState("id");
+  
+
+  const stateOptions = stateList.states;
+  
+
+  // const [categoryData, setCategoryData] = useState([]);
+
+  const [allTabListCount, setAllTabListCount] = useState({
+    all: 0,
+    running: 0,
+    completed: 0,
+    attendance: 0,
+  });
+  var oldFilter = {};
+  const initial_obj = {
+    page_type: id ? id : selectedTab,
+    dateOptionsselect:"",
+    checkedCoordinator:"",
+    batchassigneOptions:"",
+    selectedBatch:"",
+    pymntStatus:"",
+    categoryCheckedItems: "",
+    selectedCourses:"",
+    assigneeCoordinator:"",
+    leadSource:"",
+    selectedState:[],
+    checkedTeamItems:"",
+    searchBy:"",
+    searchByValue:"",
+    dateRangeValue:{
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+    dateRangeValuefilter: "",
+    dateTimeType:"",
+    trigger:"",
+  }
+  const [listFilter, setListFilter] = useState({});
+  const applyFilter = async () => {
+    setFilterApplyStatus(true);
+    setAllApiData([]);
+    let updatefilter = {
+      ...listFilter,
+      page_type: selectedTab,
+      dateOptionsselect:date,
+      checkedCoordinator:checkedCoordinator,
+      batchassigneOptions:assigneeBatch,
+      pymntStatus:pymntStatus,
+      categoryCheckedItems: categoryCheckedItems,
+      selectedCourses:selectedCourses,
+      selectedBatch:selectedBatch,
+      assigneeCoordinator:assigneeCoordinator,
+      certificateStatus:certificateStatus,
+      profileStatus:profileStatus,
+      docStatus:docStatus,
+      userType:userType,
+      branchData:branchData,
+      leadSource:leadSource,
+      selectedState:selectedState,
+      checkedTeamItems:checkedTeamItems,
+      searchBy:searchBy,
+      searchByValue:searchLead,
+      dateTimeType:dateTimeType,
+      dateRangeValue:`${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+      dateRangeValuefilter: dateRangeValue,
+    };
+    var getoldfilter = localStorage.getItem("allfilterstudent");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+    }
+    oldFilter[selectedTab] = updatefilter;
+    localStorage.setItem("allfilterstudent", JSON.stringify(oldFilter));
+    
+    setListFilter(updatefilter);
+    setPageNum(1);
+    closeFilter();
+  }
+  const clearFilter = () => {
+    FilterAllStateClear();
+    let getOldFilterclear = localStorage.getItem("allfilterstudent");
+    let oldFilterValclear = getOldFilterclear
+      ? JSON.parse(getOldFilterclear)
+      : {};
+    let currentTabFilterValclear = oldFilterValclear[selectedTab]
+      ? { ...oldFilterValclear }
+      : null;
+
+    if(currentTabFilterValclear){
+      delete currentTabFilterValclear[selectedTab];
+      localStorage.setItem(
+        "allfilterstudent",
+        JSON.stringify(currentTabFilterValclear)
+      );
+    }
+    getAllFilter();
+    updateSetListingFilter();
+    closeFilter();
+    setFilterApplyStatus(false);
+  };
+
+  const updateSetListingFilter = async () => {
+    let updatefilter = {
+      ...listFilter,
+      ...initial_obj,
+        page_type: id ? id : selectedTab
+    };
+   
+    setListFilter({...updatefilter});
+  }
+  const handleTabChange = (value) => {
+    setSelectedTab(value);
+  };
+
+  const FilterAllStateClear=()=>{
+    setFilterCount(0);
+    setDate("");
+    setDateLabel("Select Date");
+    setCheckedCoordinator([...coordinatordata]);
+    setAssigneeBatch({});
+    setPymntStatus({label:"Select Payment Status", value:""});
+    setCategoryCheckedItems(categoryDataOptions);
+    setSelectedCourses([]);
+    setSelectedBatch([]);
+    setAssigneeCoordinator({label: "Select Assigned", "value": ""});
+    setCertificateStatus({label: "Select Certificate Status", "value": ""});
+    setProfileStatus({label: "Select Profile Status", "value": ""});
+    setDocStatus({label: "Select Document Status", "value": ""});
+    setUserType({label: "Select User Type", "value": ""});
+    setBranchData([]);
+    setLeadSource({label : "Source Type", value:""});
+    setSelectedState([]);
+    setCheckedTeamItems([...teamsData]);
+    setSearchBy("");
+    setSearchLabel("Search By");
+    setSearchLead("");
+    setClearSignal(true);
+    setShowDateInput(false);
+    setTimeout(() => setClearSignal(false), 0);
+    setDateTimeType("Today");
+    setPageNum(1);
+    setTotalPageNum(0);
+    setAllApiData([]);
+    setDataStatus(false);
+   
+    setDateRangeValue([
+      {
+        startDate: new Date(),
+        endDate: addDays(new Date(), 0),
+        key: "selection",
+      },
+    ]);
+  }
+
+  useEffect(() => {
+    if(filterApiStatus && listFilter.page_type==selectedTab){
+      getListRecord();
+    }
+  }, [selectedTab,filterApiStatus,listFilter]);
+
+  useEffect(()=>{
+    if(listFilter.page_type==selectedTab){
+      getAllFilter();
+    }
+  },[selectedTab,listFilter]);
+
+  useEffect(()=>{
+      navigate("/my-students");
+      FilterAllStateClear();
+      setLocalStorage();
+      if(selectedTab==='new'){
+        handleSortByChange('booking_date_long');
+      }else if(selectedTab==='batchalloted'){
+        handleSortByChange('batch_start_date_long');
+      }else if(selectedTab==='classesended'){
+        handleSortByChange('batch_end_date_long');
+      }else{
+        handleSortByChange('id');
+      }
+  },[selectedTab]);
+ 
+ 
+
+  const setLocalStorage = async () =>  {
+  
+    var getoldfilter = localStorage.getItem("allfilterstudent");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+      var currenttabfilter = oldFilter[selectedTab] ? oldFilter[selectedTab]:"";
+      if (currenttabfilter) {
+        setListFilter(currenttabfilter);
+        setFilterApplyStatus(true);
+
+        if (currenttabfilter && currenttabfilter["dateOptionsselect"] ) {
+          let filterdateobj = dateOptions.find(
+            (item) => item.value === currenttabfilter["dateOptionsselect"]
+          );
+          if (filterdateobj) {
+            handleDateChange(filterdateobj);
+            setShowDateRangePicker(false);
+            setShowDateRangeCalendar(false);
+          }
+        }
+        
+        if (currenttabfilter && currenttabfilter["dateRangeValuefilter"]) {
+            setDateRangeValue(currenttabfilter["dateRangeValuefilter"]);
+        }
+        if (currenttabfilter && currenttabfilter["dateTimeType"]) {
+            setDateTimeType(currenttabfilter["dateTimeType"]);
+        }
+        if (currenttabfilter && currenttabfilter["checkedCoordinator"]) {
+            setCheckedCoordinator(currenttabfilter["checkedCoordinator"]);
+        }
+        if (currenttabfilter && currenttabfilter["batchassigneOptions"]) {
+            setAssigneeBatch(currenttabfilter["batchassigneOptions"]);
+        }
+        if (currenttabfilter && currenttabfilter["pymntStatus"]) {
+            setPymntStatus(currenttabfilter["pymntStatus"]);
+        }
+        if (currenttabfilter && currenttabfilter["categoryCheckedItems"]) {
+            setCategoryCheckedItems(currenttabfilter["categoryCheckedItems"]);
+        }
+        if (currenttabfilter && currenttabfilter["selectedCourses"]) {
+            setSelectedCourses(currenttabfilter["selectedCourses"]);
+        }
+
+        if(currenttabfilter && currenttabfilter["selectedBatch"]) {
+            setSelectedBatch(currenttabfilter["selectedBatch"]);
+         }
+        
+        if (currenttabfilter && currenttabfilter["assigneeCoordinator"]) {
+            setAssigneeCoordinator(currenttabfilter["assigneeCoordinator"]);
+        }
+        
+        if (currenttabfilter && currenttabfilter["certificateStatus"]) {
+            setCertificateStatus(currenttabfilter["certificateStatus"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["profileStatus"]) {
+            setProfileStatus(currenttabfilter["profileStatus"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["docStatus"]) {
+            setDocStatus(currenttabfilter["docStatus"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["userType"]) {
+            setUserType(currenttabfilter["userType"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["branchData"]) {
+            setBranchData(currenttabfilter["branchData"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["leadSource"]) {
+            setLeadSource(currenttabfilter["leadSource"]);
+        }
+        if (currenttabfilter && currenttabfilter["leadSource"]) {
+            setLeadSource(currenttabfilter["leadSource"]);
+        }
+        if(currenttabfilter && currenttabfilter["selectedState"]){
+            setSelectedState(currenttabfilter["selectedState"]);
+        }
+        if (currenttabfilter && currenttabfilter["checkedTeamItems"]) {
+            setCheckedTeamItems(currenttabfilter["checkedTeamItems"]);
+        }
+        if (currenttabfilter && currenttabfilter["checkedTeamItems"]) {
+            setCheckedTeamItems(currenttabfilter["checkedTeamItems"]);
+        }
+        if (currenttabfilter && currenttabfilter["searchBy"]) {
+            let filterdateobj = searchByOptions.find(
+              (item) => item.value === currenttabfilter["searchBy"]
+            );
+            if (filterdateobj) {
+              handleSearchByChange(filterdateobj);
+              setShowSearchInput(true);
+            }
+        }
+        if (currenttabfilter && currenttabfilter["searchByValue"]) {
+            setSearchLead(currenttabfilter["searchByValue"]);
+        }
+      }else{
+       
+        updateSetListingFilter();
+      }
+    }else{
+      
+      updateSetListingFilter();
+    }
+  }
+ 
+  const [dateRangeValue, setDateRangeValue] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+  ]);
+  const dateRangePickerRef = useRef(null);
+  const location = useLocation();
+
+  const [dateOptions, setDateOptions] = useState([]);
+
+  const monthOptions = [
+    { label: "Select Month", value: "" },
+    { label: "January", value: "January" },
+    { label: "February", value: "February" },
+    { label: "March", value: "March" },
+    { label: "April", value: "April" },
+    { label: "May", value: "May" },
+    { label: "June", value: "June" },
+    { label: "July", value: "July" },
+    { label: "August", value: "August" },
+    { label: "September", value: "September" },
+    { label: "October", value: "October" },
+    { label: "November", value: "November" },
+    { label: "December", value: "December" },
+  ];
+
+  const batchStatusOptions = [
+    { label: "All", value: "all" },
+    { label: "Upcoming", value: "Upcoming" },
+    { label: "Running", value: "Running" },
+    { label: "Completed", value: "Completed" },
+    { label: "Hold", value: "Hold" },
+  ];
+
+  const [pymntStatusOptions, setPymntStatusOptions] = useState([]);
+  
+
+  const [batchOptions, setBatchOptions] = useState();
+  const [batchOptionsRoster, setBatchOptionsRoaster] = useState();
+  const [FlyingBatchOptions, setFlyingBatchOptions] = useState();
+  
+  
+  const centerOptions = [
+    { label: "Dwarka", value: "Dwarka" },
+    { label: "Delhi", value: "Delhi" },
+    { label: "Noida", value: "Noida" },
+    { label: "Haryana", value: "Haryana" },
+  ];
+  const [assigneOptions, setAssigneOptions] = useState([]);
+  const [coAssigneOptions, setCoAssigneOptions] = useState([]);
+  const [certificateStatusOptions, setCertificateStatusOptions] = useState([]);
+  const [profileStatusOptions, setProfileStatusOptions] = useState([]);
+  const [docStatusOptions, setDocStatusOptions] = useState([]);
+  const [userTypeOptions, setUserTypeOptions] = useState([]);
+  const [branchOptions, setBranchOptions] = useState([]);
+
+  const examTypeOptions = [
+    { label: "Flying Test", value: "1" },
+    { label: "Assessment", value: "2" },
+    { label: "Exam", value: "3" },
+  ];
+  const [courseListOptions,setCourseListOption] = useState([]); 
+  const [searchByOptions,setSearchByOptions] = useState([]);
+  const handleAsigneeBatchChange = (value) => {
+    setAssigneeBatch(value);
+  };
+  const handleCoordinatorBatchChange = (value) => {
+    setAssigneeCoordinator(value);
+  };
+
+  const handleCerificateStatusChange = (value) => {
+    setCertificateStatus(value);
+  };
+
+  const handleProfileStatusChange = (value) => {
+    setProfileStatus(value);
+  };
+
+  const handleUserTypeChange = (value) => {
+    setUserType(value);
+  };
+
+   
+
+  const handleBranchChange = (value) => {
+    const index = branchData.indexOf(value);
+    if (index === -1) {
+      setBranchData([...branchData, value]);
+    } else {
+      const updatedValues = [...branchData];
+      updatedValues.splice(index, 1);
+      setBranchData(updatedValues);
+    }
+  };
+
+   const handleDocStatusChange = (value) => {
+    setDocStatus(value);
+  };
+
+  const handleLeadSourceChange = (value) =>{
+      setLeadSource(value);
+  }
+  const handlePymntStatusChange = (value) => {
+    setPymntStatus(value);
+  };
+  const handleCourseStatusChange = (value) => {
+    setCourseStatus(value);
+  };
+  const handleDateChange = (option) => {
+    setDate(option.value);
+    setDateLabel(option.label);
+    if (option.value) {
+      setShowDateRangePicker(true);
+      setShowDateInput(true);
+    } else {
+      setShowDateRangePicker(false);
+      setShowDateInput(false);
+    }
+  };
+  const handleMonthChange = (option) => {
+    setMonth(option);
+  };
+  const handleyearChange = (option) => {
+    setYear(option);
+  };
+  
+ 
+
+  const handleStateChange = (selectedOptions) => {
+    setSelectedState(selectedOptions);
+  };
+  const handleDateRangeChange = (item) => {
+    setDateTimeType("");
+    setDateRangeValue([item.selection]);
+  };
+  const toggleDateRangePicker = () => {
+    setShowDateRangePicker(!showDateRangePicker);
+  };
+  const handleClickOutside = (event) => {
+    if (
+      dateRangePickerRef.current &&
+      !dateRangePickerRef.current.contains(event.target)
+    ) {
+      setShowDateRangePicker(false);
+      setShowDateRangeCalendar(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showDateRangePicker || showDateRangeCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDateRangePicker, showDateRangeCalendar]);
+
+  const handleCellClick = (studentdata, key) => {
+    if(key === 'wid') {
+        let updatefilter = {
+            searchByOptions: "wid",
+            searchtext: studentdata.wo_id,
+            page_type:"workorder",
+            selectedTab:"workorder"
+        };
+        
+        var filterobj = {};
+        filterobj['workorder'] = updatefilter;
+        localStorage.setItem("allfilteroption", JSON.stringify(filterobj));
+        navigate(`/my-finance`);
+    }
+}
+  const handleSearchChange = (value) => {
+    setSearchLead(value);
+  };
+  const handleSearchByChange = (option) => {
+    setSearchBy(option.value);
+    setSearchLabel(option.label);
+    if (option.value) {
+      setShowSearchInput(true);
+    } else {
+      setShowSearchInput(false);
+    }
+  };
+  const handleCenterChange = (value) => {
+    const index = center.indexOf(value);
+    if (index === -1) {
+      setCenter([...center, value]);
+    } else {
+      const updatedValues = [...center];
+      updatedValues.splice(index, 1);
+      setCenter(updatedValues);
+    }
+  };
+  const handleAttendanceTypeChange = (value) => {
+    const index = attendanceType.indexOf(value);
+    if (index === -1) {
+      setAttendanceType([...attendanceType, value]);
+    } else {
+      const updatedValues = [...attendanceType];
+      updatedValues.splice(index, 1);
+      setAttendanceType(updatedValues);
+    }
+  };
+
+  const handleBatchChanges = (value) => {
+    const index = selectedBatch.indexOf(value);
+    if (index === -1) {
+      setSelectedBatch([...selectedBatch, value]);
+    } else {
+      const updatedValues = [...selectedBatch];
+      updatedValues.splice(index, 1);
+      setSelectedBatch(updatedValues);
+    }
+  };
+  
+  const handleHolidayTypeChange = (value) => {
+    const index = holidayType.indexOf(value);
+    if (index === -1) {
+      setHolidayType([...holidayType, value]);
+    } else {
+      const updatedValues = [...holidayType];
+      updatedValues.splice(index, 1);
+      setHolidayType(updatedValues);
+    }
+  };
+  const handleDepartmentChanges = (value) => {
+    const index = department.indexOf(value);
+    if (index === -1) {
+      setDepatment([...department, value]);
+    } else {
+      const updatedValues = [...department];
+      updatedValues.splice(index, 1);
+      setDepatment(updatedValues);
+    }
+  };
+  const handleExamType = (value) => {
+    const index = examType.indexOf(value);
+    if (index === -1) {
+      setExamType([...examType, value]);
+    } else {
+      const updatedValues = [...examType];
+      updatedValues.splice(index, 1);
+      setExamType(updatedValues);
+    }
+  };
+  const handleBatchStatusChange = (value) => {
+    setBatchStatus(value);
+  };
+  const handleSelectCourse = (value) => {
+    const index = selectedCourses.indexOf(value);
+    if (index === -1) {
+      setSelectedCourses([...selectedCourses, value]);
+    } else {
+      const updatedValues = [...selectedCourses];
+      updatedValues.splice(index, 1);
+      setSelectedCourses(updatedValues);
+    }
+  };
+  const handleFilterClick = () => {
+    setShowFilterPopup(true);
+  };
+  const closeFilter = () => {
+    setShowFilterPopup(false);
+    document.body.style.overflow = "auto";
+  };
+  const toggleDateRangeCalendar = () => {
+    setShowDateRangeCalendar(!showDateRangeCalendar);
+  };
+  const staticRanges = [
+    {
+      label: "Today",
+      range: () => ({
+        startDate: startOfToday(),
+        endDate: new Date(),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[0].range();
+        if (dateTimeType === "Today") {
+          return true;
+        } else if (!dateTimeType) {
+          if (dateRangeValue[0].startDate.getTime() === startDate.getTime()) {
+            setDateTimeType("Today");
+            return true;
+          }
+        }
+        return false;  // Explicitly return false if condition is not met
+      },
+    },
+    {
+      label: "Yesterday",
+      range: () => ({
+        startDate: startOfYesterday(),
+        endDate: startOfYesterday(),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[1].range();
+        if (dateTimeType === "Yesterday") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Yesterday");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "This Week",
+      range: () => ({
+        startDate: startOfWeek(new Date()),
+        endDate: endOfWeek(new Date()),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[2].range();
+        if (dateTimeType === "This Week") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("This Week");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "Last Week",
+      range: () => ({
+        startDate: startOfWeek(subWeeks(new Date(), 1)),
+        endDate: endOfWeek(subWeeks(new Date(), 1)),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[3].range();
+        if (dateTimeType === "Last Week") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Last Week");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "This Month",
+      range: () => ({
+        startDate: startOfMonth(new Date()),
+        endDate: endOfMonth(new Date()),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[4].range();
+        if (dateTimeType === "This Month") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("This Month");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "Last Month",
+      range: () => ({
+        startDate: startOfMonth(subMonths(new Date(), 1)),
+        endDate: endOfMonth(subMonths(new Date(), 1)),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[5].range();
+        if (dateTimeType === "Last Month") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Last Month");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "All Time",
+      range: () => ({
+        startDate: new Date(2021, 0, 1),
+        endDate: new Date(),
+      }),
+      hasCustomRendering: true,
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[6].range();
+        if (dateTimeType === "All Time") {
+          return true;
+        } else if (!dateTimeType) {
+          if (dateRangeValue[0].startDate.getTime() === startDate.getTime()) {
+            setDateTimeType("All Time");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "Custom",
+      range: () => ({
+        startDate: new Date(),
+        endDate: new Date(),
+      }),
+      hasCustomRendering: true,
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[7].range();
+        if (dateTimeType === "Custom") {
+          return true;
+        } else if (!dateTimeType) {
+          if (dateRangeValue[0].startDate.getTime() && dateRangeValue[0].endDate.getTime()) {
+            setDateTimeType("Custom");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+  ];
+  
+  const selectRange = () => {
+    for (let i = 0; i < staticRanges.length; i++) {
+      if (staticRanges[i].isSelected()) {
+        // Once a match is found, exit the loop
+        break;  // Exit the loop after the first successful match
+      }
+    }
+  };
+  
+  // Call the function to start the check
+  selectRange();
+
+  const checkUserLogin = (response) => {
+    if (response.data.login.status === 0) {
+      dispatch(logout());
+      navigate("/login");
+    }
+  };
+  
+ 
+
+  useEffect(() => {
+    //getAllFilter();
+    getAllTabTypeCount();
+  }, []);
+
+
+  const handleSortByChange = (field) => {
+    if (field === sortBy) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortDirection("asc");
+    }
+    setActiveSortColumn(field);
+  };
+
+  const sortList = useMemo(() => {
+    let sortedList = [...recordList];
+    sortedList.sort((a, b) => {
+        // Handle null or undefined values for sortBy field
+        const aValue = a[sortBy] ? a[sortBy]: ""; // Use nullish coalescing to handle null/undefined
+        const bValue = b[sortBy] ? b[sortBy]:  ""; // Use nullish coalescing to handle null/undefined
+
+        // Use localeCompare for string comparison, numeric for id
+        if (
+            sortBy === "id" ||
+            sortBy === "batch_start_date_long" ||
+            sortBy === "batch_end_date_long" ||
+            sortBy === "roll_no"
+        ) {
+            return sortDirection === "asc" ? a[sortBy] - b[sortBy] : b[sortBy] - a[sortBy]; 
+        } else if ((sortBy === "rm_obj" || sortBy === "co_obj" || sortBy === "batch_obj")) {
+          const labelA = aValue.label || ''; 
+          const labelB = bValue.label || ''; 
+      
+          const comparison = labelA.localeCompare(labelB, undefined, {
+              numeric: true,
+          });
+      
+          return sortDirection === "asc" ? comparison : -comparison;
+        } else {
+            const comparison = aValue
+                .toString()
+                .localeCompare(bValue.toString(), undefined, { numeric: true });
+            return sortDirection === "asc" ? comparison : -comparison;
+        }
+    });
+
+    return sortedList;
+}, [recordList, sortBy, sortDirection]);
+
+
+  useEffect(() => {
+    const scrollHandler = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const { scrollHeight, scrollTop, clientHeight } =
+          document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 70 && !isFetching) {
+          setIsFetching(true);
+          if (pageNum <= totalPageNum) {
+            getListRecord();
+          }
+        }
+      }, 200); // Adjust the debounce delay as needed
+    };
+
+    let scrollTimeout;
+
+    window.addEventListener("scroll", scrollHandler);
+
+    return () => window.removeEventListener("scroll", scrollHandler);
+  }, [isFetching, pageNum]);
+
+  const getListRecord = async () => {
+    setAutoLoader(true);
+    setDisplayMsg("");
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=getlistrecord`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { page_num: pageNum, limit: limit, filter: listFilter },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          if (pageNum === 1) {
+            setAllApiData(response.data.data);
+            setTotalPageNum(response.data.data.total_page);
+            setRecordList([...response.data.data.list]);
+          } else {
+            setRecordList([...recordList, ...response.data.data.list]);
+          }
+          setPageNum((prevPageNum) => prevPageNum + 1);
+          setDataStatus(true);
+        } else {
+	  setRecordList([]);
+          setDisplayMsg(response.data.data.msg);
+        }
+        setFilterStatus(response.data.data.filter_status);
+        setAutoLoader(false);
+        setIsFetching(false);
+        setDataStatus(true);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const handleStudentHistory = (studentid) =>{
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=getallstudenthistory`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { lead_id: studentid },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          setRecordListHistory([...response.data.data.list]);
+        }else{
+          setRecordListHistory([]);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  }
+  const handleGenrateRoll = (studentid) =>{
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=genrateroll`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { lead_id: studentid },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          const updatedStudents = recordList.map((student) =>
+            student.id === studentid
+              ? { ...student, roll_no: response.data.data.roll_no}
+              : student
+          );
+          setRecordList(updatedStudents);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  }
+  const getAllTabTypeCount = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=fetchcoursestatuscount`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {},
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          setAllTabListCount(response.data.data.data);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const getAllFilter = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=getallfilter`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { filter: listFilter },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          const filterList = response.data.data.filterlist;
+
+          setAllApiFilter(filterList);
+          
+          setDateOptions([
+            ...JSON.parse(filterList.dateOptions),
+          ]);
+          
+          if (checkedCoordinator.length === 0) {
+            setCheckedCoordinator([
+              ...JSON.parse(filterList.coordinatordata),
+            ]);
+          }
+          setSearchByOptions([
+            ...JSON.parse(filterList.searchByOptions),
+          ])
+          setcoordinatordata([
+            ...JSON.parse(filterList.coordinatordata),
+          ]);
+          setAssigneOptions([
+            ...JSON.parse(filterList.assigneOptions),
+          ]);
+          setCoAssigneOptions([
+            ...JSON.parse(filterList.cordinatorassigneOptions),
+          ]);
+          setCertificateStatusOptions([
+            ...JSON.parse(filterList.certificateStatusOptions),
+          ]);
+
+          setProfileStatusOptions([
+            ...JSON.parse(filterList.profileStatusOptions),
+          ]);
+          
+          setDocStatusOptions([
+            ...JSON.parse(filterList.docStatusOptions),
+          ]);
+
+          setUserTypeOptions([
+            ...JSON.parse(filterList.userTypeOptions),
+          ]);
+
+          
+          setBranchOptions([
+            ...JSON.parse(filterList.branchOptions),
+          ]);
+
+          setPymntStatusOptions([
+            ...JSON.parse(filterList.pymntStatusOptions),
+          ]);
+          
+          setCategoryDataOptions([
+            ...JSON.parse(filterList.categoryDataOptions),
+          ]);
+        
+          
+          if (categoryCheckedItems.length == 0) {
+            setCategoryCheckedItems([
+              ...JSON.parse(filterList.categoryDataOptions),
+            ]);
+          }
+          setCourseListOption([...JSON.parse(filterList.courseListOptions)]);
+
+          setLeadSourceOptions([...JSON.parse(filterList.leadSourceOptions)]);
+
+          setBatchOptions(filterList.allbatchlist);
+          setBatchOptionsRoaster(filterList.allbatchlistroaster);
+          setFlyingBatchOptions(filterList.allflyingbatchlist);
+
+          setTeamsData([...JSON.parse(filterList.teamsData)]);
+          if (checkedTeamItems.length <= 0) {
+            setCheckedTeamItems([
+              ...JSON.parse(filterList.teamsData),
+            ]);
+          }
+
+          setFilterApiStatus(true);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const setAssignedToUser = async (leadids, toassign) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=assignedLeadToUser`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { enquiry_id: leadids, agent_id: toassign },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const setCoordinatorToUser = async (leadids, toassign) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=assignedcordinatorToUser`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { enquiry_id: leadids, cord_id: toassign },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const setBatchToUser = async (leadids, toassign,type='') => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=assignedbatchToUser`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { enquiry_id: leadids, batch_id: toassign,type:type},
+    }).then(function (response){
+      checkUserLogin(response);
+      if (response.data.data.status === "1") {
+        const updatedStudents = response.data.data.data.map((re) => {
+          return recordList.map((student) =>
+            student.id === re.id ? { ...student, ...re } : student
+          );
+        }).flat(); // Flatten the resulting array
+        toast.success(response.data.data.msg);
+        setRecordList(updatedStudents);
+	document.body.style.overflow = "auto";
+        applyFilter();
+      }else{
+        toast.warn(response.data.data.msg);
+      }
+    })
+    .catch(function (error) {
+      console.error("Error during login:", error);
+    });
+  };
+  const signuinStudentAccount = (user_id) => {
+    if (user_id) {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=genrateLoginEncriptKey`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        cid: user_id,
+        type: "admin",
+        redirectUrl:"my-account?tab=documents"
+      },
+    }).then(function (response) {
+      if (response.data.login.status === 0) {
+        checkUserLogin(response);
+        return false;
+      }
+    if(response.data.data){
+        let urlred=constant.studentdomainurl+"login/"+response.data.data;
+          window.open(urlred);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  }
+
+};
+const filterLabels = {
+    page_type: "Page Type",
+    datetypefilter: "Date Type",
+    dateOption: "Date Type",
+    // datetypefilterlabel:"Date Type",
+    dateOptionsselect: "Date Type",
+    statusCheckedItems: "Lead Status",
+    dateRangeValue: "Date Range",
+    planStatus: "Stage",
+    leadSource: "Lead Source",
+    selectedState: "State",
+    assignee: "Assignee",
+    selectedCourses: "Courses",
+    companyType: "Type",
+    selectedVerified: "Verified",
+    dateRangeValuefilter: "Date Range Filter",
+    dateMonthOptions: "Date/Month",
+    checkedTeamItems: "Team",
+    categoryCheckedItems: "Category",
+    leadStatus: "Lead Status",
+    serviceStatus: "Course Status",
+    scholarStatus: "Scholarship Status",
+    searchByOptions: "Search By",
+    searchtext: "Search Text",
+    paymentStatus: "Payment Status",
+    paymentType: "Payment Type",
+    amountType: "Amount Type",
+    paymentMode: "Payment Mode",
+    batchStatus: "Batch Status",
+    selectedBatchType: "Batch Type",
+    selectedCenter: "Center",
+    holidayType :"Holiday Type",
+    departmentList:"Department",
+    examType : "Exam Type",
+    batchs:"Batches",
+    pymntStatus:"Payment Status",
+    assigneeCoordinator:"Assignee Coordinator",
+    certificateStatus:" Certificate Status",
+    profileStatus:" Profile Status",
+    selectedBatch:"Batch",
+    branchData:"Branch"
+  };
+  const [filterCount, setFilterCount] = useState(0);
+  const [filterApplyStatus, setFilterApplyStatus] = useState(false);
+
+  const handleFilterCountChange = (count) => {
+    setFilterCount(count);
+  };
+  return (
+    <>
+      {(filterApiStatus) && (
+    <>
+      <InnerHeader
+        heading="My Students"
+        txtSubHeading="View and manage the list of students. Keep track of their progress, attendance, and other important details."
+        showButton={false}
+        iconText="Add New Lead"
+      />
+      <Card className="bg5 mt16 pb16">
+        <Tabs
+          tabs={tabs}
+          showCheckboxes={false}
+          showFilter={false}
+          onTabChange={handleTabChange}
+          count={allTabListCount}
+          selectedTab={selectedTab}
+        />
+        <div className="myteam-filters mylead-filters v-center jcsb pl16 brd-b1 pb12 pt12 fww ">
+          <div className="left-side-filter v-center fww">
+            {(selectedTab === "all" ||
+              selectedTab === "running" ||
+              selectedTab === "batchalloted" ||
+              selectedTab === "classesended" ||
+              selectedTab === "new" ||
+              selectedTab === "completed") && (
+              <>
+                <div className="date-label mb8 ">
+                  <Dropdown
+                    label={dateLabel}
+                    options={dateOptions}
+                    selectedValue={date}
+                    onValueChange={handleDateChange}
+                  />
+                </div>
+                <div
+                  className={`report-date ${showDateInput && "ml8"} mr8 mb8`}
+                >
+                  {showDateInput && dateRangeValue && (
+                    <div
+                      className="date-range-input"
+                      onClick={toggleDateRangePicker}
+                      style={{
+                        cursor: "pointer",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        color: "#7b7b7b",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {`${format(
+                        dateRangeValue[0].startDate,
+                        "dd/MM/yyyy"
+                      )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                    </div>
+                  )}
+
+                  {showDateRangePicker && (
+                    <div ref={dateRangePickerRef}>
+                      <DateRangePicker
+                        onChange={handleDateRangeChange}
+                        showSelectionPreview={true}
+                        moveRangeOnFirstSelection={false}
+                        months={2}
+                        ranges={dateRangeValue}
+                        direction="horizontal"
+                        staticRanges={staticRanges}
+                        renderStaticRangeLabel={(range) => (
+                          <span>{range.label}</span>
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            {selectedTab === "all" ||
+            selectedTab === "running" ||
+            selectedTab === "batchalloted" ||
+            selectedTab === "classesended" ||
+            selectedTab === "new" ||
+            selectedTab === "completed" 
+            ? (
+              <>
+                <div className="lead-status mr8 searching-drop mb8 hide-mobile">
+                  <MultiLevelDropdown
+                    placeholder="Coordinator"
+                    data={coordinatordata}
+                    checkedItems={checkedCoordinator}
+                    setCheckedItems={setCheckedCoordinator}
+                  />
+                </div>
+                {selectedTab === "all" && <div className="status-filter mb8 mr8">
+                   <Dropdown
+                    label="Batch Assigned"
+                    options={assigneOptions}
+                    selectedValue={assigneeBatch}
+                    onValueChange={handleAsigneeBatchChange}
+                  />
+                </div>}
+                <Tooltip title={"More Filter"}>
+                  <FaFilter
+                    className="cp fs16 mb8 ml12 fc5"
+                    onClick={handleFilterClick}
+                  />
+                  {filterCount > 0 && (
+                    <span className="notification-count pa br50 fc1 fw6">
+                      {filterCount}
+                    </span>
+                  )}
+                </Tooltip>
+              </>
+            ) : null}
+            {selectedTab === "attendance" && (
+              <>
+                <div className="date-label mb8 mr8">
+                  <Dropdown
+                    label={"Select Month"}
+                    options={monthOptions}
+                    selectedValue={month}
+                    onValueChange={handleMonthChange}
+                  />
+                </div>
+                <div className="date-label mb8 mr8">
+                  <Dropdown
+                    label={"Select Year"}
+                    options={yearOptions}
+                    selectedValue={year}
+                    onValueChange={handleyearChange}
+                  />
+                </div>
+                <div className="status-filter mr8 searching-drop mb8">
+                  <MultiDropdown
+                    label="Course"
+                    options={courseListOptions}
+                    selectedValues={selectedCourses}
+                    onSelect={handleSelectCourse}
+                    chips={2}
+                  />
+                </div>
+                <div className="student-batch-filter service-status-filter mr8 searching-drop mb8">
+                  <MultiDropdown
+                    label="Batch"
+                    options={batchOptionsRoster}
+                    selectedValues={selectedBatch}
+                    onSelect={handleBatchChanges}
+                    chips={2}
+                    searchable={true}
+                  />
+                </div>
+                <Tooltip title={"More Filter"}>
+                  <FaFilter
+                    className="cp fs16 mb8 ml12 fc5"
+                    onClick={handleFilterClick}
+                  />
+                  {filterCount > 0 && (
+                    <span className="notification-count pa br50 fc1 fw6">
+                      {filterCount}
+                    </span>
+                  )}
+                </Tooltip>
+              </>
+            )}
+           {(selectedTab === "studroaster") && (
+              <>
+                <div className="report-date mb8 mr8">
+                  <div
+                    onClick={toggleDateRangeCalendar}
+                    className="date-range-input"
+                    style={{
+                      cursor: "pointer",
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                      color: "#7b7b7b",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {`${format(
+                      dateRangeValue[0].startDate,
+                      "dd/MM/yyyy"
+                    )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                  </div>
+                  {showDateRangeCalendar && (
+                    <div ref={dateRangePickerRef}>
+                      <DateRangePicker
+                        onChange={handleDateRangeChange}
+                        showSelectionPreview={true}
+                        moveRangeOnFirstSelection={false}
+                        months={2}
+                        ranges={dateRangeValue}
+                        direction="horizontal"
+                        staticRanges={staticRanges}
+                        renderStaticRangeLabel={(range) => (
+                          <span>{range.label}</span>
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
+               
+                <div className="student-batch-filter service-status-filter mr8 searching-drop mb8">
+                  <MultiDropdown
+                    label="Batch"
+                    options={batchOptionsRoster}
+                    selectedValues={selectedBatch}
+                    onSelect={handleBatchChanges}
+                    chips={2}
+                    searchable={true}
+                  />
+                </div>
+                <Tooltip title={"More Filter"}>
+                  <FaFilter
+                    className="cp fs16 mb8 ml12 fc5"
+                    onClick={handleFilterClick}
+                  />
+                  {filterCount > 0 && (
+                    <span className="notification-count pa br50 fc1 fw6">
+                      {filterCount}
+                    </span>
+                  )}
+                </Tooltip>
+              </>
+            )}
+
+
+
+            <button className="apply bg1 fs12 pl12 pr12 pt8 pb8 fc3 cp br16 ls1 mr8 ml8 mb8" onClick={applyFilter}>
+              Apply
+            </button>
+            {filterStatus>0 && <button
+              className="clear fs12 pl12 pr12 pt8 pb8 fc1 cp br16 ls1 fw6 mb8"
+              onClick={clearFilter}
+            >
+              Clear
+            </button>}
+          </div>
+          {showFilterPopup && (
+            <SidePopup show={showFilterPopup} onClose={closeFilter}>
+              <div className="df jcsb brd-b1 p12 box-center bg7 w100 fc1 ls2 lh22">
+                <p className="fs18 fc1 ">Filters</p>
+                <button className="lead-close-button" onClick={closeFilter}>
+                  X
+                </button>
+              </div>
+              <div className="filter-lists pl16 pt16 pr16">
+                {selectedTab === "all" ||
+                selectedTab === "running" ||
+                selectedTab === "batchalloted" ||
+                selectedTab === "classesended" ||
+                selectedTab === "new" ||
+                selectedTab === "completed" 
+                ? (
+                  <>
+                    {(selectedTab === "all" ||
+                      selectedTab === "running" ||
+                      selectedTab === "batchalloted" ||
+                      selectedTab === "classesended" ||
+                      selectedTab === "new" ||
+                      selectedTab === "completed") && (
+                      <>
+                      <div className="lead-status-mb mr8 w100 mb16 hide-desktop">
+                      <p className="fc15 fw6 fs14 ls1 mb8">
+                              Select Coordinator
+                            </p>
+                  <MultiLevelDropdown
+                    placeholder="Coordinator"
+                    data={coordinatordata}
+                    checkedItems={checkedCoordinator}
+                    setCheckedItems={setCheckedCoordinator}
+                  />
+                  </div>
+                        <div class="df jcsb mb16 two-inputs">
+                          <div className="plan-status mb8 flx48">
+                            <p className="fc15 fw6 fs14 ls1 mb8">
+                              Payment Status
+                            </p>
+                            <Dropdown
+                              label="Payment Status"
+                              options={pymntStatusOptions}
+                              selectedValue={pymntStatus}
+                              onValueChange={handlePymntStatusChange}
+                            />
+                          </div>
+
+                          <div className="team-filter searching-drop mb8 flx48 w100 rm">
+                            <p className="fc15 fw6 fs14 ls1 mb8">Category</p>
+                            <MultiLevelDropdown
+                              placeholder="Category"
+                              data={categoryDataOptions}
+                              checkedItems={categoryCheckedItems}
+                              setCheckedItems={setCategoryCheckedItems}
+                            />
+                          </div>
+                        </div>
+
+                        <div class="df jcsb mb16 two-inputs">
+                          <div className="mb8 assign flx48">
+                            <p className="fc15 fw6 fs14 ls1 mb8">
+                              Select Course
+                            </p>
+                            <MultiDropdown
+                              label="Course"
+                              options={courseListOptions}
+                              selectedValues={selectedCourses}
+                              onSelect={handleSelectCourse}
+                              chips={2}
+                            />
+                          </div>
+                          <div className="mb8 assign flx48">
+                            <p className="fc15 fw6 fs14 ls1 mb8">
+                              Coordinator Assigned
+                            </p>
+                            <Dropdown
+                              label="Coordinator Assigned"
+                              options={coAssigneOptions}
+                              selectedValue={assigneeCoordinator}
+                              onValueChange={handleCoordinatorBatchChange}
+                            />
+                          </div>
+                        </div>
+                        <div class="df jcsb mb16 two-inputs">
+                          <div className="lead-source-stud searching-drop mb8 w100 flx48">
+                            <p className="fc15 fw6 fs14 ls1 mb8">Lead Source</p>
+                             <Dropdown
+                                label="Lead Source"
+                                options={leadSourceOptions}
+                                selectedValue={leadSource}
+                                onValueChange={handleLeadSourceChange}
+                              />
+                          </div>
+
+                          <div className="state-filter searching-drop mb8 flx48">
+                            <p className="fc15 fw6 fs14 ls1 mb8">State</p>
+
+                            <MultiSelectDropdown
+                              options={stateOptions}
+                              placeholder={"Search State"}
+                              onSelectionChange={handleStateChange}
+                              clearSignal={clearSignal}
+                              selectedOption={selectedState}
+                            />
+                          </div>
+                        </div>
+
+                      <div class="df jcsb mb16 two-inputs">
+                      <div className="lead-source-stud searching-drop mb8 w48 flx48">
+                             <p className="fc15 fw6 fs14 ls1 mb8">
+                              Document Status 
+                            </p>
+                            <Dropdown
+                              label="Select Document Status"
+                              options={docStatusOptions}
+                              selectedValue={docStatus}
+                              onValueChange={handleDocStatusChange}
+                            />
+                          </div>
+
+                          <div className="lead-source-stud searching-drop mb8 w48 flx48">
+                             <p className="fc15 fw6 fs14 ls1 mb8">
+                              Certificate Status 
+                            </p>
+                            <Dropdown
+                              label="Select Certificate Status"
+                              options={certificateStatusOptions}
+                              selectedValue={certificateStatus}
+                              onValueChange={handleCerificateStatusChange}
+                            />
+                          </div>
+                          
+                        </div>
+
+                    <div class="df jcsb mb16 two-inputs">
+                    <div className="lead-source-stud searching-drop mb8 w48 flx48">
+                             <p className="fc15 fw6 fs14 ls1 mb8">
+                              Profile Status 
+                            </p>
+                            <Dropdown
+                              label="Select Certificate Status"
+                              options={profileStatusOptions}
+                              selectedValue={profileStatus}
+                              onValueChange={handleProfileStatusChange}
+                            />
+                          </div>
+                      <div className="lead-source-stud searching-drop mb8 w48 flx48">
+                             <p className="fc15 fw6 fs14 ls1 mb8">
+                              User Type 
+                            </p>
+                            <Dropdown
+                              label="Select User Type"
+                              options={userTypeOptions}
+                              selectedValue={userType}
+                              onValueChange={handleUserTypeChange}
+                            />
+                          </div>
+
+                         
+                        </div>
+
+                      <div class="df jcsb mb16 two-inputs">
+                      <div className="lead-source-stud searching-drop mb8 w100 flx100">
+                             <p className="fc15 fw6 fs14 ls1 mb8">
+                              Branch
+                            </p>
+                            {/* <Dropdown
+                              label="Coordinator Assigned"
+                              options={branchOptions}
+                              selectedValue={branchData}
+                              onValueChange={handleBranchChange}
+                            /> */}
+
+                             <MultiDropdown
+                              label="Select Branch"
+                              options={branchOptions}
+                              selectedValues={branchData}
+                              onSelect={handleBranchChange}
+                              chips={3}
+                            />
+                          </div>
+                        </div>
+                        
+
+                        <div className="team-filter searching-drop mb16 flx100 w100 rm">
+                          <p className="fc15 fw6 fs14 ls1 mb8">RM</p>
+                          <MultiLevelDropdown
+                            placeholder="RM"
+                            data={teamsData}
+                            checkedItems={checkedTeamItems}
+                            setCheckedItems={setCheckedTeamItems}
+                          />
+                        </div>
+                        <>
+                          <div className="search-by-drp mb16 ">
+                            <p className="fc15 fw6 fs14 ls1 mb8">Search By</p>
+                            <Dropdown
+                              label={searchLabel}
+                              options={searchByOptions}
+                              selectedValue={searchBy}
+                              onValueChange={handleSearchByChange}
+                            />
+                          </div>
+                          <div className="student-filter mb16 v-center ">
+                            {showSearchInput && (
+                              <SearchInput
+                                onSearchChange={handleSearchChange}
+                                clearSignal={clearSignal}
+                                placeholder={searchLabel}
+                                prefiledvalue={searchLead}
+
+                              />
+                            )}
+                          </div>
+                        </>
+                      </>
+                    )}
+                  </>
+                ) : selectedTab === "attendance" ? (
+                  <>
+                    <div className="service-status-filter searching-drop mb16">
+                      <p className="fc15 fw6 fs14 ls1 mb8">Center</p>
+                      <MultiDropdown
+                        label="Center"
+                        options={centerOptions}
+                        selectedValues={center}
+                        onSelect={handleCenterChange}
+                        chips={4}
+                      />
+                    </div>
+                    <div className="service-status-filter searching-drop mb16">
+                      <p className="fc15 fw6 fs14 ls1 mb8">Type</p>
+                      <MultiDropdown
+                        label="Type"
+                        options={batchStatusOptions}
+                        selectedValues={attendanceType}
+                        onSelect={handleAttendanceTypeChange}
+                        chips={4}
+                      />
+                    </div>
+                    <div className="search-by-drp mb16 ">
+                      <p className="fc15 fw6 fs14 ls1 mb8">Search By</p>
+                      <Dropdown
+                        label={searchLabel}
+                        options={searchByOptions}
+                        selectedValue={searchBy}
+                        onValueChange={handleSearchByChange}
+                      />
+                    </div>
+                    <div className="student-filter mb16 v-center ">
+                      {showSearchInput && (
+                        <SearchInput
+                          onSearchChange={handleSearchChange}
+                          clearSignal={clearSignal}
+                          placeholder={searchLabel}
+                        />
+                      )}
+                    </div>
+                  </>
+                ) :selectedTab === "studroaster" ? (
+                  <>
+                  <div className="search-by-drp mb16 ">
+                      <p className="fc15 fw6 fs14 ls1 mb8">Search By</p>
+                      <Dropdown
+                        label={searchLabel}
+                        options={searchByOptions}
+                        selectedValue={searchBy}
+                        onValueChange={handleSearchByChange}
+                      />
+                    </div>
+                    <div className="student-filter mb16 v-center ">
+                      {showSearchInput && (
+                        <SearchInput
+                          onSearchChange={handleSearchChange}
+                          clearSignal={clearSignal}
+                          placeholder={searchLabel}
+                        />
+                      )}
+                    </div>
+                 
+                  </>):null}
+                <div className="filter-button-container mt16 pt16 box-center myteam-filters ">
+                  <button
+                    type="button"
+                    className="bg1 fc3 pt8 pb8 pl16 pr16 br24 mr12 fs12 ls1  cp"
+                    onClick={closeFilter}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    className="bg1 fc3 pt8 pb8 pl16 pr16 br24 mr12 fs12 ls1  cp"
+                   onClick={applyFilter}>
+                    Apply
+                  </button>
+                  {filterStatus>0 && <button
+                    type="button"
+                    className="clear fs12 pl12 pr12 pt8 pb8 fc1 cp br16 ls1 fw6 cp"
+                    onClick={clearFilter}
+                  >
+                    Clear
+                  </button>}
+                </div>
+              </div>
+            </SidePopup>
+          )}
+        </div>
+        {filterApplyStatus && (
+            <FilteredDataDisplay
+              filterData={listFilter}
+              labels={filterLabels}
+              onClearAll={clearFilter}
+              onFilterCountChange={handleFilterCountChange}
+              listOptions={{
+                courseListOptions,
+                batchOptionsRoster
+              }}
+            />
+            )}
+        {dataStatus && selectedTab === "new" && <NewStudent 
+          allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          recordList={sortList}
+          handleStudentHistory={handleStudentHistory}
+          recordListHistory ={recordListHistory} 
+          displayMsg={displayMsg}
+          signuinStudentAccount={signuinStudentAccount}
+          handleSortByChange={handleSortByChange}
+          handleGenrateRoll={handleGenrateRoll}
+          setAssignedToUser={setAssignedToUser}
+          setCoordinatorToUser={setCoordinatorToUser}
+          setBatchToUser={setBatchToUser}
+          activeSortColumn={activeSortColumn}
+          setRecordList={setRecordList}
+          handleCellClick={handleCellClick}
+          user={user} 
+        />}
+        {dataStatus && selectedTab === "batchalloted" && <BatchAlloted 
+          allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          recordList={sortList}
+          handleStudentHistory={handleStudentHistory}
+          recordListHistory ={recordListHistory} 
+          displayMsg={displayMsg}
+          signuinStudentAccount={signuinStudentAccount}
+          handleSortByChange={handleSortByChange}
+          handleGenrateRoll={handleGenrateRoll}
+          setAssignedToUser={setAssignedToUser}
+          setCoordinatorToUser={setCoordinatorToUser}
+          setBatchToUser={setBatchToUser}
+          activeSortColumn={activeSortColumn}
+          setRecordList={setRecordList}
+          handleCellClick={handleCellClick}
+          user={user} 
+        />}
+          {dataStatus && selectedTab === "classesended" && <ClassesEnded 
+          allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          applyFilter={applyFilter}
+          recordList={sortList}
+          handleStudentHistory={handleStudentHistory}
+          recordListHistory ={recordListHistory} 
+          displayMsg={displayMsg}
+          signuinStudentAccount={signuinStudentAccount}
+          handleSortByChange={handleSortByChange}
+          handleGenrateRoll={handleGenrateRoll}
+          setAssignedToUser={setAssignedToUser}
+          setCoordinatorToUser={setCoordinatorToUser}
+          setBatchToUser={setBatchToUser}
+          activeSortColumn={activeSortColumn}
+          setRecordList={setRecordList}
+          handleCellClick={handleCellClick}
+          user={user} 
+          selectedTab={selectedTab}
+          listFilter={listFilter}
+          updateSetListingFilter={updateSetListingFilter}
+
+        />}
+         {dataStatus && selectedTab === "all" && <AllStudents 
+          allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          recordList={sortList}
+          handleStudentHistory={handleStudentHistory}
+          recordListHistory ={recordListHistory} 
+          displayMsg={displayMsg}
+          signuinStudentAccount={signuinStudentAccount}
+          handleSortByChange={handleSortByChange}
+          handleGenrateRoll={handleGenrateRoll}
+          setAssignedToUser={setAssignedToUser}
+          setCoordinatorToUser={setCoordinatorToUser}
+          setBatchToUser={setBatchToUser}
+          activeSortColumn={activeSortColumn}
+          setRecordList={setRecordList}
+          handleCellClick={handleCellClick}
+          user={user} 
+        />}
+        {dataStatus && selectedTab === "running" && <Running 
+         allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          recordList={sortList}
+          displayMsg={displayMsg}
+          signuinStudentAccount={signuinStudentAccount}
+          handleSortByChange={handleSortByChange}
+          handleStudentHistory={handleStudentHistory}
+          recordListHistory ={recordListHistory} 
+          handleGenrateRoll={handleGenrateRoll}
+          setAssignedToUser={setAssignedToUser}
+          setCoordinatorToUser={setCoordinatorToUser}
+          setBatchToUser={setBatchToUser}
+          activeSortColumn={activeSortColumn}
+          setRecordList={setRecordList}
+          handleCellClick={handleCellClick}
+          user={user} 
+        />}
+        {dataStatus && selectedTab === "completed" && <Completed 
+         allApiFilter={allApiFilter}
+         allApidata={allApidata}
+         recordList={sortList}
+         displayMsg={displayMsg}
+         handleSortByChange={handleSortByChange}
+         signuinStudentAccount={signuinStudentAccount}
+         handleStudentHistory={handleStudentHistory}
+         recordListHistory = {recordListHistory}
+         handleGenrateRoll={handleGenrateRoll}
+         setAssignedToUser={setAssignedToUser}
+         setCoordinatorToUser={setCoordinatorToUser}
+          setBatchToUser={setBatchToUser}
+         activeSortColumn={activeSortColumn}
+         setRecordList={setRecordList}
+         handleCellClick={handleCellClick}
+         user={user} 
+        />}
+        {dataStatus && selectedTab === "attendance" && <StudentAttendance 
+          allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          recordList={sortList}
+          displayMsg={displayMsg}
+          handleSortByChange={handleSortByChange}
+          activeSortColumn={activeSortColumn}
+          setRecordList={setRecordList}
+          user={user} 
+        />}
+        {dataStatus && selectedTab === "studroaster" && 
+        <StudentRoaster
+          allApiFilter={allApiFilter}
+          allApidata={allApidata}
+          recordList={sortList}
+          displayMsg={displayMsg}
+          setRecordList={setRecordList}
+          checkUserLogin={checkUserLogin}
+          user={user} 
+         /> 
+        }
+      </Card>
+      <ToastContainer position="bottom-right" />
+      {autoLoader && (
+        <div className="box-center mb12">
+          <SmallLoader className={"mb12"} />
+        </div>
+      )}
+    </>
+    )}
+    </>
+  );
+};
+
+export default MyStudents;
+

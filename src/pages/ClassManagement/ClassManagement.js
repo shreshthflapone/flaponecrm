@@ -1,0 +1,2081 @@
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import Card from "../../components/Card";
+import Tabs from "../../components/Tabs";
+import { useLocation } from "react-router-dom";
+import AllStudents from "../MyStudents/AllStudents";
+import InnerHeader from "../../components/InnerHeader";
+import "../MyReports/MyReports.css";
+import Dropdown from "../../components/Dropdown";
+import "react-datepicker/dist/react-datepicker.css";
+import MultiSelectDropdown from "../../components/SearchMultiSelectDropdown.js";
+import MultiLevelDropdown from "../../components/MultiLevelDropdown";
+import "react-datepicker/dist/react-datepicker.css";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import SmallLoader from "../../components/SmallLoader.js";
+import { DateRangePicker } from "react-date-range";
+import InstructorRoaster from "./InstructorRoaster";
+import {
+  startOfMonth,
+  endOfMonth,
+  format,
+  addDays,
+  subMonths,
+  addMonths,
+  startOfToday,
+  startOfYesterday,
+  startOfWeek,
+  endOfWeek,
+  subWeeks,
+  addYears,
+} from "date-fns";
+import SearchInput from "../../components/SearchInput.js";
+import Running from "../MyStudents/Running";
+import Completed from "../MyStudents/Completed";
+import BatchListing from "../ClassManagement/BacthListing.js";
+import ExamListing from "../ClassManagement/ExamListing.js";
+import HolidayListing from "../ClassManagement/HolidayListing.js";
+import MultiDropdown from "../../components/MultiDropdown.js";
+import SidePopup from "../../components/Popup/SidePopup";
+import Tooltip from "../../components/Tooltip";
+import { FaFilter } from "react-icons/fa";
+import StudentAttendance from "../MyStudents/StudentAttendance";
+import moment from "moment";
+import axios from "axios";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import constant from "../../constant/constant.js";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { logout } from "../../store/authSlice.js";
+import { ToastContainer, toast } from "react-toastify";
+import { useTitle } from "../../hooks/useTitle.js";
+import FilteredDataDisplay from "../../components/FilteredDataDisplay.js";
+
+const MyStudents = () => {
+  const { id } = useParams();
+  const user = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  useTitle("Batches List - Flapone Aviation");
+
+  const limit = 10;
+  const [recordList, setRecordList] = useState([]);
+  const [allApiFilter, setAllApiFilter] = useState([]);
+  const [totalPageNum, setTotalPageNum] = useState(0);
+  const [allApidata, setAllApiData] = useState([]);
+  const [pageNum, setPageNum] = useState(1);
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [displayMsg, setDisplayMsg] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
+  const [dataStatus, setDataStatus] = useState(false);
+  const [filterApiStatus, setFilterApiStatus] = useState(false);
+  const [filterStatus, setFilterStatus] = useState(0);
+  const [pageData, setPageData] = useState(0);
+  const [dateTimeType, setDateTimeType] = useState("");
+  const [selectOptIns, setSelectOptIns] = useState([]);
+
+  const tabs = [
+    { label: "Batches", value: "batches" },
+    { label: "Instructor Roster", value: "instroaster" },
+    { label: "Exams", value: "exam" },
+    { label: "Holiday", value: "holiday" },
+  ];
+
+  const [categoryDataOptions, setCategoryDataOptions] = useState([]);
+
+  const currentYear = moment().year();
+  const startYear = 2021;
+  const yearOptions = Array.from(
+    { length: currentYear - startYear + 1 },
+    (v, i) => ({
+      label: (startYear + i).toString(),
+      value: (startYear + i).toString(),
+    })
+  );
+  const [selectedTab, setSelectedTab] = useState(id ? id : "batches");
+  const [selectedState, setSelectedState] = useState([]);
+  const [bucket, setBucket] = useState([]);
+  const [leadVia, setLeadVia] = useState([]);
+  const [destination, setDestinaion] = useState("");
+  const [pymntStatus, setPymntStatus] = useState({});
+  const [courseStatus, setCourseStatus] = useState({});
+  const [workOrderStatus, setWorkOrderStatus] = useState("");
+  const [serviceStatus, setServiceStatus] = useState("");
+  const [assigneeBatch, setAssigneeBatch] = useState("");
+  const [assigneeCoordinator, setAssigneeCoordinator] = useState("");
+  const [companyType, setCompanyType] = useState("");
+  const [leadStatus, setLeadStatus] = useState("");
+  const [date, setDate] = useState("");
+  const [month, setMonth] = useState({ label: "Select Month", value: "" });
+  const [year, setYear] = useState({ label: "Select Year", value: "" });
+  const [clearSignal, setClearSignal] = useState(false);
+
+  const [center, setCenter] = useState([]);
+  const [batch, setBatch] = useState([]);
+  const [attendanceType, setAttendanceType] = useState([]);
+  const [examType, setExamType] = useState([]);
+  const [showDateInput, setShowDateInput] = useState(false);
+  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
+  const [showDateRangeCalendar, setShowDateRangeCalendar] = useState(false);
+  const [searchBy, setSearchBy] = useState("");
+  const [searchLabel, setSearchLabel] = useState("Search By");
+  const [showSearchInput, setShowSearchInput] = useState(false);
+  const [searchLead, setSearchLead] = useState("");
+  const [dateLabel, setDateLabel] = useState(
+    selectedTab === "holiday"
+      ? "Holiday Date"
+      : selectedTab === "exam"
+        ? "Exam Date"
+        : "Select Date"
+  );
+  const [dayMonth, setDayMonth] = useState("");
+  const [batchStatus, setBatchStatus] = useState("");
+  const [autoBatchStatus, setAutoBatchStatus] = useState("");
+  
+  const [categoryCheckedItems, setCategoryCheckedItems] = useState([
+    categoryDataOptions,
+  ]);
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [department, setDepatment] = useState([]);
+  const [holidayType, setHolidayType] = useState([]);
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  // const [categoryData, setCategoryData] = useState([]);
+  const [allTabListCount, setAllTabListCount] = useState({});
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [apply, setApply] = useState(false);
+
+  const [sortBy, setSortBy] = useState(() => {
+    if (selectedTab === "batches") return "update_date";
+    if (selectedTab === "exam") return "examdate_long";
+    if (selectedTab === "holiday") return "holidaydate_long";
+    return "id";
+  });
+
+  const [activeSortColumn, setActiveSortColumn] = useState(() => {
+    if (selectedTab === "batches") return "update_date";
+    if (selectedTab === "exam") return "examdate_long";
+    if (selectedTab === "holiday") return "holidaydate_long";
+    return "id";
+  });
+
+  useEffect(() => {
+    if (selectedTab === "exam") {
+      setSortBy("examdate_long");
+      setActiveSortColumn("examdate_long");
+    } else if (selectedTab === "holiday") {
+      setSortBy("holidaydate_long");
+      setActiveSortColumn("holidaydate_long");
+    } else if (selectedTab === "batches") {
+      setSortBy("update_date");
+      setActiveSortColumn("update_date");
+    } else {
+      setSortBy("id");
+      setActiveSortColumn("id");
+    }
+  }, [selectedTab]);
+
+  const [dateRangeValue, setDateRangeValue] = useState([
+    {
+      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      key: "selection",
+    },
+  ]);
+  const dateRangePickerRef = useRef(null);
+  const location = useLocation();
+
+  const [dateOptions, setDateOptions] = useState([]);
+
+  const monthOptions = [
+    { label: "Select Month", value: "" },
+    { label: "January", value: "January" },
+    { label: "February", value: "February" },
+    { label: "March", value: "March" },
+    { label: "April", value: "April" },
+    { label: "May", value: "May" },
+    { label: "June", value: "June" },
+    { label: "July", value: "July" },
+    { label: "August", value: "August" },
+    { label: "September", value: "September" },
+    { label: "October", value: "October" },
+    { label: "November", value: "November" },
+    { label: "December", value: "December" },
+  ];
+
+  const [batchStatusOptions, setBatchStatusOptions] = useState([]);
+
+   const autoBatchStatusOptions = [
+    { label: "Auto Batch", value: "auto_batch" },
+    { label: "Normal Batch", value: "normal_batch" },
+  ];
+
+  const pymntStatusOptions = [
+    { label: "Partial", value: "partial" },
+    { label: "Complete", value: "complete" },
+  ];
+
+  const [courseListOptions, setCourseListOptions] = useState([]);
+  const [examTypeOptions, setExamTypeOptions] = useState([]);
+  const [batchOptions, setBatchOptions] = useState([]);
+  const [centerOptions, setCenterOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [holidayTypeOptions, setHolidayTypeOptions] = useState([]);
+  const [batchTypeOptions, setBatchTypeOptions] = useState([]);
+  const [instructorList, setInstructorList] = useState([]);
+  const [batchType, setBatchType] = useState("");
+
+  const searchByOptions = [
+    { label: "Name", value: "name" },
+    { label: "Email", value: "email" },
+    { label: "Mobile", value: "mobile" },
+    { label: "Roll No", value: "roll-no" },
+  ];
+  const handleAsigneeBatchChange = (value) => {
+    setAssigneeBatch(value);
+  };
+  const handleCoordinatorBatchChange = (value) => {
+    setAssigneeCoordinator(value);
+  };
+  const handlePymntStatusChange = (value) => {
+    setPymntStatus(value);
+  };
+  const handleCourseStatusChange = (value) => {
+    setCourseStatus(value);
+  };
+  const handleDateChange = (option) => {
+    setDate(option.value);
+    setShowDateInput(true);
+    setDateLabel(option.label);
+    /*    if (option.value) {
+      setShowDateRangePicker(true);
+    } else {
+      setShowDateRangePicker(false);
+    }
+*/
+    if (option.value === "exam_date") {
+      setDateRangeValue([
+        {
+          startDate: new Date(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            1
+          ),
+          endDate: addYears(new Date(), 1),
+          key: "selection",
+        },
+      ]);
+    } else if (option.value === "holiday_date") {
+      setDateRangeValue([
+        {
+          startDate: new Date(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            1
+          ),
+          endDate: addMonths(new Date(), 6),
+          key: "selection",
+        },
+      ]);
+    } else if (option.value === "class_date") {
+      setDateRangeValue([
+        {
+          startDate: new Date(),
+          endDate: addDays(new Date(), 0),
+          key: "selection",
+        },
+      ]);
+    }
+  };
+  const handleMonthChange = (option) => {
+    setMonth(option);
+  };
+  const handleyearChange = (option) => {
+    setYear(option);
+  };
+
+  const stateOptions = [
+    { value: "delhi", label: "Delhi" },
+    { value: "up", label: "Uttar Pradesh" },
+    { value: "hp", label: "Himachal Pradesh" },
+    { value: "punjab", label: "Punjab" },
+    { value: "bihar", label: "Bihar" },
+  ];
+
+  const handleBatchTypeChange = (value) => {
+    setBatchType(value);
+  };
+  const handleInstructorChange = (value) => {
+    setSelectOptIns(value);
+  };
+
+  const handleStateChange = (selectedOptions) => {
+    setSelectedState(selectedOptions);
+  };
+  const handleDateRangeChange = (item) => {
+    setDateTimeType("");
+    setDateRangeValue([item.selection]);
+  };
+  const toggleDateRangePicker = () => {
+    setShowDateRangePicker(!showDateRangePicker);
+  };
+  const handleClickOutside = (event) => {
+    if (
+      dateRangePickerRef.current &&
+      !dateRangePickerRef.current.contains(event.target)
+    ) {
+      setShowDateRangePicker(false);
+      setShowDateRangeCalendar(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showDateRangePicker || showDateRangeCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDateRangePicker, showDateRangeCalendar]);
+  const handleSearchChange = (value) => {
+    setSearchLead(value);
+  };
+  const handleSearchByChange = (option) => {
+    setSearchBy(option.value);
+    setSearchLabel(option.label);
+    if (option.value) {
+      setShowSearchInput(true);
+    } else {
+      setShowSearchInput(false);
+    }
+  };
+  const handleCenterChange = (value) => {
+    const index = center.indexOf(value);
+    if (index === -1) {
+      setCenter([...center, value]);
+    } else {
+      const updatedValues = [...center];
+      updatedValues.splice(index, 1);
+      setCenter(updatedValues);
+    }
+  };
+  const handleAttendanceTypeChange = (value) => {
+    const index = attendanceType.indexOf(value);
+    if (index === -1) {
+      setAttendanceType([...attendanceType, value]);
+    } else {
+      const updatedValues = [...attendanceType];
+      updatedValues.splice(index, 1);
+      setAttendanceType(updatedValues);
+    }
+  };
+  const handleBatchChanges = (value) => {
+    const index = batch.indexOf(value);
+    if (index === -1) {
+      setBatch([...batch, value]);
+    } else {
+      const updatedValues = [...batch];
+      updatedValues.splice(index, 1);
+      setBatch(updatedValues);
+    }
+  };
+  const handleHolidayTypeChange = (value) => {
+    const index = holidayType.indexOf(value);
+    if (index === -1) {
+      setHolidayType([...holidayType, value]);
+    } else {
+      const updatedValues = [...holidayType];
+      updatedValues.splice(index, 1);
+      setHolidayType(updatedValues);
+    }
+  };
+  const handleDepartmentChanges = (value) => {
+    const index = department.indexOf(value);
+    if (index === -1) {
+      setDepatment([...department, value]);
+    } else {
+      const updatedValues = [...department];
+      updatedValues.splice(index, 1);
+      setDepatment(updatedValues);
+    }
+  };
+  const handleExamType = (value) => {
+    const index = examType.indexOf(value);
+    if (index === -1) {
+      setExamType([...examType, value]);
+    } else {
+      const updatedValues = [...examType];
+      updatedValues.splice(index, 1);
+      setExamType(updatedValues);
+    }
+  };
+
+  const handleBatchStatusChange = (value) => {
+    setBatchStatus(value);
+  };
+
+  const handleAutoBatchStatusChange = (value) => {
+    setAutoBatchStatus(value);
+  };
+
+  const handleSelectCourse = (value) => {
+    const index = selectedCourses.indexOf(value);
+    if (index === -1) {
+      setSelectedCourses([...selectedCourses, value]);
+    } else {
+      const updatedValues = [...selectedCourses];
+      updatedValues.splice(index, 1);
+      setSelectedCourses(updatedValues);
+    }
+  };
+
+  const handleFilterClick = () => {
+    setShowFilterPopup(true);
+  };
+
+  const closeMoreFilter = () => {
+    setShowFilterPopup(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const applyFilter = async () => {
+    setFilterApplyStatus(true);
+    setAllApiData([]);
+    let updatefilter = {
+      ...listFilter,
+      page_type: selectedTab,
+      datetypefilter: date,
+      batchStatus: batchStatus,
+      autoBatchStatus: autoBatchStatus,
+      categoryCheckedItems: categoryCheckedItems,
+      selectedCourses: selectedCourses,
+      selectedCenter: center,
+      selectedBatchType: batchType,
+      dateRangeValuefilter: dateRangeValue,
+      companyType: companyType,
+      dateMonthOptions: dayMonth,
+      dateRangeValue: `${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+      holidayType: holidayType,
+      examType: examType,
+      batchs: batch,
+      centerList: center,
+      departmentList: department,
+      datetypefilterlabel: dateLabel,
+      dateTimeType: dateTimeType,
+      instructorselect:selectOptIns
+    };
+    var getoldfilter = localStorage.getItem("allfilterclassmanagementoption");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+    }
+    oldFilter[selectedTab] = updatefilter;
+    localStorage.setItem(
+      "allfilterclassmanagementoption",
+      JSON.stringify(oldFilter)
+    );
+    setListFilter(updatefilter);
+    setApply(true);
+    setPageNum(1);
+  };
+
+  const closeFilter = () => {
+    setShowFilterPopup(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const toggleDateRangeCalendar = () => {
+    setShowDateRangeCalendar(!showDateRangeCalendar);
+  };
+
+  const checkUserLogin = (response) => {
+    if (response.data.login.status === 0) {
+      dispatch(logout());
+      navigate("/login");
+    }
+  };
+
+  const initial_obj = {
+    page_type: id ? id : "batches",
+    datetypefilter:
+      selectedTab === "exam"
+        ? "exam_date"
+        : selectedTab === "holiday"
+          ? "holiday_date"
+          : selectedTab === "instroaster"
+            ? "class_date"
+            : "",
+    dateRangeValue:
+      selectedTab === "instroaster"
+        ? `${format(new Date(), "dd-MM-yyyy")} | ${format(addDays(new Date(), 0), "dd-MM-yyyy")}`
+        : `${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+    checkedTeamItems: "",
+    planStatus: [],
+    leadStatus: [],
+    leadSource: [],
+    selectedState: [],
+    assignee: "",
+    batchStatus: [],
+    autoBatchStatus :[],
+    categoryCheckedItems: "",
+    selectedCourses: [],
+    selectedCenter: [],
+    selectedBatchType: [],
+    companyType: "",
+    dateRangeValuefilter: "",
+    statusCheckedItems: [],
+    dateMonthOptions: { label: "Day", value: "day" },
+    holidayType: [],
+    examType: [],
+    batchs: [],
+    centerList: [],
+    departmentList: [],
+    datetypefilterlabel: "",
+    dateTimeType: "",
+    center: [],
+    batch: [],
+    instructorselect:[]
+  };
+
+  function setLocalStorage() {
+    var getoldfilter = localStorage.getItem("allfilterclassmanagementoption");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+      var currenttabfilter = oldFilter[selectedTab];
+      if (currenttabfilter) {
+        setFilterApplyStatus(true);
+        if (currenttabfilter && currenttabfilter["batchStatus"]) {
+          handleBatchStatusChange(currenttabfilter["batchStatus"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["autoBatchStatus"]) {
+          handleAutoBatchStatusChange(currenttabfilter["autoBatchStatus"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["selectedCourses"]) {
+          setSelectedCourses([...currenttabfilter["selectedCourses"]]);
+        }
+
+        if (currenttabfilter && currenttabfilter["selectedCenter"]) {
+          setCenter([...currenttabfilter["selectedCenter"]]);
+        }
+
+        if (currenttabfilter && currenttabfilter["selectedBatchType"]) {
+          setBatchType(currenttabfilter["selectedBatchType"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["categoryCheckedItems"]) {
+          setCategoryCheckedItems(currenttabfilter["categoryCheckedItems"]);
+        }
+         if (currenttabfilter && currenttabfilter["instructorselect"]) {
+          let getoptionist =instructorList.find(
+              (item) => item.value === currenttabfilter["instructorselect"]['value']
+          );
+          
+          setSelectOptIns(getoptionist);
+        }
+      
+        if (currenttabfilter && currenttabfilter["datetypefilter"]) {
+          let filterdateobj = dateOptions.find(
+            (item) => item.value === currenttabfilter["datetypefilter"]
+          );
+          if (filterdateobj) {
+            handleDateChange(filterdateobj);
+            setShowDateRangePicker(false);
+            setShowDateRangeCalendar(false);
+          }
+          {
+            /*setDate(currenttabfilter.datetypefilter);
+          setDateLabel(currenttabfilter.datetypefilterlabel);
+          setShowDateInput(true);
+          
+          setShowDateRangePicker(false);
+          setShowDateRangeCalendar(false);*/
+          }
+        }
+        if (currenttabfilter && currenttabfilter["dateTimeType"]) {
+          setDateTimeType(currenttabfilter["dateTimeType"]);
+        }
+
+        if (
+          currenttabfilter &&
+          Array.isArray(currenttabfilter["examType"]) &&
+          currenttabfilter["examType"].length > 0
+        ) {
+          setExamType(currenttabfilter["examType"]);
+        }
+        if (
+          currenttabfilter &&
+          Array.isArray(currenttabfilter["batchs"]) &&
+          currenttabfilter["batchs"].length > 0
+        ) {
+          setBatch(currenttabfilter["batchs"]);
+        }
+
+        if (
+          currenttabfilter &&
+          Array.isArray(currenttabfilter["departmentList"]) &&
+          currenttabfilter["departmentList"].length > 0
+        ) {
+          setDepatment(currenttabfilter["departmentList"]);
+        }
+
+        if (
+          currenttabfilter &&
+          Array.isArray(currenttabfilter["holidayType"]) &&
+          currenttabfilter["holidayType"].length > 0
+        ) {
+          setHolidayType(currenttabfilter["holidayType"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["dateRangeValuefilter"]) {
+          setDateRangeValue(currenttabfilter["dateRangeValuefilter"]);
+        }
+
+        if (
+          currenttabfilter &&
+          Array.isArray(currenttabfilter["centerList"]) &&
+          currenttabfilter["centerList"].length > 0
+        ) {
+          setCenter(currenttabfilter["centerList"]);
+        }
+
+        if (
+          currenttabfilter &&
+          Array.isArray(currenttabfilter["selectedCourses"]) &&
+          currenttabfilter["selectedCourses"].length > 0
+        ) {
+          setSelectedCourses([...currenttabfilter["selectedCourses"]]);
+        }
+        setFilterStatus(1);
+        setListFilter(currentTabFilterVal);
+      } else {
+        updateSetListingFilter();
+        setFilterStatus(0);
+        if (selectedTab === "exam") {
+          setDateRangeValue([
+            {
+              startDate: new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+              ),
+              endDate: addYears(new Date(), 1),
+              key: "selection",
+            },
+          ]);
+        } else if (selectedTab === "holiday") {
+          setDateRangeValue([
+            {
+              startDate: new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+              ),
+              endDate: addMonths(new Date(), 6),
+              key: "selection",
+            },
+          ]);
+        } else if (selectedTab == "instroaster") {
+          setDateRangeValue([
+            {
+              startDate: new Date(),
+              endDate: addDays(new Date(), 0),
+              key: "selection",
+            },
+          ]);
+          handleDateChange({ label: "Class Date", value: "class_date" });
+        }
+      }
+    } else {
+      updateSetListingFilter();
+      setFilterStatus(0);
+      if (selectedTab === "exam") {
+        setDateRangeValue([
+          {
+            startDate: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              1
+            ),
+            endDate: addYears(new Date(), 1),
+            key: "selection",
+          },
+        ]);
+      } else if (selectedTab === "holiday") {
+        setDateRangeValue([
+          {
+            startDate: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              1
+            ),
+            endDate: addMonths(new Date(), 6),
+            key: "selection",
+          },
+        ]);
+      } else if (selectedTab == "instroaster") {
+        setDateRangeValue([
+          {
+            startDate: new Date(),
+            endDate: addDays(new Date(), 0),
+            key: "selection",
+          },
+        ]);
+        handleDateChange({ label: "Class Date", value: "class_date" });
+      }
+    }
+  }
+  useEffect(() => {
+    getCourseList();
+    setSelectedCourses([]);
+  }, [categoryCheckedItems]);
+
+  const getCourseList = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_list.php?fun=getcourselist`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { coursecategory: categoryCheckedItems },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          setCourseListOptions([...response.data.data.data]);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const clearFilter = () => {
+    FilterAllStateClear();
+    let getOldFilterclear = localStorage.getItem(
+      "allfilterclassmanagementoption"
+    );
+    let oldFilterValclear = getOldFilterclear
+      ? JSON.parse(getOldFilterclear)
+      : {};
+    let currentTabFilterValclear = oldFilterValclear[selectedTab]
+      ? { ...oldFilterValclear }
+      : null;
+
+    if (currentTabFilterValclear) {
+      delete currentTabFilterValclear[selectedTab];
+      localStorage.setItem(
+        "allfilterclassmanagementoption",
+        JSON.stringify(currentTabFilterValclear)
+      );
+    }
+    updateSetListingFilter(1);
+    closeFilter();
+    setFilterApplyStatus(false);
+  };
+
+  const staticRanges = [
+    {
+      label: "Today",
+      range: () => ({
+        startDate: startOfToday(),
+        endDate: new Date(),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[0].range();
+        if (dateTimeType == "Today") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+            startDate.getTime()
+          ) {
+            setDateTimeType("Today");
+            return true;
+          }
+        }
+      },
+    },
+    {
+      label: "Yesterday",
+      range: () => ({
+        startDate: startOfYesterday(),
+        endDate: startOfYesterday(),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[1].range();
+        if (dateTimeType == "Yesterday") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+              startDate.getTime() &&
+            new Date(dateRangeValue[0].endDate).getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Yesterday");
+            return true;
+          }
+        }
+      },
+    },
+    {
+      label: "This Week",
+      range: () => ({
+        startDate: startOfWeek(new Date()),
+        endDate: endOfWeek(new Date()),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[2].range();
+        if (dateTimeType == "This Week") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+              startDate.getTime() &&
+            new Date(dateRangeValue[0].endDate).getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("This Week");
+            return true;
+          }
+        }
+      },
+    },
+    {
+      label: "Last Week",
+      range: () => ({
+        startDate: startOfWeek(subWeeks(new Date(), 1)),
+        endDate: endOfWeek(subWeeks(new Date(), 1)),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[3].range();
+        if (dateTimeType == "Last Week") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+              startDate.getTime() &&
+            new Date(dateRangeValue[0].endDate).getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Last Week");
+            return true;
+          }
+        }
+      },
+    },
+    {
+      label: "This Month",
+      range: () => ({
+        startDate: startOfMonth(new Date()),
+        endDate: endOfMonth(new Date()),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[4].range();
+        if (dateTimeType == "This Month") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+              startDate.getTime() &&
+            new Date(dateRangeValue[0].endDate).getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("This Month");
+            return true;
+          }
+        }
+      },
+    },
+    {
+      label: "Last Month",
+      range: () => ({
+        startDate: startOfMonth(subMonths(new Date(), 1)),
+        endDate: endOfMonth(subMonths(new Date(), 1)),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[5].range();
+        if (dateTimeType == "Last Month") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+              startDate.getTime() &&
+            new Date(dateRangeValue[0].endDate).getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Last Month");
+            return true;
+          }
+        }
+      },
+    },
+    {
+      label: "All Time",
+      range: () => ({
+        startDate: new Date(2021, 0, 1),
+        endDate: new Date(),
+      }),
+      hasCustomRendering: true,
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[6].range();
+        if (dateTimeType == "All Time") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            new Date(dateRangeValue[0].startDate).getTime() ===
+            startDate.getTime()
+          ) {
+            setDateTimeType("All Time");
+            return true;
+          }
+        }
+      },
+    },
+  ];
+
+  const handleTabChange = (value) => {
+    setSelectedTab(value);
+    setPageNum(1);
+    navigate(`/class-management/${value}`);
+  };
+  var oldFilter = {};
+  var getOldFilter = localStorage.getItem("allfilterclassmanagementoption");
+  var oldFilterVal = getOldFilter ? JSON.parse(getOldFilter) : {};
+  var currentTabFilterVal = oldFilterVal[selectedTab]
+    ? oldFilterVal[selectedTab]
+    : "";
+
+  const [listFilter, setListFilter] = useState(
+    currentTabFilterVal != ""
+      ? currentTabFilterVal
+      : {
+          page_type: id ? id : "batches",
+          datetypefilter: selectedTab === "instroaster" ? "class_date" : "",
+          dateRangeValue: "",
+          batchStatus: [],
+          autoBatchStatus: [],
+          categoryCheckedItems: "",
+          selectedCourses: [],
+          companyType: "",
+          dateRangeValuefilter: "",
+          statusCheckedItems: [],
+          dateMonthOptions: { label: "Day", value: "day" },
+          holidayType: [],
+          examType: [],
+          batchs: [],
+          centerList: [],
+          departmentList: [],
+        }
+  );
+
+  useEffect(() => {
+    getAllFilter();
+  }, [listFilter]);
+
+  function updateSetListingFilter(clearstatus = 0) {
+    if (clearstatus == 1) {
+      let updatefilter = {
+        ...listFilter,
+        ...initial_obj,
+        page_type: id ? id : selectedTab,
+        datetypefilter: "",
+      };
+      setListFilter(updatefilter);
+    } else {
+      let updatefilter = {
+        ...listFilter,
+        ...initial_obj,
+        page_type: id ? id : selectedTab,
+      };
+      setListFilter(updatefilter);
+    }
+  }
+
+  const handleSortByChange = (field) => {
+    if (field === sortBy) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortDirection("asc");
+    }
+    setActiveSortColumn(field);
+  };
+
+  const sortList = useMemo(() => {
+    let sortedList = [...recordList];
+    sortedList.sort((a, b) => {
+      const aValue = a[sortBy] || "";
+      const bValue = b[sortBy] || "";
+      if (
+        sortBy === "id" ||
+        sortBy === "examdate_long" ||
+        sortBy === "holidaydate_long" ||
+        sortBy === "end_date_long" ||
+        sortBy === "start_date_long" ||
+        sortBy === "max_allow_stu" ||
+        sortBy === "update_date_long"
+      ) {
+        return sortDirection === "asc"
+          ? a[sortBy] - b[sortBy]
+          : b[sortBy] - a[sortBy];
+      } else {
+        const comparison = aValue
+          .toString()
+          .localeCompare(bValue.toString(), undefined, { numeric: true });
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+    });
+    return sortedList;
+  }, [recordList, sortBy, sortDirection]);
+
+  const getAllLeadTypeCount = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=gettypecount`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {},
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          setAllTabListCount(response.data.data.data);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const getAllFilter = async () => {
+    await axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=getallfilter`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { filter: listFilter },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          setAllApiFilter(response.data.data.filterlist);
+
+          setDateOptions([
+            ...JSON.parse(response.data.data.filterlist.dateOptions),
+          ]);
+
+          setBatchStatusOptions([
+            ...JSON.parse(response.data.data.filterlist.statusOptions),
+          ]);
+
+          setCourseListOptions([
+            ...JSON.parse(response.data.data.filterlist.courseListOptions),
+          ]);
+
+          setCategoryDataOptions([
+            ...JSON.parse(response.data.data.filterlist.categories_list),
+          ]);
+
+          if (categoryCheckedItems.length <= 0) {
+            setCategoryCheckedItems([
+              ...JSON.parse(response.data.data.filterlist.categories_list),
+            ]);
+          }
+
+          setExamTypeOptions([
+            ...JSON.parse(response.data.data.filterlist.examTypeOptions),
+          ]);
+
+          setBatchOptions([
+            ...JSON.parse(response.data.data.filterlist.BatchList),
+          ]);
+
+          setCenterOptions([
+            ...JSON.parse(response.data.data.filterlist.locationListOptions),
+          ]);
+
+          setDepartmentOptions([
+            ...JSON.parse(response.data.data.filterlist.departmentData),
+          ]);
+
+          setHolidayTypeOptions([
+            ...JSON.parse(response.data.data.filterlist.holidayTypeOptions),
+          ]);
+
+          setBatchTypeOptions([
+            ...JSON.parse(response.data.data.filterlist.batchTypeOptions),
+          ]);
+          setInstructorList([
+            ...JSON.parse(response.data.data.filterlist.instructorOption),
+          ]);
+          setFilterApiStatus(true);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const getListRecord = async () => {
+    setAutoLoader(true);
+    setDisplayMsg("");
+    setPageData(0);
+    await axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=getlistrecord`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { page_num: pageNum, limit: limit, filter: listFilter },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          if (pageNum === 1) {
+            setPageData(response.data.data.total_count);
+            if (selectedTab == "instroaster") {
+              setAllTabListCount((pre) => ({
+                ...pre,
+                instroaster: response.data.data.total_count,
+              }));
+            }
+
+            setAllApiData(response.data.data);
+            setTotalPageNum(response.data.data.total_page);
+            setRecordList([...response.data.data.list]);
+          } else {
+            setRecordList([...recordList, ...response.data.data.list]);
+          }
+          setPageNum((prevPageNum) => prevPageNum + 1);
+          setDataStatus(true);
+        } else {
+          setRecordList([]);
+          setDisplayMsg(response.data.data.msg);
+        }
+        var getoldfilter = localStorage.getItem(
+          "allfilterclassmanagementoption"
+        );
+        if (getoldfilter) {
+          oldFilter = JSON.parse(getoldfilter);
+          var currenttabfilter = oldFilter[selectedTab];
+          if (currenttabfilter) {
+            setFilterStatus(response.data.data.filter_status);
+          } else {
+            setFilterStatus(0);
+          }
+        }
+        setFilterStatus(response.data.data.filter_status);
+        setAutoLoader(false);
+        setIsFetching(false);
+        setDataStatus(true);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const FilterAllStateClear = () => {
+    setFilterCount(0);
+    setDate("");
+    setDateLabel("Select Date");
+    setBatchStatus([]);
+    setAutoBatchStatus([]);
+    setCategoryCheckedItems(categoryDataOptions);
+    setSelectedCourses([]);
+    setDepatment([]);
+    setHolidayType([]);
+    setExamType([]);
+    setSelectedState([]);
+    setSearchBy("");
+    setSearchLabel("Search By");
+    setSearchLead("");
+    setClearSignal(true);
+    setShowDateInput(false);
+    setTimeout(() => setClearSignal(false), 0);
+    setPageNum(1);
+    setTotalPageNum(0);
+    setAllApiData([]);
+    setCenter([]);
+    setBatch([]);
+    setBatchType([]);
+    setDateTimeType("");
+    setSelectOptIns([]);
+    setDataStatus(false);
+  };
+
+  useEffect(() => {
+    if (id !== undefined) {
+      if (listFilter.dateRangeValue != "") {
+        getListRecord();
+      }
+    } else {
+      if (listFilter.page_type !== undefined) {
+        getListRecord();
+      }
+    }
+  }, [listFilter]);
+
+  useEffect(() => {
+    getAllLeadTypeCount();
+  }, []);
+
+  useEffect(() => {
+    if (filterApiStatus) {
+      FilterAllStateClear();
+      setLocalStorage();
+    }
+  }, [selectedTab, filterApiStatus]);
+
+  useEffect(() => {
+    if (selectedTab != "instroaster") {
+      const scrollHandler = () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          const { scrollHeight, scrollTop, clientHeight } =
+            document.documentElement;
+          if (scrollTop + clientHeight >= scrollHeight - 70 && !isFetching) {
+            setIsFetching(true);
+            if (pageNum <= totalPageNum) {
+              getListRecord();
+            }
+          }
+        }, 200);
+      };
+      let scrollTimeout;
+
+      window.addEventListener("scroll", scrollHandler);
+
+      return () => window.removeEventListener("scroll", scrollHandler);
+    }
+  }, [isFetching, pageNum]);
+
+  useEffect(() => {
+    const savedFilters = localStorage.getItem("allfilterclassmanagementoption");
+    const parsedFilters = savedFilters ? JSON.parse(savedFilters) : null;
+    const currentTabFilter = parsedFilters ? parsedFilters[selectedTab] : null;
+
+    if (currentTabFilter && currentTabFilter["dateRangeValuefilter"]) {
+      setDateRangeValue(currentTabFilter["dateRangeValuefilter"]);
+    } else {
+      if (selectedTab === "exam") {
+        handleDateChange({ label: "Exam Date", value: "exam_date" });
+      } else if (selectedTab === "holiday") {
+        handleDateChange({ label: "Holiday Date", value: "holiday_date" });
+      } else if (selectedTab === "instroaster") {
+        handleDateChange({ label: "Class Date", value: "class_date" });
+      }
+    }
+  }, [selectedTab]);
+  const setlocation = async (class_detail_id, value) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=setlocation`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { class_detail_id: class_detail_id, value: value },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          toast.success(response.data.data.msg);
+        } else {
+          toast.warn(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const setroomtoclass = async (class_detail_id, value) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=setroomalloted`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { class_detail_id: class_detail_id, room_number: value },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          toast.success(response.data.data.msg);
+        } else {
+          toast.warn(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const setclassmeetlink = async (class_detail_id, value) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=setclassmeetlink`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { class_detail_id: class_detail_id, meetlink: value },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          toast.success(response.data.data.msg);
+        } else {
+          toast.warn(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const setclasstaken = async (class_detail_id, value) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=setclasstaken`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { class_detail_id: class_detail_id, statusclass: value },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          toast.success(response.data.data.msg);
+        } else {
+          toast.warn(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const assignInstructor = async (
+    selectedBatch,
+    selectedInstructor,
+    assigned
+  ) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/class_management_list.php?fun=assigninstructor`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        selectedBatch: selectedBatch,
+        selectedInstructor: selectedInstructor,
+        assigned: assigned,
+      },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          toast.success(response.data.data.msg);
+          applyFilter();
+        } else {
+          toast.warn(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const handleNavLinkFilterClick = (value) => () => {
+    if (Object.keys(value).length > 0) {
+      setListFilter((prevFilter) => ({
+        ...prevFilter,
+        batchStatus: value,
+      }));
+      setBatchStatus(value);
+      setApply(true);
+      setPageNum(1);
+    } else {
+      setBatchStatus([]);
+      handleBatchStatusChange([]);
+    }
+  };
+
+  const filterLabels = {
+    page_type: "Page Type",
+
+    datetypefilter: "Date Type",
+
+    dateOption: "Date Type",
+
+    // datetypefilterlabel:"Date Type",
+
+    statusCheckedItems: "Lead Status",
+
+    dateRangeValue: "Date Range",
+
+    planStatus: "Stage",
+
+    leadSource: "Lead Source",
+
+    selectedState: "State",
+
+    assignee: "Assignee",
+
+    selectedCourses: "Courses",
+
+    companyType: "Type",
+
+    selectedVerified: "Verified",
+
+    dateRangeValuefilter: "Date Range Filter",
+
+    dateMonthOptions: "Date/Month",
+
+    checkedTeamItems: "Team",
+
+    categoryCheckedItems: "Category",
+
+    leadStatus: "Lead Status",
+
+    serviceStatus: "Course Status",
+
+    scholarStatus: "Scholarship Status",
+
+    searchByOptions: "Search By",
+
+    searchtext: "Search Text",
+
+    paymentStatus: "Payment Status",
+
+    paymentType: "Payment Type",
+
+    amountType: "Amount Type",
+
+    paymentMode: "Payment Mode",
+
+    batchStatus: "Batch Status",
+
+    selectedBatchType: "Batch Type",
+
+    selectedCenter: "Center",
+
+    holidayType: "Holiday Type",
+
+    departmentList: "Department",
+
+    examType: "Exam Type",
+
+    batchs: "Batches",
+
+    instructorselect:"Instructor"
+  };
+
+  const [filterCount, setFilterCount] = useState(0);
+
+  const [filterApplyStatus, setFilterApplyStatus] = useState(false);
+
+  const handleFilterCountChange = (count) => {
+    setFilterCount(count);
+  };
+
+  return (
+    <>
+      {dataStatus && filterApiStatus && (
+        <>
+          <InnerHeader
+            heading="Class Management"
+            txtSubHeading="Manage batches, exam dates, and holidays details seamlessly. Keep track of progress, and schedules all in one place to ensure smooth class operations."
+            showButton={false}
+            iconText="Add New Lead"
+          />
+          <Card className="bg5 mt16 pb16">
+            <Tabs
+              tabs={tabs}
+              showCheckboxes={false}
+              showFilter={false}
+              onTabChange={handleTabChange}
+              count={allTabListCount}
+              selectedTab={selectedTab}
+            />
+            <div className="myteam-filters mylead-filters v-center jcsb pl16 brd-b1 pb12 pt12 fww ">
+              <div className="left-side-filter v-center fww">
+                {selectedTab === "batches" && (
+                  <>
+                    <div className="date-label mb8 ">
+                      <Dropdown
+                        label={dateLabel}
+                        options={dateOptions}
+                        selectedValue={date}
+                        onValueChange={handleDateChange}
+                      />
+                    </div>
+                    <div
+                      className={`report-date ${showDateInput && "ml8"} mr8 mb8`}
+                    >
+                      {showDateInput && dateRangeValue && (
+                        <div
+                          className="date-range-input"
+                          onClick={toggleDateRangePicker}
+                          style={{
+                            cursor: "pointer",
+                            padding: "10px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            color: "#7b7b7b",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {`${format(
+                            dateRangeValue[0].startDate,
+                            "dd/MM/yyyy"
+                          )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                        </div>
+                      )}
+
+                      {showDateRangePicker && (
+                        <div ref={dateRangePickerRef}>
+                          <DateRangePicker
+                            onChange={handleDateRangeChange}
+                            showSelectionPreview={true}
+                            moveRangeOnFirstSelection={false}
+                            months={2}
+                            ranges={dateRangeValue}
+                            direction="horizontal"
+                            staticRanges={staticRanges}
+                            renderStaticRangeLabel={(range) => (
+                              <span>{range.label}</span>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="mr8 plan-status mb8 hide-mobile">
+                      <Dropdown
+                        label="Select Batch Status"
+                        options={batchStatusOptions}
+                        selectedValue={batchStatus}
+                        onValueChange={handleBatchStatusChange}
+                      />
+                    </div>
+
+                    
+                  </>
+                )}
+
+                {selectedTab === "exam" && (
+                  <>
+                    <div className="date-label mb8 ">
+                      <Dropdown
+                        label={dateLabel}
+                        options={dateOptions}
+                        selectedValue={date}
+                        onValueChange={handleDateChange}
+                      />
+                    </div>
+                    <div
+                      className={`report-date ${showDateInput && "ml8"} mr8 mb8`}
+                    >
+                      {showDateInput && dateRangeValue && (
+                        <div
+                          className="date-range-input"
+                          onClick={toggleDateRangePicker}
+                          style={{
+                            cursor: "pointer",
+                            padding: "10px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            color: "#7b7b7b",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {`${format(
+                            dateRangeValue[0].startDate,
+                            "dd/MM/yyyy"
+                          )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                        </div>
+                      )}
+
+                      {showDateRangePicker && (
+                        <div ref={dateRangePickerRef}>
+                          <DateRangePicker
+                            onChange={handleDateRangeChange}
+                            showSelectionPreview={true}
+                            moveRangeOnFirstSelection={false}
+                            months={2}
+                            ranges={dateRangeValue}
+                            direction="horizontal"
+                            staticRanges={staticRanges}
+                            renderStaticRangeLabel={(range) => (
+                              <span>{range.label}</span>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="service-status-filter mr8 searching-drop mb8 hide-mobile">
+                      <MultiDropdown
+                        label="Exam Type"
+                        options={examTypeOptions}
+                        selectedValues={examType}
+                        onSelect={handleExamType}
+                        chips={2}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {selectedTab === "holiday" && (
+                  <>
+                    <div className="date-label mb8 ">
+                      <Dropdown
+                        label={dateLabel}
+                        options={dateOptions}
+                        selectedValue={date}
+                        onValueChange={handleDateChange}
+                      />
+                    </div>
+                    <div
+                      className={`report-date ${showDateInput && "ml8"} mr8 mb8`}
+                    >
+                      {showDateInput && dateRangeValue && (
+                        <div
+                          className="date-range-input"
+                          onClick={toggleDateRangePicker}
+                          style={{
+                            cursor: "pointer",
+                            padding: "10px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            color: "#7b7b7b",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {`${format(
+                            dateRangeValue[0].startDate,
+                            "dd/MM/yyyy"
+                          )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                        </div>
+                      )}
+
+                      {showDateRangePicker && (
+                        <div ref={dateRangePickerRef}>
+                          <DateRangePicker
+                            onChange={handleDateRangeChange}
+                            showSelectionPreview={true}
+                            moveRangeOnFirstSelection={false}
+                            months={2}
+                            ranges={dateRangeValue}
+                            direction="horizontal"
+                            staticRanges={staticRanges}
+                            renderStaticRangeLabel={(range) => (
+                              <span>{range.label}</span>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="service-status-filter mr8 searching-drop mb8 hide-mobile">
+                      <MultiDropdown
+                        label="Holiday Type"
+                        options={holidayTypeOptions}
+                        selectedValues={holidayType}
+                        onSelect={handleHolidayTypeChange}
+                        chips={2}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {selectedTab === "instroaster" && (
+                  <>
+                    <div className="date-label mb8 ">
+                      <Dropdown
+                        label={dateLabel}
+                        options={dateOptions}
+                        selectedValue={date}
+                        onValueChange={handleDateChange}
+                      />
+                    </div>
+                    <div
+                      className={`report-date ${showDateInput && "ml8"} mr8 mb8`}
+                    >
+                      {showDateInput && dateRangeValue && (
+                        <div
+                          onClick={toggleDateRangeCalendar}
+                          className="date-range-input"
+                          style={{
+                            cursor: "pointer",
+                            padding: "10px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            color: "#7b7b7b",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {`${format(
+                            dateRangeValue[0].startDate,
+                            "dd/MM/yyyy"
+                          )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                        </div>
+                      )}
+                      {showDateRangeCalendar && (
+                        <div ref={dateRangePickerRef}>
+                          <DateRangePicker
+                            onChange={handleDateRangeChange}
+                            showSelectionPreview={true}
+                            moveRangeOnFirstSelection={false}
+                            months={2}
+                            ranges={dateRangeValue}
+                            direction="horizontal"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="student-batch-filter service-status-filter mr8 searching-drop mb8 hide-mobile">
+                      <MultiDropdown
+                        label="Batch"
+                        options={batchOptions}
+                        selectedValues={batch}
+                        onSelect={handleBatchChanges}
+                        chips={2}
+                        searchable={true}
+                      />
+                    </div>
+                  </>
+                )}
+                <Tooltip title={"More Filter"}>
+                  <FaFilter
+                    className="cp fs16 mr8 fc5"
+                    onClick={handleFilterClick}
+                  />
+                  {filterCount > 0 && (
+                    <span className="notification-count pa br50 fc1 fw6">
+                      {filterCount}
+                    </span>
+                  )}
+                </Tooltip>
+                <button
+                  className="apply bg1 fs12 pl12 pr12 pt8 pb8 fc3 cp br16 ls1 mr8 ml8 mb8"
+                  onClick={() => applyFilter()}
+                >
+                  Apply
+                </button>
+                {filterStatus === 1 && (
+                  <button
+                    className="clear fs12 pl12 pr12 pt8 pb8 fc1 cp br16 ls1 fw6 mb8"
+                    onClick={clearFilter}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+            {filterApplyStatus && (
+              <FilteredDataDisplay
+                filterData={listFilter}
+                labels={filterLabels}
+                onClearAll={clearFilter}
+                onFilterCountChange={handleFilterCountChange}
+                listOptions={{
+                  courseListOptions,
+
+                  centerOptions,
+
+                  holidayTypeOptions,
+
+                  departmentOptions,
+
+                  examTypeOptions,
+
+                  batchOptions,
+                }}
+              />
+            )}
+            {dataStatus && selectedTab === "batches" && (
+              <BatchListing
+                recordList={sortList}
+                setRecordList={setRecordList}
+                displayMsg={displayMsg}
+                allApiFilter={allApiFilter}
+                allApidata={allApidata}
+                pageCount={pageData}
+                activeSortColumn={activeSortColumn}
+                checkUserLogin={checkUserLogin}
+                handleSortByChange={handleSortByChange}
+                handleNavLinkFilterClick={handleNavLinkFilterClick}
+                listFilter={listFilter}
+              />
+            )}
+            {selectedTab === "exam" && (
+              <ExamListing
+                recordList={sortList}
+                setRecordList={setRecordList}
+                displayMsg={displayMsg}
+                allApiFilter={allApiFilter}
+                pageCount={pageData}
+                handleSortByChange={handleSortByChange}
+                activeSortColumn={activeSortColumn}
+              />
+            )}
+            {selectedTab === "holiday" && (
+              <HolidayListing
+                recordList={sortList}
+                setRecordList={setRecordList}
+                displayMsg={displayMsg}
+                allApiFilter={allApiFilter}
+                pageCount={pageData}
+                handleSortByChange={handleSortByChange}
+                activeSortColumn={activeSortColumn}
+              />
+            )}
+            {selectedTab === "instroaster" && (
+              <InstructorRoaster
+                recordList={sortList}
+                setRecordList={setRecordList}
+                displayMsg={displayMsg}
+                allApiFilter={allApiFilter}
+                setlocation={setlocation}
+                setroomtoclass={setroomtoclass}
+                setclassmeetlink={setclassmeetlink}
+                setclasstaken={setclasstaken}
+                assignInstructor={assignInstructor}
+                pageCount={pageData}
+                handleSortByChange={handleSortByChange}
+                activeSortColumn={activeSortColumn}
+              />
+            )}
+          </Card>
+          {autoLoader && (
+            <div className="box-center mb12">
+              <SmallLoader className={"mb12"} />
+            </div>
+          )}
+
+          {showFilterPopup && (
+            <SidePopup show={showFilterPopup} onClose={closeMoreFilter}>
+              <div className="df jcsb brd-b1 p12 box-center bg7 w100 fc1 ls2 lh22">
+                <p className="fs18 fc1 ">Filters</p>
+                <button className="lead-close-button" onClick={closeMoreFilter}>
+                  X
+                </button>
+              </div>
+              <div className="filter-lists pl16 pt16 pr16">
+                <div class="filter">
+                  {selectedTab === "exam" && (
+                    <>
+                    <div className="service-status-filter searching-drop mb16 hide-desktop">
+                    <p className="fc15 fw6 fs14 ls1 mb8">Select Exam Type</p>
+                      <MultiDropdown
+                        label="Exam Type"
+                        options={examTypeOptions}
+                        selectedValues={examType}
+                        onSelect={handleExamType}
+                        chips={2}
+                      />
+                    </div>
+                      <div className="ct-f category-filter mr8 searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Category</p>
+                        <MultiLevelDropdown
+                          placeholder="Category"
+                          data={categoryDataOptions}
+                          checkedItems={categoryCheckedItems}
+                          setCheckedItems={setCategoryCheckedItems}
+                        />
+                      </div>
+                      <div className="service-status-filter searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Course</p>
+                        <MultiDropdown
+                          label="Course"
+                          options={courseListOptions}
+                          selectedValues={selectedCourses}
+                          onSelect={handleSelectCourse}
+                          chips={2}
+                        />
+                      </div>
+                      <div className="service-status-filter form-group-settings mr8 searching-drop mb8">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Select Batch</p>
+                        <MultiDropdown
+                          label="Batch"
+                          options={batchOptions}
+                          selectedValues={batch}
+                          onSelect={handleBatchChanges}
+                          searchable
+                          chips={2}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {selectedTab === "holiday" && (
+                    <>
+                    <div className="service-status-filter mr8 searching-drop mb8 hide-desktop">
+                    <p className="fc15 fw6 fs14 ls1 mb8">Select Holiday Type</p>
+                      <MultiDropdown
+                        label="Holiday Type"
+                        options={holidayTypeOptions}
+                        selectedValues={holidayType}
+                        onSelect={handleHolidayTypeChange}
+                        chips={2}
+                      />
+                    </div>
+                      <div className="service-status-filter mr8 searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Select Center</p>
+                        <MultiDropdown
+                          label="Center"
+                          options={centerOptions}
+                          selectedValues={center}
+                          onSelect={handleCenterChange}
+                          chips={2}
+                        />
+                      </div>
+                      <div className="status-filter mb8 mr8 searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">
+                          Select Department
+                        </p>
+                        <MultiDropdown
+                          label="Department"
+                          options={departmentOptions}
+                          selectedValues={department}
+                          onSelect={handleDepartmentChanges}
+                          chips={2}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {selectedTab === "batches" && (
+                    <>
+                    <div className="plan-status mb16 hide-desktop">
+                    <p className="fc15 fw6 fs14 ls1 mb8">Select Batch Status</p>
+                      <Dropdown
+                        label="Select Batch Status"
+                        options={batchStatusOptions}
+                        selectedValue={batchStatus}
+                        onValueChange={handleBatchStatusChange}
+                      />
+                    </div>
+                      <div className="ct-f category-filter searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Category</p>
+                        <MultiLevelDropdown
+                          placeholder="Category"
+                          data={categoryDataOptions}
+                          checkedItems={categoryCheckedItems}
+                          setCheckedItems={setCategoryCheckedItems}
+                        />
+                      </div>
+                      <div className="service-status-filter searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Select Course</p>
+                        <MultiDropdown
+                          label="Course"
+                          options={courseListOptions}
+                          selectedValues={selectedCourses}
+                          onSelect={handleSelectCourse}
+                          chips={2}
+                        />
+                      </div>
+                      <div className=" plan-status mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">
+                          Select Batch Type
+                        </p>
+                        <Dropdown
+                          label="Select Batch Type"
+                          options={batchTypeOptions}
+                          selectedValue={batchType}
+                          onValueChange={handleBatchTypeChange}
+                        />
+                      </div>
+
+                      <div className="plan-status mb16">
+                      <p className="fc15 fw6 fs14 ls1 mb8">
+                          Select Auto Batch Status
+                        </p>
+                      <Dropdown
+                        label="Select Auto Batch Status"
+                        options={autoBatchStatusOptions}
+                        selectedValue={autoBatchStatus}
+                        onValueChange={handleAutoBatchStatusChange}
+                      />
+                     </div>
+
+                      <div className="service-status-filter searching-drop mb8">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Select Center</p>
+                        <MultiDropdown
+                          label="Center"
+                          options={centerOptions}
+                          selectedValues={center}
+                          onSelect={handleCenterChange}
+                          chips={2}
+                        />
+                      </div>
+                      <div className=" plan-status mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">
+                          Select Instructor
+                        </p>
+                        <Dropdown
+                          label="Select Instructor"
+                          options={instructorList}
+                          selectedValue={selectOptIns}
+                          onValueChange={handleInstructorChange}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {selectedTab === "instroaster" && (
+                    <>
+                    <div className="student-batch-filter service-status-filter mr8 searching-drop mb16 hide-desktop">
+                    <p className="fc15 fw6 fs14 ls1 mb8">Select Batch</p>
+                      <MultiDropdown
+                        label="Batch"
+                        options={batchOptions}
+                        selectedValues={batch}
+                        onSelect={handleBatchChanges}
+                        chips={2}
+                        searchable={true}
+                      />
+                    </div>
+                      <div className="category-filter rm mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Category</p>
+                        <MultiLevelDropdown
+                          placeholder="Category"
+                          data={categoryDataOptions}
+                          checkedItems={categoryCheckedItems}
+                          setCheckedItems={setCategoryCheckedItems}
+                        />
+                      </div>
+                      <div className="status-filter mr8 searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Category</p>
+                        <MultiDropdown
+                          label="Course"
+                          options={courseListOptions}
+                          selectedValues={selectedCourses}
+                          onSelect={handleSelectCourse}
+                          chips={2}
+                        />
+                      </div>
+
+                      <div className="service-status-filter searching-drop mb16">
+                        <p className="fc15 fw6 fs14 ls1 mb8">Center</p>
+                        <MultiDropdown
+                          label="Center"
+                          options={centerOptions}
+                          selectedValues={center}
+                          onSelect={handleCenterChange}
+                          chips={4}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="filter-button-container mt16 pt16 box-center myteam-filters ">
+                  <button
+                    type="button"
+                    className="bg1 fc3 pt8 pb8 pl16 pr16 br24 mr12 fs12 ls1 cp"
+                    onClick={closeMoreFilter}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    className="bg1 fc3 pt8 pb8 pl16 pr16 br24 mr12 fs12 ls1 cp"
+                    onClick={() => applyFilter(selectedTab)}
+                  >
+                    Apply
+                  </button>
+                  {filterStatus === 1 && (
+                    <button
+                      className="clear fs12 pl12 pr12 pt8 pb8 fc1 cp br16 ls1 fw6"
+                      onClick={() => clearFilter()}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+            </SidePopup>
+          )}
+          <ToastContainer position="bottom-right" />
+        </>
+      )}
+    </>
+  );
+};
+
+export default MyStudents;

@@ -1,0 +1,212 @@
+.phone-input {
+  display: flex;
+  align-items: center;
+}
+
+#countryCode {
+  flex: 0 0 auto;
+  width: 80px;
+  padding-right: 10px;
+  margin-right: 8px;
+}
+
+.input-group-prepend {
+  margin-right: -1px;
+}
+
+.input-group > .form-control:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.input-group > .form-control {
+  position: relative;
+  flex: 1 1 auto;
+  width: 1%;
+  margin-bottom: 0;
+  height: 42px;
+}
+
+.form-group-settings {
+  margin-bottom: 30px;
+}
+
+.form-group-settings input {
+  width: 100%;
+  max-width: 100%;
+  padding: 13px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 8px;
+  outline: none;
+}
+
+.image-upload-compoenent {
+  flex: 2;
+}
+.country-code {
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  height: 42px;
+  min-width: 96px;
+}
+.small-overview textarea {
+  padding: 13px 12px;
+  border: 1px solid #ccc;
+  outline: none;
+  resize: none;
+  min-height: 80px;
+  max-height: 80px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.verification-status {
+  display: flex;
+  border-radius: 4px;
+  animation: slideIn 0.5s ease;
+  cursor: pointer;
+}
+
+.verification-status.verified {
+  color: #4caf50;
+  height: 24px;
+}
+
+.loader-container {
+  height: 24px;
+}
+
+.reset-password {
+  border-top: 1px solid #dfdfe0;
+}
+
+.password-input span {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-20%);
+  cursor: pointer;
+  color: #888;
+  user-select: none;
+}
+
+.password-input span:hover {
+  color: #333;
+}
+.mutli-select .destination-multi-select {
+  margin-left: 0 !important;
+}
+.css-13cymwt-control,
+.css-1hb7zxy-IndicatorsContainer,
+.css-13cymwt-control,
+.css-qbdosj-Input,
+.css-1fdsijx-ValueContainer {
+  min-height: 40px;
+  /* max-height: 40px; */
+}
+.css-qbdosj-Input {
+  margin: 0 !important;
+}
+.pref-lang .css-3w2yfm-ValueContainer {
+  min-height: 40px;
+  max-height: auto;
+}
+.css-1fdsijx-ValueContainer {
+  padding: 0 8px !important;
+}
+.css-13cymwt-control {
+  margin-top: 8px;
+}
+.css-1p3m7a8-multiValue {
+  background-color: #fff !important;
+  color: #f4836c !important;
+  border: 1px solid #f4836c !important;
+}
+.css-wsp0cs-MultiValueGeneric {
+  color: #f4836c !important;
+}
+.css-1nmdiq5-menu {
+  font-size: 14px !important;
+}
+.css-t3ipsp-control:hover {
+  outline: none !important;
+  border-color: none !important;
+  outline: none !important;
+}
+.css-t3ipsp-control {
+  box-shadow: none !important;
+  border-color: none !important;
+  outline: none !important;
+}
+.css-13cymwt-control {
+  border-color: none !important;
+  outline: none !important;
+}
+
+.facebook-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.facebook-container input {
+  padding-left: 36px !important;
+}
+
+.facebook-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.facebook-icon,
+.instagram-icon {
+  position: absolute;
+  left: 10px;
+  top: 18px;
+  color: #3b5998;
+  font-size: 20px;
+}
+.instagram-icon {
+  color: #e4405f;
+}
+
+@media only screen and (max-width: 480px) {
+  .city-pin,
+  .upload-image {
+    flex-direction: column;
+  }
+  .pincode,
+  .city {
+    margin-left: 0;
+    margin-top: 30px;
+  }
+  .city,
+  .pincode,
+  .state {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .upload-image {
+    align-items: self-start;
+  }
+  .image-upload-container {
+    padding-right: 0;
+    padding-left: 0;
+  }
+  .country-code {
+    min-width: 72px;
+  }
+}

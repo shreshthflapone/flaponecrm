@@ -1,0 +1,12 @@
+.no-permission {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30vh;
+    
+}
+.no-permission img {
+    width: 60px;
+    height: 60px;
+}
+

@@ -1,0 +1,91 @@
+.filter-container {
+  display: none;
+}
+.input-field-number-pos {
+  min-width: 64px;
+  max-width: 64px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.input-field-number-pos:focus {
+  outline: none;
+  border-color: #66afe9; /* Highlight color on focus */
+  box-shadow: 0 0 5px #66afe9; /* Optional: Adding a subtle shadow on focus */
+}
+.report-date .react-datepicker__input-container input {
+  align-items: center;
+  border: 1px solid #ececec;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  justify-content: space-between;
+  min-width: 132px;
+  padding: 10px 8px 10px 10px;
+  height: 40px;
+}
+.filter-container {
+  height: 40px;
+  border: 1px solid #ccc;
+  padding: 4px 8px;
+  color: #7b7b7b;
+}
+.date-range-input {
+  min-height: 40px;
+}
+.blog-listing tbody tr:nth-child(2n) {
+  background-color: #f0f0f0;
+}
+.list-blog tbody tr {
+  transition: transform 0.2s ease;
+}
+.list-blog tbody tr:hover {
+  background-color: #eaeaea;
+  box-shadow: 0 0 10px #0000001a;
+  cursor: pointer;
+  transform: translateY(-5px);
+}
+
+td {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 200px;
+}
+@media screen and (max-width: 767px) {
+  .search-input input {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .category-filter,
+  .status-filter,
+  .authors-filter,
+  .search-filter,
+  .search-by-drp {
+    display: none;
+  }
+  .filter-lists .author {
+    height: 100%;
+  }
+  .filter-container {
+    display: flex;
+  }
+  .rdrMonths.rdrMonthsHorizontal {
+    flex-direction: column;
+  }
+  .rdrCalendarWrapper {
+    max-height: 336px;
+    overflow: auto;
+  }
+
+  .pop-search-filter .dropdown-container-second {
+    width: 100%;
+  }
+  .filter-container {
+    margin-right: 12px;
+  }
+  
+}

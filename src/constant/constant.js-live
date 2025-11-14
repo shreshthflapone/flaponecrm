@@ -1,0 +1,19 @@
+// const base_url = "https://www.flapone.com/flapone-api";
+// const domainurl  = "https://www.flapone.com/";
+// const weburl  = "https://www.flapone.com/";
+
+
+
+const base_url = "https://www.flapone.com/flapone-api/flapone-api-3.0";
+const domainurl  = "https://www.flapone.com/";
+const weburl  = "https://www.flapone.com/";
+const invoicepdfurl = "https://www.hlimg.com/images/flapone-crm/assets/flaponeinvoicepdf/";
+const doc_url="https://www.hlimg.com/images/flapone-crm/assets/images/student_doc/";
+const studentdomainurl="https://student.flapone.com/";
+
+
+
+const accessRole = ["1"];
+const accesscontentDept = ["6"];
+const accessLeadDetailDept = ["1","3","5","7","9"];
+export default {base_url,domainurl,weburl,accessRole,accesscontentDept,accessLeadDetailDept,invoicepdfurl,studentdomainurl,doc_url}

@@ -1,0 +1,139 @@
+.image-upload-container {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100%;
+}
+
+.image-preview {
+  border: 2px dashed #ccc;
+  padding: 20px;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  max-width: 320px;
+  width: 80%;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.image-preview p {
+  margin: 0;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 156px;
+  display: block;
+  margin: 0 auto;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-overlay p {
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.image-upload-container button {
+  color: #e80a0a;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+.status-img {
+  left: 4px;
+  padding: 4px;
+  top: 4px;
+}
+.badge-status {
+  border-radius: 5px;
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: 64px;
+  color: #fff;
+}
+
+.bg-orange {
+  background-color: #fdb01a !important;
+}
+.bg-blue {
+  background-color: #1138e7 !important;
+}
+
+.bg-green {
+  background-color: #20da20 !important;
+}
+.bg-red {
+  background-color: #fc0027 !important;
+}
+.bg-orange-light {
+  background-color: #f6a176;
+}
+.badge {
+  padding: 0.25rem 0.45rem;
+  text-transform: capitalize;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+}
+.bg-outline-success {
+  background-color: #fff;
+  border: 1px solid #5cb85c;
+  color: #5cb85c;
+}
+.bg-outline-info {
+  background-color: #fff;
+  border: 1px solid #1ecbe2;
+  color: #1ecbe2;
+}
+
+.blink-text {
+  animation: blink 1s linear infinite;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .image-upload-component.flx50 {
+    width: 100%;
+  }
+  .upload-image .flx33,
+  .image-upload-component.flx50 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

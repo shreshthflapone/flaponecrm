@@ -1,0 +1,95 @@
+.class-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+  width: 100%;
+  flex: 0 0 33%;
+  max-width: 33%;
+  transition: transform 0.5s ease;
+}
+.class-card:not(:first-child) {
+  margin-left: 12px;
+}
+.class-card:first-child {
+  margin-left: 8px;
+}
+.class-card.selected {
+  border: 2px solid #f4836c;
+}
+
+.class-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ongoing,
+.upcoming {
+  padding: 4px 8px;
+}
+.ongoing {
+  background-color: #e0f7fa;
+}
+.upcoming {
+  background-color: #faf3e0;
+}
+.class-details {
+  margin-top: 12px;
+}
+
+.class-metrics {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.metric {
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.metric.green {
+  /* background-color: #d9f6e4; */
+  color: #1a9351;
+}
+
+.metric.blue {
+  /* background-color: #e0f0ff; */
+  color: #594cda;
+}
+
+.metric.red {
+  /* background-color: #ffe0e0; */
+  color: #c00000;
+}
+
+.class-footer {
+  display: flex;
+  margin-top: 8px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.badge.yellow {
+  background-color: #fff8e1;
+  color: #fbc02d;
+}
+
+.badge.blue {
+  background-color: #e0f7fa;
+  color: #00acc1;
+}
+
+.badge.light-blue {
+  background-color: #e0f2f1;
+  color: #26a69a;
+}

@@ -1,0 +1,54 @@
+.calendar-nav button {
+  background-color: transparent;
+  border: none;
+}
+
+.calendar-header > div {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+}
+
+.calendar-day {
+  flex: 1 0 calc(100% / 7);
+  border: 1px solid #e1e1e1;
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 120px;
+  max-height: 160px;
+  overflow-y: scroll;
+  max-width: calc(100% / 7);
+}
+.calendar-day .message {
+  word-break: break-all;
+}
+.calendar-nav select {
+  margin: 0 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #f4836c;
+  outline: none;
+}
+@media (min-width: 768px) {
+  .message-inside {
+    display: block;
+    color: #8b8f92;
+  }
+  .calendar-messages {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .message-inside {
+    display: none;
+  }
+  .calendar-messages {
+    display: block;
+  }
+  .calendar-day {
+    min-height: auto;
+  }
+}

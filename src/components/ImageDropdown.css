@@ -1,0 +1,82 @@
+.img-dropdown-toggle {
+  border: 1px solid #ccc;
+  padding:8px;
+}
+
+.img-dropdown-menu {
+  top: 100%;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 9;
+}
+
+.img-dropdown-item {
+  padding: 10px;
+}
+
+.img-dropdown {
+  min-width: 160px;
+  max-width: 240px;
+}
+.img-dropdown-item:hover {
+  background-color: #f4836c;
+  color: #fff;
+}
+
+.dropdown-image {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.img-selected {
+  background-color: #f4836c;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.selected-chips-container {
+  gap: 5px;
+}
+
+.img-chip {
+  border-radius: 16px;
+  padding: 6px 8px;
+  margin-right: 5px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.img-chip-image {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.img-chip-label {
+  margin-right: 5px;
+}
+
+.img-chip-remove {
+  background: none;
+  border: none;
+}
+.no-results {
+  padding: 8px;
+  text-align: center;
+  color: #888;
+}
+.search-inputs {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 8px;
+  border-left: none !important;
+  border-radius: inherit !important;
+  border-right: none !important;
+  border-top: none !important;
+  margin-top: 0 !important;
+  outline: none;
+}

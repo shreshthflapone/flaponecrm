@@ -1,0 +1,505 @@
+import React, { useState, useEffect } from "react";
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { IoReturnDownBackOutline, IoHome } from "react-icons/io5";
+import DynamicTooltip from "../Dynamic_Tooltip";
+import { FaRupeeSign } from "react-icons/fa";
+import { format } from "date-fns";
+import formatDateRange from "../../helpers/formatDateRange";
+import newFormatDateRange from "../../helpers/newFormatDateRange";
+
+
+const ReusablePieChartlead = ({
+  data,
+  title,
+  dataKey,
+  nameKey,
+  colors,
+  height = 280,
+  legendPosition = "bottom",
+  rupees = false,
+  outerRadius = 110,
+  legend = true,
+  showBread,
+  isSecondDateVisible,
+  dateRangeValue,
+  subHeading,
+  Count,
+  showInitialBreakdown = false,
+  getTraverserNextlevele,
+  selectedCard
+}) => {
+  const [breadcrumb, setBreadcrumb] = useState([]);
+  const [colorMapping, setColorMapping] = useState({});
+  const [traverseDataMaping, setTraverseDataMaping] = useState({"type":"","value":""});
+  const [currentLegendPosition, setCurrentLegendPosition] = useState(legendPosition);
+  var oldFilter = {};
+
+  const getRandomColor = () => {
+    const availableColors = colors.filter(
+      (color) => !usedColors.includes(color)
+    );
+
+    if (availableColors.length === 0) {
+      usedColors = [];
+      return getRandomColor();
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableColors.length);
+    const selectedColor = availableColors[randomIndex];
+    usedColors.push(selectedColor);
+    return selectedColor;
+  };
+
+  let usedColors = [];
+
+  const traverseData = (breadcrumb) => {
+   
+    let currentData = data;
+
+    breadcrumb.forEach((level) => {
+      const found = currentData.find(
+        (item) => item.name === level || item.source === level
+      );
+      currentData = found?.breakdown || [];
+    });
+
+    return currentData;
+  };
+
+  const handleClick = (entry) => {
+    
+    const nextBreadcrumb = [...breadcrumb, entry[nameKey] || entry.source];
+    if(title!='Follow-up' && title!='WhatsApp Leads' && entry.level<3){
+      getTraverserNextlevele(entry,nextBreadcrumb);
+    }
+    const nextLevelData = traverseData(nextBreadcrumb);
+
+    if (nextLevelData.length > 0) {
+      setBreadcrumb(nextBreadcrumb);
+      setColorMapping((prev) => ({
+        ...prev,
+        [nextBreadcrumb.join(" > ")]: nextLevelData.map(() => getRandomColor()),
+      }));
+    } else {
+      //   alert("No more data");
+    }
+  };
+
+  const handleBack = () => {
+    const newBreadcrumb = [...breadcrumb];
+    newBreadcrumb.pop();
+    setBreadcrumb(newBreadcrumb);
+  };
+
+   useEffect(() => {
+          setBreadcrumb([]);
+  },[selectedCard]);
+
+  const handleHome = () => {
+    setBreadcrumb([]);
+  };
+  const getStatusChecked = (filter_name)=>{
+    if(filter_name=='Follow-up'){
+      return [{label: "Interested",value: "followup",checked: true},{label: "Ask To Call Later",value: "call_latter",checked: true},{label: "No Response",value: "noresponse",checked: true,children: [{ label: "Ringing", value: "ringing", checked: true },{ label: "Not Reachable", value: "not_reachable", checked: true },{ label: "Switch Off", value: "switch_off", checked: true },{ label: "Incoming barred", value: "incoming_barred", checked: true },{ label: "Out of Service", value: "out_of_service", checked: true },{ label: "Busy", value: "busy", checked: true },{ label: "Voice mail", value: "voice_mail", checked: true }]}];
+    }
+    else if(filter_name=='No Response'){
+      return [{label: "No Response",value: "noresponse",checked: true,children: [{ label: "Ringing", value: "ringing", checked: true },{ label: "Not Reachable", value: "not_reachable", checked: true },{ label: "Switch Off", value: "switch_off", checked: true },{ label: "Incoming barred", value: "incoming_barred", checked: true },{ label: "Out of Service", value: "out_of_service", checked: true },{ label: "Busy", value: "busy", checked: true },{ label: "Voice mail", value: "voice_mail", checked: true }]}]
+    }
+    else if(filter_name=='Interested'){
+      return [{label: "Interested",value: "followup",checked: true}];
+    }
+    else if(filter_name=='Ask To Call Later'){
+      return [{label: "Ask To Call Later",value: "call_latter",checked: true}];
+    }else if(filter_name=='Not Interested'){
+      return [{label:"Not Interested",value:"notinterested",checked:true,children:[{label:"Fund Issue",value:"fundissue",checked:true},{label:"Location Out of Scope",value:"location_out_of_scope",checked:true},{label:"Joined Other Institute",value:"joined_other_institute",checked:true},{label:"Not Eligible",value:"not_eligible",checked:true},{label:"Not Aware",value:"not_aware",checked:true},{label:"Job Seeker",value:"job_seeker",checked:true},{label:"Drone Buyer",value:"drone_buyer",checked:true},{label:"Only Exploring",value:"only_exploring",checked:true},{label:"Reason Not Shared",value:"reason_not_shared",checked:true}]}];
+    }else if(filter_name=='Location Out of Scope'){
+      return  [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:true},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+      ;
+    }
+    else if(filter_name=='Joined Other Institute'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:true},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Reason Not Shared'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:true}]}];
+    }
+    else if(filter_name=='Drone Buyer'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:true},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Not Eligible'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:true},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Fund Issue'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:true},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Not Aware'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:true},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Only Exploring'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:false},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:true},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Job Seeker'){
+      return [{label:"Not Interested",value:"notinterested",checked:false,children:[{label:"Fund Issue",value:"fundissue",checked:false},{label:"Location Out of Scope",value:"location_out_of_scope",checked:false},{label:"Joined Other Institute",value:"joined_other_institute",checked:false},{label:"Not Eligible",value:"not_eligible",checked:false},{label:"Not Aware",value:"not_aware",checked:false},{label:"Job Seeker",value:"job_seeker",checked:true},{label:"Drone Buyer",value:"drone_buyer",checked:false},{label:"Only Exploring",value:"only_exploring",checked:false},{label:"Reason Not Shared",value:"reason_not_shared",checked:false}]}];
+    }
+    else if(filter_name=='Ringing'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:true},{label:"Not Reachable",value:"not_reachable",checked:false},{label:"Switch Off",value:"switch_off",checked:false},{label:"Incoming barred",value:"incoming_barred",checked:false},{label:"Out of Service",value:"out_of_service",checked:false},{label:"Busy",value:"busy",checked:false},{label:"Voice mail",value:"voice_mail",checked:false}]}];
+
+    }
+    else if(filter_name=='Out of Service'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:false},{label:"Not Reachable",value:"not_reachable",checked:false},{label:"Switch Off",value:"switch_off",checked:false},{label:"Incoming barred",value:"incoming_barred",checked:false},{label:"Out of Service",value:"out_of_service",checked:true},{label:"Busy",value:"busy",checked:false},{label:"Voice mail",value:"voice_mail",checked:false}]}];
+    }
+    else if(filter_name=='Voice mail'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:false},{label:"Not Reachable",value:"not_reachable",checked:false},{label:"Switch Off",value:"switch_off",checked:false},{label:"Incoming barred",value:"incoming_barred",checked:false},{label:"Out of Service",value:"out_of_service",checked:false},{label:"Busy",value:"busy",checked:false},{label:"Voice mail",value:"voice_mail",checked:true}]}];
+    }
+    else if(filter_name=='Incoming barred'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:false},{label:"Not Reachable",value:"not_reachable",checked:false},{label:"Switch Off",value:"switch_off",checked:false},{label:"Incoming barred",value:"incoming_barred",checked:true},{label:"Out of Service",value:"out_of_service",checked:false},{label:"Busy",value:"busy",checked:false},{label:"Voice mail",value:"voice_mail",checked:false}]}];
+    }
+    else if(filter_name=='Not Reachable'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:false},{label:"Not Reachable",value:"not_reachable",checked:true},{label:"Switch Off",value:"switch_off",checked:false},{label:"Incoming barred",value:"incoming_barred",checked:false},{label:"Out of Service",value:"out_of_service",checked:false},{label:"Busy",value:"busy",checked:false},{label:"Voice mail",value:"voice_mail",checked:false}]}];
+    }
+    else if(filter_name=='Switch Off'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:false},{label:"Not Reachable",value:"not_reachable",checked:false},{label:"Switch Off",value:"switch_off",checked:true},{label:"Incoming barred",value:"incoming_barred",checked:false},{label:"Out of Service",value:"out_of_service",checked:false},{label:"Busy",value:"busy",checked:false},{label:"Voice mail",value:"voice_mail",checked:false}]}];
+    }
+    else if(filter_name=='Busy'){
+      return [{label:"No Response",value:"noresponse",checked:false,children:[{label:"Ringing",value:"ringing",checked:false},{label:"Not Reachable",value:"not_reachable",checked:false},{label:"Switch Off",value:"switch_off",checked:false},{label:"Incoming barred",value:"incoming_barred",checked:false},{label:"Out of Service",value:"out_of_service",checked:false},{label:"Busy",value:"busy",checked:true},{label:"Voice mail",value:"voice_mail",checked:false}]}];
+    }
+    else if(filter_name=='Junk'){
+      return [{label:"Junk",value:"junk",checked:true,children:[{label:"Wrong Number",value:"wrong_number",checked:true},{label:"Wrong Email",value:"wrong_email",checked:true},{label:"Test Lead",value:"test_lead",checked:true},{label:"Spam",value:"spam",checked:true}]}];
+    }
+    else if(filter_name=='Hot'){
+      return [{label:"Hot",value:"hot",checked:true}];
+    }
+    else if(filter_name=='Wrong Number'){
+      return [{label:"Junk",value:"junk",checked:false,children:[{label:"Wrong Number",value:"wrong_number",checked:true},{label:"Wrong Email",value:"wrong_email",checked:false},{label:"Test Lead",value:"test_lead",checked:false},{label:"Spam",value:"spam",checked:false}]}];
+    }
+    else if(filter_name=='Test Lead'){
+      return [{label:"Junk",value:"junk",checked:false,children:[{label:"Wrong Number",value:"wrong_number",checked:false},{label:"Wrong Email",value:"wrong_email",checked:false},{label:"Test Lead",value:"test_lead",checked:true},{label:"Spam",value:"spam",checked:false}]}];
+    }
+    else if(filter_name=='Spam'){
+      return [{label:"Junk",value:"junk",checked:false,children:[{label:"Wrong Number",value:"wrong_number",checked:false},{label:"Wrong Email",value:"wrong_email",checked:false},{label:"Test Lead",value:"test_lead",checked:false},{label:"Spam",value:"spam",checked:true}]}];
+    }
+    return [];
+  }
+  const updatedDate = dateRangeValue
+    .slice(0, 1)
+    .map(item => ({
+      ...item,
+      key: "selection" 
+    }));
+  const handleRedirectSetFilter = (pageTab, dateOption, dateRangeValue,item) => {
+    console.log(item,"itetieie")
+    let updatefilter = {
+      page_type: pageTab,
+      datetypefilter: dateOption,
+      dateRangeValue: item.source=='followupdate'?item.set_key:`${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+      checkedTeamItems: [],
+      planStatus: {
+        label: "Select Stage",
+        value: "",
+      },
+      leadStatus: "",
+      leadSource: item.type=="source"?item.set_key:{
+        label: "Select Source",
+        value: "",
+      },
+      selectedState: [],
+      assignee: {
+        label: "Assigned Status",
+        value: "",
+      },
+      categoryCheckedItems: [],
+      selectedCourses: [],
+      companyType: {
+        label: "User Type",
+        value: "",
+      },
+      selectedVerified: item.source=='whatsapp'?{label: "Responded via WhatsApp", value: "whatapps_verified"}:[],
+      dateRangeValuefilter: updatedDate,
+      dateMonthOptions: {
+        label: "Day",
+        value: "day",
+      },
+      dateRangeTimeType: "Custom",
+      statusCheckedItems : getStatusChecked(item.set_key),
+    };
+    console.log(updatefilter)
+    oldFilter[pageTab] = updatefilter;
+    localStorage.setItem("allfilteroption", JSON.stringify(oldFilter));
+  };
+  function smartFormat(value) {
+    const isPercentage = typeof value === 'string' && value.includes('%');
+  
+    if (isPercentage) {
+      const numberPart = parseFloat(value.replace('%', ''));
+      return `${numberPart.toFixed(0)}%`;
+    } else {
+      const formatter = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      return formatter.format(value);
+    }
+  }
+  const newFormatDateRangeSales = (dateRange) => {
+    const [startDateStr, endDateStr] = dateRange;
+  
+    const parseDate = (dateStr) => {
+      const [day, month, year] = dateStr
+        .split("-")
+        .map((part) => parseInt(part, 10));
+      return new Date(year, month - 1, day);
+    };
+  
+    const start = parseDate(startDateStr);
+    const end = parseDate(endDateStr);
+  
+    const startDate = new Date(start.setHours(18, 30, 0, 0)).toISOString();
+    const endDate = new Date(end.setHours(18, 29, 59, 999)).toISOString();
+  
+    return [
+      {
+        startDate,
+        endDate,
+        key: "selection",
+      },
+    ];
+  };
+
+  const handleSegmentClick = (item) => {
+    console.log(item);
+    if (item && item.url) {
+      window.open(`/${item.url}/${item.tab}`, "_blank");
+      handleRedirectSetFilter(item.tab, item.date_type, dateRangeValue,item);
+    }
+
+
+  };
+  const chartData = traverseData(breadcrumb);
+  const currentColors =
+    colorMapping[breadcrumb.join(" > ")] ||
+    chartData?.map(() => getRandomColor());
+
+  useEffect(() => {
+    if (breadcrumb.length === 0 && showInitialBreakdown) {
+      const initialData = data.find(item => item.breakdown && item.breakdown.length > 0);
+      if (initialData) {
+        setBreadcrumb([initialData.name || initialData.source]);
+      }
+    } else if (breadcrumb.length === 0) {
+      setColorMapping({
+        "": data?.map(() => getRandomColor()),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [breadcrumb, data, showInitialBreakdown]);
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="cstm_tooltip bg5 v-center w100 p12">
+          <p className="tooltip-label fs16">{payload[0].name} : {'\u00A0'}</p>
+          <p className="tooltip-value v-center ml5">
+            {rupees && <FaRupeeSign className="fs14" />}
+            {smartFormat(payload[0].value)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const updateLegendPosition = () => {
+      if (window.innerWidth < 768) {
+        setCurrentLegendPosition("bottom");
+      } else {
+        setCurrentLegendPosition(legendPosition);
+      }
+    };
+
+    // Initial check
+    updateLegendPosition();
+
+    // Add resize event listener
+    window.addEventListener("resize", updateLegendPosition);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener("resize", updateLegendPosition);
+    };
+  }, [legendPosition]);
+
+  return (
+    <div className={`chart`}>
+      <>
+        <div
+          className={`v-center ${showBread ? "jce" : "jcsb"} ${isSecondDateVisible && "mb16"} `}
+        >
+         {title === 'Follow-up' && (
+  <>
+    <p className="dash-head ls1 fw6 mb16">{title} <span className="fs14 ls1 fc5"> - All Time</span></p>
+   
+  </>
+)}
+
+          {title!='Follow-up' && <p className="dash-head ls1 fw6 mb16">{title}</p>}
+          {!showInitialBreakdown && <div style={{ marginBottom: "10px" }} className="v-center jcse">
+            {breadcrumb.length > 0 && (
+              <>
+                <DynamicTooltip direction="bottom" text="Back">
+                  <IoReturnDownBackOutline
+                    onClick={handleBack}
+                    className="cp pr24 fc1 fs18"
+                  />
+                </DynamicTooltip>
+
+                <DynamicTooltip direction="bottom" text="Home">
+                  <IoHome
+                    onClick={breadcrumb.length > 0 ? handleHome : null}
+                    className={`fc1 fs18 ${
+                      breadcrumb.length === 0 ? "disabled-input" : "cp"
+                    }`}
+                  />
+                </DynamicTooltip>
+              </>
+            )}
+          </div>}
+        </div>
+        <div className="box-center fc5">
+          {subHeading} {Count}
+        </div>
+        <div
+          className={` ${legend && "chart-placeholder"}`}
+          style={{ width: "100%", height: `${height}px` }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                dataKey={breadcrumb.length ? "amount" : dataKey}
+                nameKey={breadcrumb.length ? "source" : nameKey}
+                outerRadius={outerRadius}
+                fill="#8884d8"
+                onClick={handleClick}
+              >
+                {chartData?.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={currentColors[index]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              {legend && (
+                <Legend
+                  payload={chartData?.map((item, index) => {
+                    const name = item.source || item.name;
+                    const amount = item.amount || smartFormat(item.value);
+                    const percentage = item.percentage+"%" || "50%";
+
+                    return {
+                      value:
+                        currentLegendPosition === "right" ? (
+                          <span
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              fontFamily: "Montserrat, sans-serif",
+                              fontSize: "13px",
+                              width: "220px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                flexBasis: "75%",
+                                cursor:
+                                  item.breakdown &&
+                                  item.breakdown.length > 0 > 0
+                                    ? "pointer"
+                                    : "default",
+                              }}
+                              onClick={() =>
+                                // item.breakdown &&
+                                // item.breakdown.length > 0 &&
+                                handleClick(item)
+                              }
+                            >
+                              {name}
+                            </span>
+                            <span
+                              style={{
+                                flexBasis: "12.5%",
+                                textAlign: "right",
+                                fontWeight: "bold",
+                                fontSize: "14px",
+                                cursor:
+                                  item.redirectData &&
+                                  Object.keys(item.redirectData).length > 0
+                                    ? "pointer"
+                                    : "default",
+                              }}
+                              onClick={() =>
+                                handleSegmentClick(item.redirect_key)
+                              }
+                            >
+                              {amount}
+                            </span>
+
+                            <span
+                              style={{
+                                flexBasis: "12.5%",
+                                textAlign: "center",
+                                fontWeight: "bold",
+                                fontSize: "12px",
+                                color: "#ccc",
+                                padding: "0 2px",
+                                border: percentage ? "1px solid #ccc" : "none",
+                                marginLeft: "12px",
+                                borderRadius: "4px",
+                                cursor:
+                                  item.redirectData &&
+                                  Object.keys(item.redirectData).length > 0
+                                    ? "pointer"
+                                    : "default",
+                              }}
+                              onClick={() =>
+                                handleSegmentClick(item.redirect_key)
+                              }
+                            >
+                              {percentage}
+                            </span>
+                          </span>
+                        ) : (
+                          <span onClick={() => handleClick(item)}>{name}</span>
+                        ),
+                      type: "circle",
+                      color: currentColors[index],
+                      redirectData: item.redirectData,
+                    };
+                  })}
+                  iconSize={14}
+                  layout={currentLegendPosition === "right" ? "vertical" : "horizontal"}
+                  verticalAlign={currentLegendPosition === "right" ? "middle" : "bottom"}
+                  align={currentLegendPosition === "right" ? "right" : "center"}
+                  wrapperStyle={{
+                    fontSize: "14px",
+                    paddingTop: "10px",
+                    fontFamily: "Montserrat, sans-serif",
+                    ...(currentLegendPosition === "right"
+                      ? { marginBottom: 10 }
+                      : {}),
+                  }}
+                />
+              )}
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </>
+    </div>
+  );
+};
+
+export default ReusablePieChartlead;

@@ -1,0 +1,17 @@
+.popup-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.student-roaster .popup-content {
+  max-width: 400px;
+  min-height: 200px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.student-roaster .popup .modal-body {
+  padding: 0;
+}

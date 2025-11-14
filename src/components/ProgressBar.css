@@ -1,0 +1,36 @@
+.progress-container {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.progress-segment {
+  height: 12px;
+  /* position: relative; */
+  cursor: pointer;
+}
+.progress-segment::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 4px;
+  white-space: pre;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  font-size: 12px;
+  min-width: 120px;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 5px;
+  z-index: 2;
+}
+
+.progress-segment:hover::after {
+  opacity: 1;
+}

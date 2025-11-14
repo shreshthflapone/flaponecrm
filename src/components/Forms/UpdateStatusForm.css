@@ -1,0 +1,199 @@
+.update-button {
+  border: none;
+  border-radius: 64px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 10px;
+  padding: 12px 20px;
+}
+
+.btn-blue {
+  background-color: #f4836c;
+  color: #fff;
+}
+.up-status,
+.calendar {
+  flex: 0 0 48%;
+  max-width: 48%;
+}
+.up-status1 {
+  flex: 0 0 31%;
+  max-width: 31%;
+}
+.disc-prices {
+  flex: 0 0 24%;
+  max-width: 24%;
+}
+.mob-drop input {
+  max-width: 136px !important;
+  padding-left: 8px;
+  border-bottom-right-radius: 4px !important;
+  border-top-right-radius: 4px !important;
+}
+.mob-drop .dropdown-container {
+  min-width: 110px !important;
+  max-width: 110px !important;
+}
+.comp-month,
+.comp-days {
+  flex: 0 0 48%;
+  max-width: 48%;
+}
+.fixed-div {
+  position: sticky;
+  top: 48px;
+  background-color: white;
+  /* z-index: 1;  */
+  padding-bottom: 24px;
+}
+.inp-des {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 40px;
+  margin-top: 8px;
+  max-width: 100%;
+  outline: none;
+  padding: 13px 12px;
+  width: 100%;
+}
+.crs-nm .css-lnmdiq5-menu {
+  z-index: 9 !important;
+}
+
+.mob-conatiner input {
+  max-width: 100%;
+  border: 1px solid #ccc;
+  height: 40px;
+  outline: none;
+  margin-top: 8px;
+  border-bottom-left-radius: 0 !important;
+  border-left: none !important;
+  border-top-left-radius: 0 !important;
+}
+
+.mob-conatiner input {
+  border-bottom-left-radius: 0 !important;
+  border-left: none !important;
+  border-top-left-radius: 0 !important;
+}
+.sell-input input,.mob-conatiner input {
+  max-width: 100%;
+  border: 1px solid #ccc;
+  height: 40px;
+  outline: none;
+  margin-top: 8px;
+  border-radius: 4px;
+}
+
+
+.mob-conatiner .selected-role {
+  border-bottom-right-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+@media only screen and (max-width: 480px) {
+  .sell-input input{
+    width: 100%;
+  }
+  .sp{
+    margin-top: 16px;
+  }
+  .up-status,
+  .calendar,
+  .status-amount,
+  .calendar-input,
+  .funnel-plan,
+  .disc-prices,
+  .up-status .flx40,
+  .comp-month,
+  .comp-days {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .up-st-form,
+  .funnel-extra,
+  .pay-validity,
+  .amt-gst,
+  .disc-lead-price,
+  .days-month {
+    flex-direction: column;
+  }
+  .calendar,
+  .payment-plan,
+  .comp-month,
+  .up-status.course-list-drop {
+    margin-left: 0 !important;
+    margin-top: 16px;
+  }
+  .status-amount,
+  .calendar-input {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+  .pm.mr24 {
+    margin-right: 0;
+  }
+  .fixed-div {
+    top: 0;
+  }
+  .up-status1 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .mob-drop input{
+    max-width: 100% !important;
+  }
+}
+
+@media only screen and (min-width: 481px) and (max-width: 640px) {
+  .sell-input input{
+    width: 100%;
+  }
+  .sp{
+    margin-top: 16px;
+  }
+  .up-status1 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .mob-drop input{
+    max-width: 100% !important;
+  }
+  .up-status,
+  .calendar,
+  .status-amount,
+  .calendar-input,
+  .funnel-plan,
+  .disc-prices,
+  .up-status .flx40,
+  .comp-month,
+  .comp-days {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .up-st-form,
+  .funnel-extra,
+  .pay-validity,
+  .amt-gst,
+  .disc-lead-price,
+  .days-month {
+    flex-direction: column;
+  }
+  .calendar,
+  .payment-plan,
+  .comp-month,
+  .up-status.course-list-drop {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+  .status-amount,
+  .calendar-input {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+  .fixed-div {
+    top: 0;
+  }
+}

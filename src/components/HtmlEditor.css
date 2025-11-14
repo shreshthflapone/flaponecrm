@@ -1,0 +1,123 @@
+.jodit-wysiwyg strong,
+.jodit-wysiwyg b,
+.jodit__preview-box strong,
+.jodit__preview-box b {
+  font-weight: bold;
+}
+.jodit-wysiwyg em,
+.jodit-wysiwyg i {
+  font-style: italic;
+}
+.jodit-editor .jodit-ui-group__print,
+.jodit-editor .jodit-status-bar,
+.jodit-ui-group__eraser,
+.jodit-ui-group__strikethrough,
+.jodit-ui-group__font,
+.jodit-ui-group__lineHeight,
+.jodit-ui-group__speechRecognize,
+.jodit-ui-group__spellcheck,
+.jodit-ui-spacer,
+.jodit-ui-group__classSpan,
+.jodit-ui-group_group_state,
+.jodit-ui-group_group_clipboard,
+.jodit-ui-group__symbols,
+.jodit-ui-group__ai-commands,
+.jodit-ui-group__ai-assistant,
+/* .jodit-ui-group__brush, */
+.jodit-ui-group_group_search,
+.jodit-ui-group__about,
+.jodit-ui-group__file,
+.jodit-ui-group__preview,
+.jodit-ui-group__brushCell,
+.jodit-ui-group__valign,
+.jodit-ui-group__splitv,
+.jodit-ui-group_group_other,
+.jodit-toolbar-button_with-trigger_true.jodit-ui-group__delete
+  .jodit-toolbar-button__button,
+.jodit-add-new-line:after,
+.jodit-add-new-line span,
+.jodit-ui-group__ul .jodit-toolbar-button__trigger,
+.jodit-ui-group__ol .jodit-toolbar-button__trigger,
+.jodit-ui-group__pre,
+.jodit-ui-group__cut,
+.jodit-ui-group__copy,
+.jodit-ui-group__paste,
+.jodit-ui-group__selectall,
+.jodit-ui-group__copyformat,
+.jodit-ui-group__hr,
+.jodit-ui-group__find,
+.jodit-ui-group__print {
+  display: none !important;
+}
+
+.jodit-editor .jodit-wysiwyg img {
+  margin: 8px;
+  max-width: 100%;
+  width: auto !important;
+  height: auto;
+}
+
+.jodit-toolbar-editor-collection {
+  flex-direction: row !important;
+}
+.jodit-workplace,
+.jodit-source {
+  max-height: 240px;
+}
+.jodit-workplace ul {
+  list-style-type: disc;
+}
+
+.jodit-wysiwyg ol {
+  list-style-type: decimal;
+}
+
+.jodit-wysiwyg ol,
+.jodit-wysiwyg ul {
+  padding-left: 20px;
+  margin: 0;
+}
+sup {
+  vertical-align: super;
+  font-size: smaller;
+}
+sub {
+  vertical-align: sub;
+  font-size: smaller;
+}
+.jodit-wysiwyg blockquote {
+  font-style: italic;
+}
+.jodit-wysiwyg blockquote > p {
+  display: inline;
+}
+.jodit-wysiwyg blockquote:before {
+  content: "“";
+}
+.jodit-wysiwyg blockquote:after {
+  content: "”";
+}
+.jodit-wysiwyg h1 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+}
+.jodit-wysiwyg h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #444;
+}
+.jodit-wysiwyg h3 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #555;
+}
+.jodit-wysiwyg h4 {
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+}
+.jodit-editor .jodit-wysiwyg {
+  max-height: 240px;
+  overflow-y: auto;
+}

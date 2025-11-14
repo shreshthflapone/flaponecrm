@@ -1,0 +1,77 @@
+const StudentSummaryData = [
+    {
+      date: "01 Oct 23",
+      New: 4000,
+      "Batch Running": 2400,
+      "Batch Alloted": 2400,
+      "Batch Completed": 2400,
+      "Course Completed": 2400,
+    },
+    {
+      date: "02 Oct 23",
+      New: 1398,
+      "Batch Running": 2000,
+      "Batch Alloted": 1800,
+      "Batch Completed": 1500,
+      "Course Completed": 1400,
+    },
+    {
+      date: "03 Oct 23",
+      New: 9800,
+      "Batch Running": 3000,
+      "Batch Alloted": 2900,
+      "Batch Completed": 2800,
+      "Course Completed": 2700,
+    },
+    {
+      date: "04 Oct 23",
+      New: 3908,
+      "Batch Running": 2500,
+      "Batch Alloted": 2400,
+      "Batch Completed": 2300,
+      "Course Completed": 2200,
+    },
+    {
+      date: "05 Oct 23",
+      New: 4800,
+      "Batch Running": 2600,
+      "Batch Alloted": 2500,
+      "Batch Completed": 2400,
+      "Course Completed": 2300,
+    },
+    {
+      date: "06 Oct 23",
+      New: 3800,
+      "Batch Running": 2400,
+      "Batch Alloted": 2300,
+      "Batch Completed": 2200,
+      "Course Completed": 2100,
+    },
+    {
+      date: "07 Oct 23",
+      New: 4300,
+      "Batch Running": 2700,
+      "Batch Alloted": 2600,
+      "Batch Completed": 2500,
+      "Course Completed": 2400,
+    },
+    {
+      date: "08 Oct 23",
+      New: 4300,
+      "Batch Running": 2800,
+      "Batch Alloted": 2700,
+      "Batch Completed": 2600,
+      "Course Completed": 2500,
+    },
+    {
+      date: "09 Oct 23",
+      New: 4300,
+      "Batch Running": 2900,
+      "Batch Alloted": 2800,
+      "Batch Completed": 2700,
+      "Course Completed": 2600,
+    },
+  ];
+  
+  export default StudentSummaryData;
+  

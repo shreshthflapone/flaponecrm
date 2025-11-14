@@ -1,0 +1,2074 @@
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  Component,
+  useCallback,
+} from "react";
+import "./BlogDetail.css";
+import InnerHeader from "../../components/InnerHeader";
+import Card from "../../components/Card";
+import SingleDropdown from "../../components/SingleDropdown";
+import MultiselectDropdown from "../../components/MultiSelectDropdown";
+import SidePopup from "../../components/Popup/SidePopup";
+import InputSearch from "../../components/InputSearch";
+import ImageUpload from "../../components/ImageUpload";
+import MultiImageUpload from "../../components/MultiImageUpload";
+import ReactQuill from "react-quill";
+import { Controlled as CodeMirror } from "react-codemirror2";
+import "react-quill/dist/quill.snow.css";
+import "react-quill/dist/quill.bubble.css";
+import { FaCode } from "react-icons/fa";
+import { IoMdArrowBack } from "react-icons/io";
+import { MdDelete } from "react-icons/md";
+import { FaExternalLinkAlt } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa6";
+import axios from "axios";
+import SmallLoader from "../../components/SmallLoader";
+import constant from "../../constant/constant";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import WebsiteUrl from "../../components/WebsiteUrl.js";
+import TextEditor from "../../components/TextEdior";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { logout } from "../../store/authSlice.js";
+import { useTitle } from "../../hooks/useTitle.js";
+import NoPermission from "../../components/NoPermission.js";
+import HtmlEditor from "../../components/HtmlEditor.js";
+
+const BlogDetail = () => {
+  const { id } = useParams();
+  const user = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  useTitle("Blog Detail - Flapone Aviation");
+
+  const accessRoleLimit = constant.accessRole;
+  const accessContentDeptLimit = constant.accesscontentDept;
+  const userRole = user.role;
+  const userDept = user.dept_id;
+  const pageRoleAccess = accessRoleLimit.includes(userRole);
+  const pageContentAccessDept = accessContentDeptLimit.includes(userDept);
+
+  const limit = 5;
+  const [category, setCategory] = useState({});
+  const [selectedOptionsTags, setSelectedOptionsTags] = useState([]);
+  const [selectedOptionsMetaKeyword, setSelectedOptionsMetaKeyWord] = useState(
+    []
+  );
+  const [showBlogsManually, setShowBlogsManually] = useState(false);
+  const [selectedBlogs, setselectedBlogs] = useState([]);
+  const [searchBlog, setSearchBlog] = useState(null);
+  const [coverImage, setCoverImage] = useState(null);
+  const [selectedOptionCoverImage, setSelectedOptionCoverImage] =
+    useState("uploadCover");
+  const [selectedOptionGalleryImage, setSelectedOptionGalleryImage] =
+    useState("uploadGall");
+  const [selectedOptionVideo, setSelectedOptionVideo] = useState("byUrlVideo");
+  const [status, setStatus] = useState("2");
+  const [imageList, setImageList] = useState([]);
+  const [imageListUpload, setImageListUpload] = useState([]);
+  const [imageUrl, setImageUrl] = useState("");
+  const [imagePosition, setImagePosition] = useState("");
+  const [videoPosition, setVideoPosition] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoList, setVideoList] = useState([]);
+  const [multiImages, setMultiImages] = useState([]);
+  const [content, setContent] = useState("");
+  const [showCode, setShowCode] = useState(false);
+  const [selectedOptionSubBlogImage, setSelectedOptionSubBlogImage] =
+    useState("byUploadSubBlog");
+  const [imageSubBlogUrl, setImageSubBlogUrl] = useState("");
+  const [imageSubBlogPosition, setImageSubBlogPosition] = useState("");
+  const [subBlogList, setSubBlogList] = useState([]);
+  const [selectedSubBlogOptionVideo, setSelectedSubBlogOptionVideo] =
+    useState("byUrlSubBlogVideo");
+  const [subBlogVideoUrl, setSubBlogVideoUrl] = useState("");
+  const [subBlogVideoPosition, setSubBlogVideoPosition] = useState("");
+  const [videoSubBlogList, setVideoSubBlogList] = useState([]);
+  const [showSubSectionVisibility, setShowSubSectionVisibility] =
+    useState(false);
+  const [author, setAuthor] = useState("");
+  const quillRef = useRef(null);
+  const [pageNum, setPageNum] = useState(1);
+  const [displayMsg, setDisplayMsg] = useState("");
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [blogData, relAllBlogData] = useState([]);
+  const [blogDetailData, setBlogDetailData] = useState({
+    images: [],
+    video: [],
+    coverimage: "",
+  });
+  const [mainTitle, setMainTitle] = useState("");
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [dataStatus, setDataStatus] = useState(false);
+
+  const [smallTitle, setSmallTitle] = useState("");
+  const [submitLoader, setSubmitLoader] = useState(false);
+
+  const [mainCoverImageUrl, setMainCoverImageUrl] = useState("");
+  const [mainArticleUrl, setMainArticleUrl] = useState("");
+  const [relBlogList, setRelBlogList] = useState({
+    article_type: "blog",
+    article_type_label: "Blog",
+    searchtext: "",
+    page_num: pageNum,
+    limit: limit,
+  });
+  const [totalPageNum, setTotalPageNum] = useState(0);
+  const categoryOptions = [
+    { value: "blog", label: "Blog" },
+    { value: "news", label: "News" },
+    { value: "awards", label: "Awards" },
+    { value: "stories", label: "Success Stories" },
+  ];
+  const [autherList, setAuthorList] = useState([]);
+  const [optionsTags, setOptionTags] = useState([]);
+  const [courseCategory, setCourseCategory] = useState([]);
+  const [selectCourseCategory, setSelectCourseCategory] = useState([]);
+  const [courseList, setCourseList] = useState([]);
+  const [setCourseo, setCourse] = useState([]);
+  const handleCategorySelect = (option) => {
+    setCategory(option);
+    relBlogList.article_type = option.value;
+    relBlogList.article_type_label = option.label;
+    relBlogList.page_num = 1;
+    setPageNum(1);
+    relAllBlogData([]);
+  };
+  const handleAuthorSelect = (option) => {
+    setAuthor(option);
+  };
+  const handleCourseCategorySelect = (option) => {
+    setSelectCourseCategory(option);
+  }
+  const handleCourseSelect = (option) => {
+    setCourse(option);
+  }
+  const handleSelectedTagsOptionsChange = (newSelectedOptions) => {
+    setSelectedOptionsTags(newSelectedOptions);
+  };
+  const handleSelectedMetaKeyWordOptionsChange = (newSelectedOptions) => {
+    setSelectedOptionsMetaKeyWord(newSelectedOptions);
+  };
+  const removeSelectedBlogs = (id) => {
+    setselectedBlogs(selectedBlogs.filter((item) => item.id !== id));
+  };
+  const handleBlogSearch = (searchQuery) => {
+    setSearchBlog(searchQuery);
+    relBlogList.searchtext = searchQuery;
+    relBlogList.page_num = 1;
+    setPageNum((prevPageNum) => 1);
+    relAllBlogData([]);
+    getrelbloglist();
+  };
+  const onClickRelGetbloglist = () => {
+    relBlogList.searchtext = "";
+    relBlogList.page_num = 1;
+    setPageNum((prevPageNum) => 1);
+    relAllBlogData([]);
+    getrelbloglist();
+  };
+
+  const handleBlogSelection = (pkg) => {
+    setselectedBlogs((prevSelectedPackages) => {
+      const isSelected = prevSelectedPackages.some(
+        (selectedPackage) => selectedPackage.id === pkg.id
+      );
+      if (isSelected) {
+        return prevSelectedPackages.filter(
+          (selectedPackage) => selectedPackage.id !== pkg.id
+        );
+      } else {
+        return [...prevSelectedPackages, pkg];
+      }
+    });
+  };
+
+  const handleRadioCoverImageChange = (e) => {
+    setSelectedOptionCoverImage(e.target.value);
+  };
+  const handleRadioGalleryImageChange = (e) => {
+    setSelectedOptionGalleryImage(e.target.value);
+  };
+  const handleRadioVideoChange = (e) => {
+    setSelectedOptionVideo(e.target.value);
+  };
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+  const handleAddImage = () => {
+    if (imageUrl && imagePosition) {
+      const isDuplicate = imageList.some((image) => image.url === imageUrl);
+
+      if (isDuplicate) {
+        toast.warn("Image with URL already exists");
+        return;
+      }
+
+      const newImage = {
+        id: Date.now() + "_new",
+        url: imageUrl,
+        position: imagePosition,
+        status: "1",
+      };
+
+      setImageList([...imageList, newImage]);
+
+      setBlogDetailData((prevData) => ({
+        ...prevData,
+        images: [...prevData.images, newImage],
+      }));
+
+      // Clear input fields
+      setImageUrl("");
+      setImagePosition("");
+    }
+  };
+
+  const handleEditImageUrl = (id, newUrl) => {
+    // Check if newUrl already exists in imageList
+    const isDuplicate = imageList.some((image) => image.url === newUrl);
+    if (isDuplicate) {
+      toast.warn("URL already exists");
+      return;
+    }
+
+    // Update imageList with new URL
+    const updatedList = imageList.map((image) =>
+      image.id === id ? { ...image, url: newUrl } : image
+    );
+    setImageList(updatedList);
+    // Update blogDetailData with updated imageList
+    setBlogDetailData((prevData) => ({
+      ...prevData,
+      images: updatedList,
+    }));
+  };
+
+  const handleEditImagePosition = (id, newPosition) => {
+    const updatedList = imageList.map((image) => {
+      if (image.id === id) {
+        return { ...image, position: parseInt(newPosition ? newPosition : 1) };
+      }
+      return image;
+    });
+    setImageList(updatedList);
+    setBlogDetailData((prevData) => ({
+      ...prevData,
+      images: updatedList,
+    }));
+  };
+  const handleDeleteImage = (id) => {
+    const updatedList = imageList.map((image) => {
+      if (image.id === id) {
+        return { ...image, status: "0" };
+      }
+      return image;
+    });
+
+    setImageList(updatedList);
+    setBlogDetailData((prevData) => ({
+      ...prevData,
+      images: updatedList,
+    }));
+  };
+
+  const handleAddVideo = () => {
+    if (videoUrl && videoPosition) {
+      const isDuplicate = videoList.some((video) => video.url === videoUrl);
+
+      if (isDuplicate) {
+        toast.warn("Video with URL already exists");
+        return;
+      }
+
+      const newVideo = {
+        id: Date.now() + "_new",
+        url: videoUrl,
+        position: videoPosition,
+        status: "1",
+      };
+
+      setVideoList([...videoList, newVideo]);
+      setBlogDetailData((prevData) => ({
+        ...prevData,
+        video: [...prevData.video, newVideo],
+      }));
+      setVideoUrl("");
+      setVideoPosition("");
+    }
+  };
+  const handleEditVideoUrl = (id, newUrl) => {
+    const updatedVideoList = videoList.map((video) => {
+      if (video.id === id) {
+        return { ...video, url: newUrl };
+      }
+      return video;
+    });
+
+    setVideoList(updatedVideoList);
+    setBlogDetailData((prevData) => ({
+      ...prevData,
+      video: updatedVideoList,
+    }));
+  };
+  const handleEditVideoPosition = (id, newPosition) => {
+    const updatedVideoList = videoList.map((video) => {
+      if (video.id === id) {
+        return { ...video, position: parseInt(newPosition ? newPosition : 1) };
+      }
+      return video;
+    });
+    setVideoList(updatedVideoList);
+    setBlogDetailData((prevData) => ({
+      ...prevData,
+      video: updatedVideoList,
+    }));
+  };
+  const handleDeleteVideo = (id) => {
+    const updatedList = videoList.map((video) => {
+      if (video.id === id) {
+        return { ...video, status: "0" };
+      }
+      return video;
+    });
+    setVideoList(updatedList);
+    setBlogDetailData((prevData) => ({
+      ...prevData,
+      video: updatedList,
+    }));
+  };
+
+  const [sections, setSections] = useState([]);
+
+  const handleAddSection = () => {
+    const newSection = {
+      id: Date.now() + "_new",
+      title: "",
+      courseId:[],
+      courseCategoryId:[],
+      position: sections.length + 1,
+      overview: "",
+      subBlogUrl: "",
+      status: "1",
+      images: [],
+      video: [],
+      imagechangeopt: "byUploadSubBlog",
+    };
+    setSections([...sections, newSection]);
+  };
+  const handleAddSubBlogImage = (secindex) => {
+    if (imageSubBlogUrl && imageSubBlogPosition) {
+      const urlExists = sections[secindex].images.some(
+        (image) => image.url === imageSubBlogUrl
+      );
+
+      if (urlExists) {
+        toast.warn("Image with URL already exists");
+        return;
+      }
+
+      const subBlogImage = {
+        id: Date.now() + "_new",
+        url: imageSubBlogUrl,
+        name: "",
+        position: imageSubBlogPosition,
+        status: "1",
+      };
+
+      const updatedSections = [...sections];
+      const updatedImages = [...updatedSections[secindex].images];
+
+      updatedImages.push(subBlogImage);
+      updatedSections[secindex] = {
+        ...updatedSections[secindex],
+        images: updatedImages,
+      };
+
+      setSections(updatedSections);
+      setImageSubBlogUrl("");
+      setImageSubBlogPosition("");
+    }
+  };
+
+  const handleDeleteSection = (id) => {
+    const updatedList = sections.map((section) => {
+      if (section.id === id) {
+        return { ...section, status: 0 };
+      }
+      return section;
+    });
+    setSections(updatedList);
+  };
+
+  const handleChange = (id, field, value) => {
+    
+    setSections(
+      sections.map((section) =>
+        section.id === id ? { ...section, [field]: value } : section
+      )
+    );
+  };
+  
+  const handleSetWorkImages = useCallback(
+    (id, images) => {
+      setSections((prevSections) =>
+        prevSections.map((section) =>
+          section.id === id ? { ...section, images } : section
+        )
+      );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sections]
+  );
+  
+
+  const toggleCodeView = useCallback(() => {
+    setShowCode((prevShowCode) => !prevShowCode);
+  }, [setShowCode]);
+
+  const handleQuillChange = (value) => {
+    setContent(value);
+  };
+  const designSourceButton = () => {
+    const toolbar = document.querySelector(".ql-toolbar");
+
+    if (toolbar) {
+      const customButton = document.createElement("button");
+      customButton.classList.add("ql-custom-button");
+      customButton.innerHTML = "Source";
+      customButton.addEventListener("click", toggleCodeView);
+      toolbar.appendChild(customButton);
+
+      return () => {
+        customButton.removeEventListener("click", toggleCodeView);
+        toolbar.removeChild(customButton);
+      };
+    }
+  };
+  useEffect(() => {
+    designSourceButton();
+  }, [showCode]);
+  const openBlogListPage = () => {
+    navigate("/blog-list");
+  };
+  const enableScroll = () => {
+    document.body.style.overflow = "auto";
+  };
+  const handleRadioSubBlogImageChange = (e) => {
+    setSelectedOptionSubBlogImage(e.target.value);
+  };
+
+  const handleEditSubBlogImageUrl = (secindex, imgindex, id, url) => {
+    sections[secindex]["images"][imgindex]["url"] = url;
+    setSections([...sections]);
+  };
+
+  const handleEditImageSubBlogPosition = (secindex, imgindex, id, position) => {
+    sections[secindex]["images"][imgindex]["position"] = parseInt(
+      position ? position : 1
+    );
+    setSections([...sections]);
+  };
+
+  const handleSubBlogImageDelete = (secindex, imgindex, id) => {
+    const updatedList = sections[secindex]["images"].map((image) => {
+      if (image.id === id) {
+        return { ...image, status: "0" };
+      }
+      return image;
+    });
+    sections[secindex]["images"] = updatedList;
+    setSections([...sections]);
+  };
+
+  const updateCoverImage = () => {};
+
+  const handleSubBlogAddVideo = (secindex) => {
+    if (subBlogVideoUrl && subBlogVideoPosition) {
+      const urlExists = sections[secindex].video.some(
+        (vid) => vid.url === subBlogVideoUrl
+      );
+
+      if (urlExists) {
+        toast.warn("Video with URL already exists");
+        return;
+      }
+
+      const newVideo = {
+        id: Date.now() + sections[secindex]["video"].length + 1 + "_new",
+        url: subBlogVideoUrl,
+        status: "1",
+        position: subBlogVideoPosition,
+      };
+      sections[secindex]["video"].push(newVideo);
+      setSections([...sections]);
+      setSubBlogVideoUrl("");
+      setSubBlogVideoPosition("");
+    }
+  };
+
+  const handleEditSubBlogVideoUrl = (secindex, videoindex, id, newUrl) => {
+    sections[secindex]["video"][videoindex]["url"] = newUrl;
+    setSections([...sections]);
+  };
+
+  const handleEditSubBlogVideoPosition = (
+    secindex,
+    videoindex,
+    id,
+    newPosition
+  ) => {
+    sections[secindex]["video"][videoindex]["position"] = parseInt(
+      newPosition ? newPosition : 1
+    );
+    setSections([...sections]);
+  };
+
+  const handleDeleteSubBlogVideo = (secindex, videoindex, id) => {
+    const updatedList = sections[secindex]["video"].map((video) => {
+      if (video.id === id) {
+        return { ...video, status: "0" };
+      }
+      return video;
+    });
+    sections[secindex]["video"] = updatedList;
+    setSections([...sections]);
+  };
+  const makeUrlForURL = (articleUrl) => {
+    setSmallTitle(articleUrl);
+    const pattern = /[^a-zA-Z0-9\s]+/g;
+    let cleanedString = articleUrl.replace(pattern, " ");
+    cleanedString = cleanedString.replace(/^\s+/g, "");
+    cleanedString = cleanedString.replace(/\s+/g, " ");
+    cleanedString = cleanedString.replace(/\s+$/g, "");
+    cleanedString = cleanedString.replace(/\s([a-zA-Z0-9])/g, "-$1");
+    setMainArticleUrl(cleanedString.toLowerCase());
+  };
+
+  const checkUserLogin = (response) => {
+    if (response.data.login.status === 0) {
+      dispatch(logout());
+      navigate("/login");
+    }
+  };
+  useEffect(() => {
+    getautherlist();
+    getTagSugglist();
+  }, []);
+
+  useEffect(() => {
+    if (id === undefined) {
+      setImageList(blogDetailData.images);
+    }
+  }, [blogDetailData]);
+  useEffect(() => {
+    if (id !== undefined) {
+      getBlogDetail();
+    }
+  }, [id]);
+
+  useEffect(() => {}, [selectedBlogs]);
+  /* custom code */
+
+  const autLoadreldata = () => {
+    if (pageNum <= totalPageNum) {
+      setRelBlogList((prevState) => ({ ...prevState, page_num: pageNum }));
+      getrelbloglist();
+    }
+  };
+  useEffect(()=>{
+     getAllFilter();
+    },[]);
+  const getrelbloglist = async () => {
+    setAutoLoader(true);
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/blog_detail.php?fun=getrelbloglist`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { relbloglist: relBlogList },
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === "1") {
+          if (relBlogList.page_num === 1) {
+            setTotalPageNum(response.data.data.total_page);
+            relAllBlogData([...response.data.data.list]);
+          } else {
+            relAllBlogData([...blogData, ...response.data.data.list]);
+          }
+          let newPageNum = relBlogList.page_num + 1;
+          setRelBlogList((prevState) => ({
+            ...prevState,
+            page_num: newPageNum,
+          }));
+          setPageNum(newPageNum);
+        } else {
+          relAllBlogData([]);
+          setDisplayMsg(response.data.data);
+        }
+        setAutoLoader(false);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const getTagSugglist = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/blog_detail.php?fun=gettagsugglist`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {},
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === 1) {
+          setOptionTags(JSON.parse(response.data.data.list));
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const getautherlist = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/blog_detail.php?fun=getautherlist`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {},
+    })
+      .then(function (response) {
+        checkUserLogin(response);
+        if (response.data.data.status === 1) {
+          if (!id) setAuthorList(JSON.parse(response.data.data.list));
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  
+  const getBlogDetail = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/blog_detail.php?fun=getblogdetail`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        id: id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.data.status === "1") {
+          let blogrec = response.data.data.data;
+        
+          setBlogDetailData(blogrec);
+          if (blogrec.article_type_design) {
+            handleCategorySelect(JSON.parse(blogrec.article_type_design));
+          }
+           if (blogrec?.course_category_id) {
+            handleCourseCategorySelect(JSON.parse(blogrec.course_category_id));
+          }
+         
+          if (blogrec.title) {
+            setMainTitle(blogrec.title);
+          }
+          if (blogrec.article_url) {
+            setMainArticleUrl(blogrec.article_url);
+          }
+          if (blogrec.overview) {
+            handleQuillChange(blogrec.overview);
+          }
+          if (blogrec.coverimage) {
+            setMainCoverImageUrl(blogrec.coverimage);
+          }
+          if (blogrec.images.length) {
+            setImageList(blogrec.images);
+          }
+          if (blogrec.video.length) {
+            setVideoList(blogrec.video);
+          }
+          if (blogrec.small_title) {
+            setSmallTitle(blogrec.small_title);
+          }
+          if (blogrec.author_id === "0" || blogrec.author_id === null) {
+            let authObj = JSON.parse(blogrec.blog_auther.list);
+            setAuthorList(authObj);
+          } else {
+            let authObj = JSON.parse(blogrec.blog_auther);
+            setAuthorList(authObj);
+          }
+
+          if (blogrec.author_array) {
+             setAuthor(blogrec.author_array);
+          }
+
+         
+          //handleAuthorSelect(authObj[0]);
+          let metadataparse = JSON.parse(blogrec.meta_keywords);
+          if (metadataparse[1].meta_desc) {
+            setMetaDescription(metadataparse[1].meta_desc);
+          }
+          if (metadataparse[0].meta_title) {
+            setMetaTitle(metadataparse[0].meta_title);
+          }
+          if (metadataparse[2].meta_keywords) {
+            let allmetakeyword = metadataparse[2].meta_keywords.split(",");
+            let keywordobj = allmetakeyword.map((keyword) => ({
+              value: keyword.trim(),
+              label: keyword.trim(),
+            }));
+            handleSelectedMetaKeyWordOptionsChange(keywordobj);
+          }
+          if (blogrec.related_article_list) {
+            setselectedBlogs(JSON.parse(blogrec.related_article_list));
+          }
+          if (blogrec.tags_list) {
+            setSelectedOptionsTags(JSON.parse(blogrec.tags_list));
+          }
+          if (blogrec.status) {
+            setStatus(blogrec.status);
+          }
+          if (blogrec.subdata && blogrec.subdata.length > 0) {
+            setSections(blogrec.subdata);
+            if (blogrec.subdata.images) {
+              setSubBlogList(blogrec.subdata.images);
+            }
+          }
+          designSourceButton();
+          setDataStatus(true);
+        } else {
+          relAllBlogData([]);
+          setDisplayMsg(response.data.data);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+    const getAllFilter = async () => {
+      axios({
+        method: "post",
+        url: `${constant.base_url}/admin/blog_detail.php?fun=getallfilter`,
+        headers: { "Auth-Id": user.auth_id },
+        data: {  },
+      })
+        .then(function (response) {
+          checkUserLogin(response);
+          if (response.data.data.status === "1") {
+            const filterList = response.data.data.filterlist;
+            setCourseCategory([
+              ...JSON.parse(filterList.course_category),
+            ])
+          }
+        })
+        .catch(function (error) {
+          console.error("Error during login:", error);
+        });
+    };
+  const validateForm = () => {
+    // Check if mainTitle is empty
+    if (Object.keys(category).length == 0) {
+      toast.warn("Category is required.");
+      return false;
+    }
+    if (!mainTitle) {
+      toast.warn("Title is required.");
+      return false;
+    }
+    if (selectCourseCategory?.value==="") {
+      toast.warn("Course Category is required.");
+      return false;
+    }
+    if (!mainArticleUrl) {
+      toast.warn("URL is required.");
+      return false;
+    }
+    if (!content) {
+      toast.warn("Main description is required.");
+      return false;
+    }
+    if (selectedOptionCoverImage == "byUrlCover") {
+      if (!mainCoverImageUrl) {
+        toast.warn("Cover image URL is required.");
+        return false;
+      }
+    } else {
+      if (coverImage === null && blogDetailData.coverimage === "") {
+        toast.warn("Cover image is required.");
+        return false;
+      }
+    }
+
+    if (!smallTitle) {
+      toast.warn("Small title is required.");
+      return false;
+    }
+
+    return true; // Return true if all validations pass
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+    setSubmitLoader(true);
+    const articleData = {
+      id: id !== undefined ? id : 0,
+      article_type_design: JSON.stringify(category),
+      courseCategoryId: selectCourseCategory,
+      courseId: setCourseo,
+      title: mainTitle,
+      article_url: mainArticleUrl,
+      overview: content,
+      optionbycoverimage: selectedOptionCoverImage,
+      coverimage:
+        selectedOptionCoverImage === "byUrlCover"
+          ? mainCoverImageUrl
+          : coverImage && coverImage.url
+            ? coverImage.url
+            : blogDetailData.coverimage || "",
+      optionbygallimg: selectedOptionGalleryImage,
+      images:
+        selectedOptionGalleryImage === "byUrlUpload"
+          ? JSON.stringify(imageList)
+          : JSON.stringify(blogDetailData.images),
+      video: JSON.stringify(blogDetailData.video),
+      subdata: JSON.stringify(sections),
+      small_title: smallTitle,
+      blog_auther: JSON.stringify(author),
+      tags_list: JSON.stringify(selectedOptionsTags),
+      related_article_list: JSON.stringify(selectedBlogs),
+      meta_title: metaTitle,
+      meta_desc: metaDescription,
+      meta_keywords: JSON.stringify(selectedOptionsMetaKeyword),
+      status: status,
+    };
+
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/blog_detail.php?fun=postblogdata`,
+      headers: { "Auth-Id": user.auth_id },
+      data: articleData,
+    })
+      .then(function (response) {
+        if (response.data.data.status === "0") {
+          toast.error(response.data.data.msg);
+        } else {
+          toast.success(response.data.data.msg);
+          navigate("/blog-list");
+        }
+        setSubmitLoader(false);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  /* end custom */
+
+
+useEffect(() => {
+  if (!id && user && user.userid && Array.isArray(autherList) && autherList.length > 0) {
+    const foundAuthor = autherList.find((option) => option.value === user.userid);
+    if (foundAuthor) {
+      setAuthor(foundAuthor);
+    }
+  }
+}, [id, user, autherList]);
+  
+
+  return (
+    <>
+      {(pageRoleAccess || pageContentAccessDept) &&
+        (dataStatus || id === undefined) && (
+          <>
+            {" "}
+            <InnerHeader
+              heading={
+                id !== undefined
+                  ? `Update ${category.label}`
+                  : `Create New Post`
+              }
+              txtSubHeading={`${id ? `Use this form to update your ${category.label}. Edit the title, content, and any additional information as needed. ` : "Use this form to create a new post for blog posts, awards, news and success stories. Provide a clear title, detailed content, and any additional relevant information."}`}
+              showButton={true}
+              onClick={openBlogListPage}
+              iconText="View List"
+            />
+            <Card className="card bg5 mt16 pl8 pr20 pt20 pb10 content-iagent-container">
+              <div className="blog-main-grp-inputs bg8 pl20 pr20 pt20 pb10 mb24 box-sd1">
+                <div className="form-group-settings name">
+                  <SingleDropdown
+                    label="Category"
+                    compulsory={<span className="fc4">*</span>}
+                    options={categoryOptions}
+                    selectedOption={category}
+                    onSelect={handleCategorySelect}
+                    isReadOnly={id !== undefined}
+                  />
+                </div>
+                <div className="form-group-settings name">
+                  <p className="fc15 fw6 fs14 ls1">
+                    Title<span className="fc4">*</span>
+                  </p>
+                  <input
+                    type="text"
+                    id="title"
+                    name="titl"
+                    value={mainTitle}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setMainTitle(value);
+                      if (id == undefined) {
+                        makeUrlForURL(value);
+                      }
+                    }}
+                    placeholder="Enter title"
+                    autoComplete="off"
+                  />
+                </div>
+                
+                <div className="form-group-settings name">
+                  <SingleDropdown
+                    label="Course Category"
+                    compulsory={<span className="fc4">*</span>}
+                    options={courseCategory}
+                    selectedOption={selectCourseCategory}
+                    onSelect={handleCourseCategorySelect}
+                    search
+                    
+                  />
+                </div>
+                {/* <div className="form-group-settings name">
+                  <SingleDropdown
+                    label="Course"
+                    compulsory={<span className="fc4">*</span>}
+                    options={courseList}
+                    selectedOption={setCourseo}
+                    onSelect={handleCourseSelect}
+                    
+                  />
+                </div> */}
+                <div className="form-group-settings name">
+                  <p className="fc15 fw6 fs14 ls1">
+                    Url<span className="fc4">*</span>
+                  </p>
+                  <input
+                    type="text"
+                    id="mainUrl"
+                    name="mainUrl"
+                    style={{
+                      backgroundColor: id !== undefined ? "#f9f9f9" : "",
+                      cursor: id !== undefined ? "not-allowed" : "",
+                    }}
+                    value={mainArticleUrl}
+                    onChange={(e) => makeUrlForURL(e.target.value)}
+                    placeholder="Enter Url"
+                    autoComplete="off"
+                    readOnly={id !== undefined}
+                  />
+                </div>
+                {/* <div className="mb24 editor">
+            <p className="fc15 fw6 fs14 ls1 mb12">Main Description<span className="fc4">*</span></p>
+            <div className="editor-controls">
+              {showCode && (
+                <IoMdArrowBack
+                  onClick={() => setShowCode(!showCode)}
+                  className="cp mb8"
+                />
+              )}
+            </div>
+            {showCode ? (
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                style={{
+                  minHeight: "200px",
+                  width: "100%",
+                  padding: "8px",
+                  resize: "none",
+                }}
+              />
+            ) : (
+              <ReactQuill
+                modules={{
+                  toolbar: [
+                    [{ header: "2" }],
+                    ["bold", "italic", "underline"],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    ["link", "image", "video"],
+                    ["custom-button"],
+                  ],
+                }}
+                formats={[
+                  "header",
+                  "font",
+                  "size",
+                  "bold",
+                  "italic",
+                  "underline",
+                  "strike",
+                  "blockquote",
+                  "list",
+                  "bullet",
+                  "link",
+                  "image",
+                  "video",
+                ]}
+                placeholder="Main description ...."
+                value={content}
+                onChange={handleQuillChange}
+                style={{ maxHeight: "200px", width: "100%" }}
+              />
+            )}
+          </div> */}
+                <div className="form-group-settings chapter-name flx100">
+                  <p className="fc15 fw6 fs14 ls1 mb8">
+                    Main Description <span className="fc4">*</span>
+                  </p>
+                  <div className="jodit-editor">
+                    <HtmlEditor
+                      descValue={content}
+                      onChange={(value) => handleQuillChange(value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="images-upload-grp">
+                  <div className="cover-image brd-b2">
+                    <p className="fc15 fw6 fs14 ls1">
+                      Cover Image<span className="fc4">*</span>
+                    </p>
+                    <div className="df mt12 mb30 cover-image-radio">
+                      <label htmlFor="byUrlCover" className="cp v-center">
+                        <input
+                          type="radio"
+                          className="mr8 cp"
+                          id="byUrlCover"
+                          value="byUrlCover"
+                          checked={selectedOptionCoverImage === "byUrlCover"}
+                          onChange={handleRadioCoverImageChange}
+                        />
+                        By URL
+                      </label>
+                      <label
+                        htmlFor="uploadCover"
+                        className="cp v-center mr16 ml24"
+                      >
+                        <input
+                          type="radio"
+                          className="mr8 cp"
+                          id="uploadCover"
+                          value="uploadCover"
+                          checked={selectedOptionCoverImage === "uploadCover"}
+                          onChange={handleRadioCoverImageChange}
+                        />
+                        Upload
+                      </label>
+                    </div>
+                    <div className="form-group-settings cover-img-sec mt16">
+                      {selectedOptionCoverImage === "byUrlCover" ? (
+                        <>
+                          <p className="fc15 fw6 fs14 ls1">Cover Image URL</p>
+                          <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            value={mainCoverImageUrl}
+                            placeholder="Enter Image URL"
+                            autoComplete="off"
+                            onChange={(e) => {
+                              let newImageUrl = e.target.value;
+                              setMainCoverImageUrl(newImageUrl);
+                              setBlogDetailData((prevData) => ({
+                                ...prevData,
+                                coverimage: newImageUrl,
+                              }));
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <ImageUpload
+                          setWorkImage={setCoverImage}
+                          setMainCoverImageUrl={setMainCoverImageUrl}
+                          blogDetailData={blogDetailData}
+                          setBlogDetailData={setBlogDetailData}
+                          imgData={coverImage}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="gall-image mt24 brd-b2">
+                    <p className="fc15 fw6 fs14 ls1">Image</p>
+                    <div className="df mt12 mb30 cover-image-radio">
+                      <label htmlFor="byUrlUpload" className="cp v-center">
+                        <input
+                          type="radio"
+                          className="mr8 cp"
+                          id="byUrlUpload"
+                          value="byUrlUpload"
+                          checked={selectedOptionGalleryImage === "byUrlUpload"}
+                          onChange={handleRadioGalleryImageChange}
+                        />
+                        By URL
+                      </label>
+                      <label
+                        htmlFor="uploadGall"
+                        className="cp v-center mr16 ml24"
+                      >
+                        <input
+                          type="radio"
+                          className="mr8 cp"
+                          id="uploadGall"
+                          value="uploadGall"
+                          checked={selectedOptionGalleryImage === "uploadGall"}
+                          onChange={handleRadioGalleryImageChange}
+                        />
+                        Upload
+                      </label>
+                    </div>
+                    <div className="form-group-settings cover-img-sec mt16">
+                      {selectedOptionGalleryImage === "byUrlUpload" ? (
+                        <>
+                          <div className="v-center jcsb">
+                            <div className="img-urls mr16">
+                              <p className="fc15 fw6 fs14 ls1">Image URL</p>
+                              <input
+                                type="text"
+                                id="url"
+                                name="url"
+                                placeholder="Enter image url"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                autoComplete="off"
+                              />
+                            </div>
+                            <div className="img-pos flx1">
+                              <p className="fc15 fw6 fs14 ls1">Position</p>
+                              <input
+                                type="number"
+                                id="position"
+                                name="position"
+                                min={1}
+                                max={555}
+                                placeholder="Position"
+                                value={imagePosition}
+                                onChange={(e) =>
+                                  setImagePosition(e.target.value)
+                                }
+                                autoComplete="off"
+                              />
+                            </div>
+                          </div>
+                          <div className="df jce">
+                            <button
+                              className="h36 pt8 pb8 pl16 pr16 mt16 cp bg1 fc3 br4"
+                              onClick={handleAddImage}
+                            >
+                              Add
+                            </button>
+                          </div>
+                          <div className="image-list mt16 mb24">
+                            {imageList.map(
+                              (image, index) =>
+                                image.status === "1" && (
+                                  <div
+                                    className="v-center jcsb listing-img-url"
+                                    key={image.id}
+                                  >
+                                    <div className="img-urls mr16">
+                                      <input
+                                        type="text"
+                                        id={`url_${image.id}`}
+                                        name={`url_${image.id}`}
+                                        placeholder="Enter Image URL"
+                                        value={image.url}
+                                        autoComplete="off"
+                                        onChange={(e) =>
+                                          handleEditImageUrl(
+                                            image.id,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="img-pos-list">
+                                      <input
+                                        type="number"
+                                        id={`position_${image.id}`}
+                                        name={`position_${image.id}`}
+                                        min={1}
+                                        placeholder="Position"
+                                        value={image.position}
+                                        autoComplete="off"
+                                        onChange={(e) =>
+                                          handleEditImagePosition(
+                                            image.id,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div
+                                      className="fc4 cp flx1 box-center fs24 mt8"
+                                      onClick={() =>
+                                        handleDeleteImage(image.id)
+                                      }
+                                    >
+                                      <MdDelete />
+                                    </div>
+                                  </div>
+                                )
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <MultiImageUpload
+                          id="upload1"
+                          setBlogDetailData={setBlogDetailData}
+                          blogDetailData={blogDetailData}
+                          setWorkImages={handleSetWorkImages}
+                          setImageList={setImageList}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="video-image mt24">
+                    <p className="fc15 fw6 fs14 ls1">Video</p>
+                    <div className="df mt12 mb30 cover-image-radio">
+                      <label htmlFor="byUrlVideo" className="cp v-center">
+                        <input
+                          type="radio"
+                          className="mr8 cp"
+                          id="byUrlVideo"
+                          value="byUrlVideo"
+                          checked={selectedOptionVideo === "byUrlVideo"}
+                          onChange={handleRadioVideoChange}
+                        />
+                        By URL
+                      </label>
+                      {/* <label htmlFor="uploadVideo" className="cp v-center mr16 ml24">
+                  <input
+                    type="radio"
+                    className="mr8 cp"
+                    id="uploadVideo"
+                    value="uploadVideo"
+                    checked={selectedOptionVideo === "uploadVideo"}
+                    onChange={handleRadioVideoChange}
+                  />
+                  Upload
+                </label> */}
+                    </div>
+                    <div className="form-group-settings cover-img-sec mt16">
+                      {selectedOptionVideo === "byUrlVideo" ? (
+                        <>
+                          <div className="v-center jcsb">
+                            <div className="img-urls mr16">
+                              <p className="fc15 fw6 fs14 ls1">Video URL</p>
+                              <input
+                                type="text"
+                                id="vurl"
+                                name="vurl"
+                                placeholder="Enter video url"
+                                value={videoUrl}
+                                onChange={(e) => setVideoUrl(e.target.value)}
+                                autoComplete="off"
+                              />
+                            </div>
+                            <div className="img-pos flx1">
+                              <p className="fc15 fw6 fs14 ls1">Position</p>
+                              <input
+                                type="number"
+                                id="vposition"
+                                name="vposition"
+                                placeholder="Position"
+                                min={1}
+                                value={videoPosition}
+                                onChange={(e) =>
+                                  setVideoPosition(e.target.value)
+                                }
+                                autoComplete="off"
+                              />
+                            </div>
+                          </div>
+                          <div className="df jce">
+                            <button
+                              className="h36 pt8 pb8 pl16 pr16 mt16 cp bg1 fc3 br4"
+                              onClick={handleAddVideo}
+                            >
+                              Add
+                            </button>
+                          </div>
+                          <div className="image-list mt16 mb24">
+                            {videoList.map(
+                              (video, index) =>
+                                video.status === "1" && (
+                                  <div
+                                    className="v-center jcsb listing-img-url"
+                                    key={video.id}
+                                  >
+                                    <div className="img-urls mr16">
+                                      <input
+                                        type="text"
+                                        id={`url_${video.id}`}
+                                        name={`url_${video.id}`}
+                                        placeholder="Enter Image URL"
+                                        value={video.url}
+                                        autoComplete="off"
+                                        onChange={(e) =>
+                                          handleEditVideoUrl(
+                                            video.id,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="img-pos-list">
+                                      <input
+                                        type="number"
+                                        id={`position_${video.id}`}
+                                        name={`position_${video.id}`}
+                                        placeholder="Position"
+                                        min={1}
+                                        value={video.position}
+                                        autoComplete="off"
+                                        onChange={(e) =>
+                                          handleEditVideoPosition(
+                                            video.id,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div
+                                      className="fc4 cp flx1 box-center fs24 mt8"
+                                      onClick={() =>
+                                        handleDeleteVideo(video.id)
+                                      }
+                                    >
+                                      <MdDelete />
+                                    </div>
+                                  </div>
+                                )
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <MultiImageUpload
+                          id="upload1"
+                          blogDetailData={blogDetailData}
+                          setBlogDetailData={setBlogDetailData}
+                          setSections={setSections}
+                          subtype={true}
+                          setWorkImages={handleSetWorkImages}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {!sections.some((obj) => obj.status === "1") && (
+                <div className="show-sub-section df jce ">
+                  <button
+                    type="button"
+                    className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 mt16 mb16 v-center"
+                    onClick={handleAddSection}
+                  >
+                    <FaPlus className="mr4" />
+                    Add Sub Section
+                  </button>
+                </div>
+              )}
+
+              <div className="bg8 box-sd1 blog-sub-container">
+                {sections
+                  .filter((section) => section.status === "1")
+                  .map((section, index) => (
+                    <>
+                      <p className=" pl20 pr20 pt20 fs18 ls1 lh22 fw6">{`Sub Section ${index + 1}`}</p>
+
+                      <div
+                        key={section.id}
+                        className="blog-sub-sections pl20 pr20  brd-b2 pt16"
+                      >
+                        <div className="form-group-settings title-name">
+                          <div className="df aic jcsb pos-inp mb8">
+                            <p className="fc15 fw6 fs14 ls1 pos-inp">Title</p>
+                            <div className="number-input">
+                              <label className="fc15 fw6 fs14 ls1 pos-inp">
+                                Position : &nbsp;{" "}
+                              </label>
+                              <input
+                                type="number"
+                                name="position"
+                                autoComplete="off"
+                                min={1}
+                                placeholder="Position"
+                                value={section.position}
+                                onChange={(e) =>
+                                  handleChange(
+                                    section.id,
+                                    "position",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            placeholder="Enter title"
+                            autoComplete="off"
+                            value={section.title}
+                            onChange={(e) =>
+                              handleChange(section.id, "title", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="form-group-settings name">
+                        <SingleDropdown
+                          label="Course Category"
+                          options={courseCategory}
+                          selectedOption={section.courseCategoryId}
+                          onSelect={(value) => handleChange(section.id, "courseCategoryId", value)} 
+                          search
+                          
+                        />
+                      </div>
+                      {/* <div className="form-group-settings name">
+                        <SingleDropdown
+                          label="Course"
+                          options={courseList}
+                          selectedOption={section.courseId}
+                           onSelect={(value) => handleChange(section.id, "courseId", value)} 
+                          
+                        />
+                      </div> */}
+                        <div className="form-group-settings chapter-name flx100">
+                          <p className="fc15 fw6 fs14 ls1 mb8">
+                            Description<span className="fc4">*</span>
+                          </p>
+                          <div className="jodit-editor">
+                            <HtmlEditor
+                              descValue={section.overview}
+                              onChange={(value) =>
+                                handleChange(section.id, "overview", value)
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="sub-blog-images mt24 cover-image">
+                          <p className="fc15 fw6 fs14 ls1">Image</p>
+                          <div className="df mt12 mb30 cover-image-radio">
+                            <label
+                              htmlFor={`byUrlVideo_${index}`}
+                              className="cp v-center"
+                            >
+                              <input
+                                type="radio"
+                                className="mr8 cp"
+                                id={`byUrlVideo_${index}`}
+                                value="byUrlSubBlog"
+                                checked={
+                                  section.imagechangeopt === "byUrlSubBlog"
+                                }
+                                onChange={(e) =>
+                                  handleChange(
+                                    section.id,
+                                    "imagechangeopt",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              By URL
+                            </label>
+                            <label
+                              htmlFor={`byUploadSubBlog_${index}`}
+                              className="cp v-center mr16 ml24"
+                            >
+                              <input
+                                type="radio"
+                                className="mr8 cp"
+                                id={`byUploadSubBlog_${index}`}
+                                value="byUploadSubBlog"
+                                checked={
+                                  section.imagechangeopt === "byUploadSubBlog"
+                                }
+                                onChange={(e) =>
+                                  handleChange(
+                                    section.id,
+                                    "imagechangeopt",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              Upload
+                            </label>
+                          </div>
+                          <div className="form-group-settings cover-img-sec mt16">
+                            {section.imagechangeopt === "byUrlSubBlog" ? (
+                              <>
+                                <div className="v-center jcsb">
+                                  <div className="img-urls mr16">
+                                    <p className="fc15 fw6 fs14 ls1">
+                                      Image URL
+                                    </p>
+                                    <input
+                                      type="text"
+                                      id="url"
+                                      name="url"
+                                      placeholder="Enter image url"
+                                      value={imageSubBlogUrl}
+                                      onChange={(e) =>
+                                        setImageSubBlogUrl(e.target.value)
+                                      }
+                                      autoComplete="off"
+                                    />
+                                  </div>
+                                  <div className="img-pos flx1">
+                                    <p className="fc15 fw6 fs14 ls1">
+                                      Position
+                                    </p>
+                                    <input
+                                      type="number"
+                                      id="position"
+                                      min={1}
+                                      name="position"
+                                      placeholder="Position"
+                                      value={imageSubBlogPosition}
+                                      onChange={(e) =>
+                                        setImageSubBlogPosition(e.target.value)
+                                      }
+                                      autoComplete="off"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="df jce">
+                                  <button
+                                    className="h36 pt8 pb8 pl16 pr16 mt16 cp bg1 fc3 br4"
+                                    onClick={() => handleAddSubBlogImage(index)}
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                                <div className="image-list mt16 mb24">
+                                  {section.images.map(
+                                    (image, index1) =>
+                                      image.status === "1" && (
+                                        <div
+                                          className="v-center jcsb listing-img-url"
+                                          key={image.id}
+                                        >
+                                          <div className="img-urls mr16">
+                                            <input
+                                              type="text"
+                                              id={`url_${image.id}`}
+                                              name={`url_${image.id}`}
+                                              placeholder="Enter Image URL"
+                                              value={image.url}
+                                              autoComplete="off"
+                                              onChange={(e) =>
+                                                handleEditSubBlogImageUrl(
+                                                  index,
+                                                  index1,
+                                                  image.id,
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          <div className="img-pos-list">
+                                            <input
+                                              type="number"
+                                              id={`position_${image.id}`}
+                                              name={`position_${image.id}`}
+                                              min={1}
+                                              placeholder="Position"
+                                              value={image.position}
+                                              autoComplete="off"
+                                              onChange={(e) =>
+                                                handleEditImageSubBlogPosition(
+                                                  index,
+                                                  index1,
+                                                  image.id,
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          <div
+                                            className="fc4 cp flx1 box-center fs24 mt8"
+                                            onClick={() =>
+                                              handleSubBlogImageDelete(
+                                                index,
+                                                index1,
+                                                image.id
+                                              )
+                                            }
+                                          >
+                                            <MdDelete />
+                                          </div>
+                                        </div>
+                                      )
+                                  )}
+                                </div>
+                              </>
+                            ) : (
+                              <MultiImageUpload
+                                id="upload1"
+                                blogsubdata={section}
+                                sections={sections}
+                                subsectionposition={index}
+                                setSections={setSections}
+                                subtype={true}
+                                setWorkImages={handleSetWorkImages}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <div className="sub-blog-videomt24">
+                          <p className="fc15 fw6 fs14 ls1">Video</p>
+                          <div className="df mt12 mb30 cover-image-radio">
+                            <label
+                              htmlFor="byUrlSubBlogVideo"
+                              className="cp v-center"
+                            >
+                              <input
+                                type="radio"
+                                className="mr8 cp"
+                                id="byUrlSubBlogVideo"
+                                value="byUrlSubBlogVideo"
+                                checked={
+                                  selectedSubBlogOptionVideo ===
+                                  "byUrlSubBlogVideo"
+                                }
+                                onChange={handleRadioVideoChange}
+                              />
+                              By URL
+                            </label>
+                          </div>
+                          <div className="form-group-settings cover-img-sec mt16">
+                            {selectedSubBlogOptionVideo ===
+                            "byUrlSubBlogVideo" ? (
+                              <>
+                                <div className="v-center jcsb">
+                                  <div className="img-urls mr16">
+                                    <p className="fc15 fw6 fs14 ls1">
+                                      Video URL
+                                    </p>
+                                    <input
+                                      type="text"
+                                      id="vurl"
+                                      name="vurl"
+                                      placeholder="Enter video url"
+                                      value={subBlogVideoUrl}
+                                      onChange={(e) =>
+                                        setSubBlogVideoUrl(e.target.value)
+                                      }
+                                      autoComplete="off"
+                                    />
+                                  </div>
+                                  <div className="img-pos flx1">
+                                    <p className="fc15 fw6 fs14 ls1">
+                                      Position
+                                    </p>
+                                    <input
+                                      type="number"
+                                      id="vposition"
+                                      name="vposition"
+                                      min={1}
+                                      placeholder="Position"
+                                      value={subBlogVideoPosition}
+                                      onChange={(e) =>
+                                        setSubBlogVideoPosition(e.target.value)
+                                      }
+                                      autoComplete="off"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="df jce">
+                                  <button
+                                    className="h36 pt8 pb8 pl16 pr16 mt16 cp bg1 fc3 br4"
+                                    onClick={() => handleSubBlogAddVideo(index)}
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                                <div className="image-list mt16 mb24">
+                                  {section.video.map(
+                                    (video, index2) =>
+                                      video.status === "1" && (
+                                        <div
+                                          className="v-center jcsb listing-img-url"
+                                          key={video.id}
+                                        >
+                                          <div className="img-urls mr16">
+                                            <input
+                                              type="text"
+                                              id={`url_${video.id}`}
+                                              name={`url_${video.id}`}
+                                              placeholder="Enter Video URL"
+                                              value={video.url}
+                                              autoComplete="off"
+                                              onChange={(e) =>
+                                                handleEditSubBlogVideoUrl(
+                                                  index,
+                                                  index2,
+                                                  video.id,
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          <div className="img-pos-list">
+                                            <input
+                                              type="number"
+                                              id={`position_${video.id}`}
+                                              name={`position_${video.id}`}
+                                              min={1}
+                                              placeholder="Position"
+                                              value={video.position}
+                                              autoComplete="off"
+                                              onChange={(e) =>
+                                                handleEditSubBlogVideoPosition(
+                                                  index,
+                                                  index2,
+                                                  video.id,
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          <div
+                                            className="fc4 cp flx1 box-center fs24 mt8"
+                                            onClick={() =>
+                                              handleDeleteSubBlogVideo(
+                                                index,
+                                                index2,
+                                                video.id
+                                              )
+                                            }
+                                          >
+                                            <MdDelete />
+                                          </div>
+                                        </div>
+                                      )
+                                  )}
+                                </div>
+                              </>
+                            ) : (
+                              <MultiImageUpload
+                                id="upload1"
+                                setWorkImages={handleSetWorkImages}
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="df jce mb12">
+                          <button
+                            className="df jce aic p8 brd1 br4 fc9 cp"
+                            onClick={() => handleDeleteSection(section.id)}
+                          >
+                            <MdDelete className="fs20 cp fc9" />
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ))}
+                {sections.some((obj) => obj.status === "1") && (
+                  <div className="add-more df jce aic mt24 mr16">
+                    <button
+                      type="button"
+                      onClick={handleAddSection}
+                      className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 mb24 v-center"
+                    >
+                      <FaPlus className="mr4" />
+                      Add More
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="meta-grp bg8 pl20 pr20 pt20 pb10 mb24 mt24 box-sd1">
+                <div className="form-group-settings small-title">
+                  <p className="fc15 fw6 fs14 ls1">
+                    Small Title<span className="fc4">*</span>
+                  </p>
+                  <input
+                    type="text"
+                    id="smallTitle"
+                    name="smallTitle"
+                    value={smallTitle}
+                    placeholder="Enter small title"
+                    onChange={(e) => setSmallTitle(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="form-group-settings name">
+                  <SingleDropdown
+                    label="Author"
+                    options={autherList}
+                    selectedOption={author}
+                    isOtions={1}
+                    onSelect={handleAuthorSelect}
+                    search
+                  />
+                </div>
+                <div className="tags mb30">
+                  <p className="fc15 fw6 fs14 ls1 mb8">Tags</p>
+                  <MultiselectDropdown
+                    options={optionsTags}
+                    selectedOptions={selectedOptionsTags}
+                    onSelectedOptionsChange={handleSelectedTagsOptionsChange}
+                    showDropdown={true}
+                  />
+                </div>
+                <div className="form-group-settings name rel-blogs">
+                  <p className="fc15 fw6 fs14 ls1 mb12">
+                    Related {relBlogList.article_type_label}
+                  </p>
+                  <div
+                    className="chips-container cp"
+                    onClick={() => {
+                      setShowBlogsManually(true);
+                      onClickRelGetbloglist();
+                    }}
+                  >
+                    {selectedBlogs && selectedBlogs.length === 0 ? (
+                      <p className="fs16 fc5">
+                        Select {relBlogList.article_type_label}{" "}
+                      </p>
+                    ) : (
+                      selectedBlogs &&
+                      selectedBlogs.map((blg) => (
+                        <div key={blg.id} className="chip ls1 lh14">
+                          {blg.title}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeSelectedBlogs(blg.id);
+                            }}
+                            className="close-btn"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                {((user.role === "2" && user.dept_id === "6") ||
+                  user.role === "1") && (
+                  <>
+                    <div className="form-group-settings name">
+                      <p className="fc15 fw6 fs14 ls1">Meta Title</p>
+                      <input
+                        type="text"
+                        id="metaTitle"
+                        name="metaTitle"
+                        value={metaTitle}
+                        onChange={(e) => setMetaTitle(e.target.value)}
+                        placeholder="Enter title"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="form-group-settings name">
+                      <p className="fc15 fw6 fs14 ls1">Meta Description</p>
+                      <textarea
+                        id="metaDescription"
+                        name="metaDescription"
+                        placeholder="Enter meta description"
+                        value={metaDescription}
+                        onChange={(e) => setMetaDescription(e.target.value)}
+                        autoComplete="off"
+                      ></textarea>
+                    </div>
+                    <div className="tags mb30">
+                      <p className="fc15 fw6 fs14 ls1 mb8">Meta Keywords</p>
+                      <MultiselectDropdown
+                        options={optionsTags}
+                        selectedOptions={selectedOptionsMetaKeyword}
+                        onSelectedOptionsChange={
+                          handleSelectedMetaKeyWordOptionsChange
+                        }
+                        showDropdown={false}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="radio-grp-status box-center fww mt12 mb12">
+                <label htmlFor="approve" className="cp v-center mr16 fc13">
+                  <input
+                    type="radio"
+                    className="mr8 cp"
+                    id="approve"
+                    value="1"
+                    checked={status === "1"}
+                    onChange={handleStatusChange}
+                  />
+                  Approve
+                </label>
+                <label htmlFor="draft" className="cp v-center mr16 fc6 ml24">
+                  <input
+                    type="radio"
+                    className="mr8 cp"
+                    id="draft"
+                    value="2"
+                    checked={status === "2"}
+                    onChange={handleStatusChange}
+                  />
+                  Draft
+                </label>
+                <label htmlFor="reject" className="cp v-center mr16 fc9 ml24">
+                  <input
+                    type="radio"
+                    className="mr8 cp"
+                    id="reject"
+                    value="0"
+                    checked={status === "0"}
+                    onChange={handleStatusChange}
+                  />
+                  Reject
+                </label>
+              </div>
+              
+              <div className="add-more box-center mt24">
+                {!submitLoader && (
+                  <button
+                    type="button"
+                    className="btn-blue bg1 br24 fs14 cp pl24 pr24 pt10 pb10 ml24 ls2"
+                    onClick={handleSubmit}
+                  >
+                    Submit
+                  </button>
+                )}
+                {submitLoader && (
+                  <div className="box-center mb12">
+                    <SmallLoader className={"mb12"} />
+                  </div>
+                )}
+              </div>
+              {showBlogsManually && (
+                <SidePopup
+                  show={showBlogsManually}
+                  totalPageNum={totalPageNum}
+                  setPageNum={setPageNum}
+                  pageNum={pageNum}
+                  setRelBlogList={setRelBlogList}
+                  getrelbloglist={getrelbloglist}
+                  autLoadreldata={autLoadreldata}
+                  onClose={() => {
+                    setShowBlogsManually(false);
+                  }}
+                >
+                  <div className="p12">
+                    <div className="sidepop-top">
+                      <div className="v-center jcsb">
+                        <p>Select Blogs</p>
+                        <button
+                          onClick={() => {
+                            enableScroll();
+                            setShowBlogsManually(false);
+                          }}
+                          className="fs18 fc1 bg5 cp"
+                        >
+                          X
+                        </button>
+                      </div>
+                      <div className="builder-filters blog-popup mt12">
+                        <InputSearch
+                          onSearch={handleBlogSearch}
+                          placeholder={"Search.."}
+                        />
+                      </div>
+                    </div>
+                    <div className="grp-packages">
+                      {blogData && blogData.length < 1 ? (
+                        <div className="no-record-found-text mt10 box-center">
+                          {displayMsg.msg}
+                        </div>
+                      ) : (
+                        blogData &&
+                        blogData.map((blogItem) => (
+                          <div
+                            key={blogItem.id}
+                            className={`popup-card-wrapper brd1 pt16 pb16 pl8 pr8 df mt24 mb24 cp ${
+                              selectedBlogs &&
+                              selectedBlogs.some(
+                                (selectedBlog) =>
+                                  selectedBlog.id === blogItem.id
+                              )
+                                ? "selected"
+                                : ""
+                            }`}
+                            onClick={() => handleBlogSelection(blogItem)}
+                          >
+                            <div className="left-package-image">
+                              <img
+                                src={
+                                  blogItem.coverimage.startsWith("https://")
+                                    ? blogItem.coverimage
+                                    : "https://www.hlimg.com/images/deals/360X230/" +
+                                      blogItem.coverimage
+                                }
+                                alt={blogItem.title}
+                              />
+                            </div>
+                            <div className="right-package-image pl16">
+                              <div className="fs14 fw5 fc1 ls1 captw lh18">
+                                {blogItem.title}
+                                <a
+                                  href={blogItem.article_url}
+                                  target="_blank"
+                                  className="fc5 fs12 ml8"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <FaExternalLinkAlt />
+                                </a>
+                              </div>
+                              <div className="fs14 pt24 fc5 ls1 lh22 text-row lc2">
+                                {blogItem.small_overview}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      {autoLoader && (
+                        <div className="box-center mb12">
+                          <SmallLoader className={"mb12"} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </SidePopup>
+              )}
+            </Card>
+            {id !== undefined &&
+              blogDetailData.status === "1" &&
+              blogDetailData.detail_page_url && (
+                <WebsiteUrl url={blogDetailData.detail_page_url} />
+              )}
+          </>
+        )}
+      {!pageRoleAccess && !pageContentAccessDept && (
+        <NoPermission displayMsg={"No permission to access this page"} />
+      )}
+      <ToastContainer position="bottom-right" />
+    </>
+  );
+};
+
+export default BlogDetail;

@@ -1,0 +1,110 @@
+.sortby-filter .selected-role {
+  margin-right: 16px;
+  padding: 0 16px;
+  height: 24px;
+}
+.report-date .react-datepicker__input-container input {
+  cursor: pointer;
+  padding: 10px;
+  border-bottom: 1px solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 132px;
+  font-size: 13px;
+  color: #000;
+  padding-right: 8px;
+}
+
+.mylead-table tbody tr:hover {
+  background-color: #eaeaea;
+  box-shadow: 0 0 10px #0000001a;
+  cursor: pointer;
+  transform: translateY(-5px);
+}
+.mylead-table tbody tr {
+  transition: transform 0.2s ease;
+}
+.course-list {
+  position: absolute;
+  background: #fff;
+  list-style: none;
+  padding: 8px;
+  z-index: 9;
+}
+.custom-dropdown input {
+  min-width: 120px;
+  max-width: 220px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  min-height: 40px;
+  outline: none;
+}
+.booked tr th,
+.booked tr td {
+  border: 1px solid #ddd !important;
+}
+.booked table {
+  border-collapse: collapse !important;
+}
+.st-filter .multi-level-dropdown,.ct-f .multi-level-dropdown{
+  width: 100%;
+}
+.card-content{
+  justify-content: start !important;
+    overflow-x: scroll;
+    scrollbar-width: none;
+}
+.battery{
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+}
+.lead-course{
+  display: -webkit-box;
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+  white-space: normal; 
+  max-width: 200px; 
+}
+.lp-date{
+  width: 100px;
+}
+.lead-card-content .card-item{
+  flex: 0 0 12% !important;
+  min-width: 12% !important;
+}
+
+@media screen and (max-width: 767px) {
+  .lead-card-content .card-item{
+    flex: 0 0 50% !important;
+    min-width: 50% !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .two-inputs {
+    flex-direction: column;
+  }
+  .two-inputs {
+    padding-bottom: 0;
+    padding-top: 0;
+  }
+  .two-inputs .flx48 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .activity,
+  .plan-st,
+  .dep,
+  .team {
+    margin-bottom: 12px;
+  }
+  .activity {
+    margin-top: 0;
+  }
+}

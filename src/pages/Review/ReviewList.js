@@ -1,0 +1,959 @@
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import "../MyTeam/MyTeam.css";
+import InnerHeader from "../../components/InnerHeader";
+import Card from "../../components/Card";
+import Tooltip from "../../components/Tooltip";
+import { FaPencilAlt } from "react-icons/fa";
+import { TbFilterShare } from "react-icons/tb";
+import MultiDropdown from "../../components/MultiDropdown";
+import SearchInput from "../../components/SearchInput";
+import SidePopup from "../../components/Popup/SidePopup";
+import { giveTextColor } from "../../helpers/textColors";
+import "react-datepicker/dist/react-datepicker.css";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
+import { DateRangePicker } from "react-date-range";
+import { addDays, format } from "date-fns";
+import Dropdown from "../../components/Dropdown";
+import { RiArrowUpDownFill } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+
+import axios from "axios";
+import SmallLoader from "../../components/SmallLoader";
+import constant from "../../constant/constant";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { logout } from "../../store/authSlice.js";
+import { useTitle } from "../../hooks/useTitle.js";
+import NoPermission from "../../components/NoPermission.js";
+import FilteredDataDisplay from "../../components/FilteredDataDisplay.js";
+
+const ReviewList = () => {
+  const user = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  useTitle("Review List - Flapone Aviation");
+
+  const accessRoleLimit = constant.accessRole;
+  const accessContentDeptLimit = constant.accesscontentDept;
+  const userRole = user.role;
+  const userDept = user.dept_id;
+  const pageRoleAccess = accessRoleLimit.includes(userRole);
+  const pageContentAccessDept = accessContentDeptLimit.includes(userDept);
+
+  const [recordList, setRecordList] = useState([]);
+  const limit = 20;
+  const [selectedTab, setSelectedTab] = useState("review");
+  const [searchByOpt, setSearchByOpt] = useState("");
+  const [clearSignal, setClearSignal] = useState(false);
+  const [dateLabel, setDateLabel] = useState("Select Date");
+  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState([]);
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [selectbyCourse,setSelectbyCourse] = useState("");
+  const [courseOptions,setCourseOptions] = useState([]);
+  const [dateMoreOptions, setDateMoreOptions] = useState([]);
+  const [byselectOptions,setBySelectOptins] = useState([]);
+  const [listStatusOptions,setListStatusOptions] = useState([]);
+  const [dateRangeValue, setDateRangeValue] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+  ]);
+  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
+  const [showDateInput, setShowDateInput] = useState(false);
+  const [dateMore, setDateMore] = useState("");
+  const [searchBy, setSearchBy] = useState("");
+  const [searchLabel, setSearchLabel] = useState("Search By");
+  const [showSearchInput, setShowSearchInput] = useState(false);
+  const [type, setType] = useState("");
+  const [starOptions, setStarOptions] = useState([])
+  const [totalPageNum, setTotalPageNum] = useState(0);
+  const [searchByOptions, setSearchByOptions] = useState([]);
+  const [pageNum, setPageNum] = useState(1);
+  const [autoLoader, setAutoLoader] = useState(false);
+  const [displayMsg, setDisplayMsg] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
+  const [filterApiStatus, setFilterApiStatus] = useState(false);
+   var oldFilter = {};
+    const initial_obj = {
+      page_type: "review",
+      page_type_lable: "Review",
+      searchtext: "",
+      searchByOptions:"",
+      dateMoreOptions:"",
+      dateRangeValue: `${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+      starrating:"",
+      listStatusOptions:"",
+      courseoption:"",
+      type:type,
+      filterOnOff:true
+    };
+  const [listFilter, setListFilter] = useState({     
+     "page_type": "review",
+      "page_type_lable": "Review",
+      "searchtext": "",
+      "searchByOptions":"",
+      "dateMoreOptions":"",
+      "dateRangeValue":"",
+      "starrating":"",
+      "listStatusOptions":"",
+      "courseoption":"",
+      "type":"",
+      "filterOnOff":false});
+  const [totalCount, setTotalCount] = useState(0);
+
+
+  const dateRangePickerRef = useRef(null);
+  const navigate = useNavigate();
+  const handleFilterClick = () => {
+    setShowFilterPopup(true);
+  };
+
+  const handleSelectCategory = (value) => {
+    const index = selectedCategory.indexOf(value);
+    if (index === -1) {
+      setSelectedCategory([...selectedCategory, value]);
+    } else {
+      const updatedValues = [...selectedCategory];
+      updatedValues.splice(index, 1);
+      setSelectedCategory(updatedValues);
+    }
+  };
+  const handleSelectByType = (value) => {
+    const index = selectbyCourse.indexOf(value);
+    if (index === -1) {
+      setSelectbyCourse([...selectbyCourse, value]);
+    } else {
+      const updatedValues = [...selectbyCourse];
+      updatedValues.splice(index, 1);
+      setSelectbyCourse(updatedValues);
+    }
+  }
+  const handleSelectStatus = (value) => {
+    const index = selectedStatus.indexOf(value);
+    if (index === -1) {
+      setSelectedStatus([...selectedStatus, value]);
+    } else {
+      const updatedValues = [...selectedStatus];
+      updatedValues.splice(index, 1);
+      setSelectedStatus(updatedValues);
+    }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchByOpt(value);
+  };
+  const applyFilter = async () => {
+    // alert("wfe");
+    let updatefilter = {
+      ...listFilter,
+      page_type: "review",
+      page_type_lable: "Review",
+      searchtext: searchByOpt,
+      searchByOptions:searchBy,
+      dateMoreOptions:dateMore,
+      dateRangeValue: `${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+      dateRangeValuefilter:dateRangeValue,
+      starrating:selectedCategory,
+      listStatusOptions:selectedStatus,
+      courseoption:selectbyCourse,
+      type:type,
+      filterOnOff:true
+    };
+
+    var getoldfilter = localStorage.getItem("allfilterstudent");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+    }
+    oldFilter[selectedTab] = updatefilter;
+    localStorage.setItem("allfilterstudent", JSON.stringify(oldFilter));
+
+    setListFilter(updatefilter);
+    setPageNum(1);
+    closeFilter();
+    setFilterApplyStatus(true);
+  };
+
+
+
+   const clearFilter = () => {
+    FilterAllStateClear(1);
+    let getOldFilterclear = localStorage.getItem("allfilterstudent");
+    let oldFilterValclear = getOldFilterclear
+      ? JSON.parse(getOldFilterclear)
+      : {};
+    let currentTabFilterValclear = oldFilterValclear[selectedTab]
+      ? { ...oldFilterValclear }
+      : null;
+
+    if (currentTabFilterValclear) {
+      delete currentTabFilterValclear[selectedTab];
+      localStorage.setItem(
+        "allfilterstudent",
+        JSON.stringify(currentTabFilterValclear)
+      );
+    }
+    updateSetListingFilter(1);
+    closeFilter();
+  };
+
+
+
+ const updateSetListingFilter = async () => {
+     let updatefilter = {
+       ...listFilter,
+       ...initial_obj,
+       page_type:selectedTab,
+     };
+     setListFilter(updatefilter);
+   };
+
+  const FilterAllStateClear = () => {
+    setSearchByOpt("");
+    setDateLabel("Select Date");
+    setSelectedCategory([]);
+    setSelectedStatus([]);
+    setSelectbyCourse([]);
+    setClearSignal(true);
+    setDateMore("");
+    handleTypeChange("");
+    setShowDateInput(false);
+    setPageNum(1);
+    setSearchBy("");
+    setSearchLabel("Search By");
+    setShowSearchInput(false);
+    setTimeout(() => setClearSignal(false), 0);
+    closeFilter();
+    setFilterApplyStatus(false);
+  };
+
+   useEffect(() => {
+   getListRecord();
+   }, []);
+
+    useEffect(()=>{
+    getListRecord();
+   },[listFilter]);
+ 
+  useEffect(() => {
+      if (filterApiStatus) {
+        FilterAllStateClear();
+        setLocalStorage();
+      }
+    }, [selectedTab, filterApiStatus]);
+
+  const setLocalStorage = async () => {
+    var getoldfilter = localStorage.getItem("allfilterstudent");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+      var currenttabfilter = oldFilter[selectedTab]
+        ? oldFilter[selectedTab]
+        : "";
+      if (currenttabfilter) {
+        setFilterApplyStatus(true);
+        setListFilter(currenttabfilter);
+        
+        if (currenttabfilter && currenttabfilter["courseoption"]) {
+         setSelectbyCourse(currenttabfilter["courseoption"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["starrating"]) {
+          setSelectedCategory(currenttabfilter["starrating"]);
+        }
+
+        if (currenttabfilter && currenttabfilter["listStatusOptions"]) {
+          setSelectedStatus(currenttabfilter["listStatusOptions"]);
+        }
+
+          if (currenttabfilter && currenttabfilter["dateMoreOptions"]) {
+          setDateMore(currenttabfilter["dateMoreOptions"]);
+        }
+
+         if (currenttabfilter && currenttabfilter["dateRangeValuefilter"]) {
+          setDateRangeValue(currenttabfilter["dateRangeValuefilter"]);
+        }
+
+       
+          if (currenttabfilter && currenttabfilter["dateMoreOptions"]) {
+          let filterdateobj = dateMoreOptions.find(
+            (item) => item.value === currenttabfilter["dateMoreOptions"]
+          );
+          if (filterdateobj) {
+             setShowDateInput(true);
+            setDateLabel(filterdateobj.label);
+          }
+        }
+        
+ 
+
+
+      } else {
+        updateSetListingFilter();
+      }
+    } else {
+      updateSetListingFilter();
+    }
+  };
+
+  const closeFilter = () => {
+    setShowFilterPopup(false);
+    document.body.style.overflow = "auto";
+  };
+  const openFaqAddPage = () => {
+    navigate("/faq-detail");
+  };
+  const toggleDateRangePicker = () => {
+    setShowDateRangePicker(!showDateRangePicker);
+  };
+
+  const handleDateRangeChange = (item) => {
+    setDateRangeValue([item.selection]);
+    // setShowDateRangePicker(false);
+    setShowDateInput(true);
+  };
+
+  const handleClickOutside = (event) => {
+    if (
+      dateRangePickerRef.current &&
+      !dateRangePickerRef.current.contains(event.target)
+    ) {
+      setShowDateRangePicker(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showDateRangePicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDateRangePicker]);
+
+
+  
+  const handleDateMoreChange = (option) => {
+    setDateMore(option.value);
+    if(option.value!=''){
+      setShowDateInput(true);
+    }
+    else{
+      setShowDateInput(false);
+    }
+    setDateLabel(option.label);
+    if (option.value) {
+      setShowDateRangePicker(true);
+    } else {
+      setShowDateRangePicker(false);
+    }
+  };
+
+  const checkUserLogin = (response) =>{
+    if(response.data.login.status===0){
+      dispatch(logout());
+      navigate("/login");
+    }
+  }
+  const handleSearchByChange = (option) => {
+    setSearchBy(option.value);
+    setSearchLabel(option.label);
+    if (option.value) {
+      setShowSearchInput(true);
+    } else {
+      setShowSearchInput(false);
+    }
+  };
+  const openReviewAddPage = () => {
+    navigate("/review-detail");
+  };
+  const [typeOptions, setTypeOptions] = useState([]);
+  
+  const handleTypeChange = (value) => {
+    setType(value);
+  };
+  const openDetailPage = (index,id) =>{
+    navigate("/review-detail/"+id);
+  }
+  //kamlesh custom code
+  useEffect(() => {
+    const scrollHandler = () => {
+      // Debouncing logic starts here
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 70 && !isFetching) {
+          setIsFetching(true);
+          if (pageNum <= totalPageNum) {
+            getListRecord();
+          }
+        }
+      }, 200); // Adjust the debounce delay as needed
+    };
+
+    let scrollTimeout;
+
+    window.addEventListener('scroll', scrollHandler);
+
+    return () => window.removeEventListener('scroll', scrollHandler);
+  }, [isFetching,pageNum]);
+  const [sortBy, setSortBy] = useState(""); 
+  const [sortDirection, setSortDirection] = useState("asc"); 
+  const handleSortByChange = (field) => {
+    if (field === sortBy) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortList = useMemo(() => {
+    let sortedList = [...recordList];
+
+    sortedList.sort((a, b) => {
+      // Handle null or undefined values for sortBy field
+      const aValue = a[sortBy] || '';
+      const bValue = b[sortBy] || '';
+
+      // Use localeCompare for string comparison, numeric for id
+      if (sortBy === 'id') {
+        return sortDirection === "asc" ? a.id - b.id : b.id - a.id;
+      }else if (sortBy==='position'){
+        return sortDirection === "asc" ? a.position - b.position : b.position - a.position;
+      } else {
+        const comparison = aValue.toString().localeCompare(bValue.toString(), undefined, { numeric: true });
+        return sortDirection === "asc" ? comparison : -comparison;
+      }
+    });
+
+    return sortedList;
+  }, [recordList, sortBy, sortDirection]);
+
+ 
+
+  const updateAtHomeDisplay = (index,value,id) =>{
+    recordList[index]['display'] = value?value:0;
+    setRecordList([...recordList]);
+    updateAtHomeStatus(id,recordList[index]['display']);
+  }
+
+
+ const updateBlogPosition = (index,value,id) => {
+    /*    
+    recordList[index]['position'] = value?value:"";
+    setRecordList([...recordList]);
+    */
+     const updatedSections = recordList.map((section) => {
+      if (section.id === id) {
+        return { ...section, ['order']: value };
+      }
+      return section;
+    });
+    setRecordList(updatedSections);
+    updatePostion(id,value);
+  }
+
+ /* const updateBlogPosition = (index,value,id) => {
+    recordList[index]['order'] = parseInt(value)>0?value:"1";
+    setRecordList([...recordList]);
+    updatePostion(id,recordList[index]['order']);
+  }
+  */
+  const updateAtHomeStatus = async (id,value) => {
+    axios({
+      method: 'post',
+      url: `${constant.base_url}/admin/flapone_list.php?fun=updateathome`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {"review_id": id,"value":value}
+    }).then(function (response) {
+      checkUserLogin(response);
+      if (response.data.data.status === 1) {
+      }
+    }).catch(function (error) {
+      console.error('Error during login:', error);
+    });
+  }
+  const updatePostion = async (id,value) => {
+    axios({
+      method: 'post',
+      url: `${constant.base_url}/admin/flapone_list.php?fun=positionupdatereview`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {"review_id": id,"value":value}
+    }).then(function (response) {
+      checkUserLogin(response);
+      if (response.data.data.status === 1) {
+      }
+    }).catch(function (error) {
+      console.error('Error during login:', error);
+    });
+  }
+  const getListRecord = async () => {
+    setAutoLoader(true);
+    setDisplayMsg("");
+    axios({
+      method: 'post',
+      url: `${constant.base_url}/admin/flapone_list.php?fun=getlistrecord`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {"page_num":pageNum,"limit":limit,"filter":listFilter}
+    }).then(function (response) {
+      checkUserLogin(response);
+      if (response.data.data.status === "1") {
+        if (pageNum === 1) {
+          setTotalPageNum(response.data.data.total_page);
+          setTotalCount(response.data.data.total_count);
+
+          setRecordList([...response.data.data.list]);
+          setSearchByOptions([...JSON.parse(response.data.data.filterlist.searchByOptions)]);
+          setDateMoreOptions([...JSON.parse(response.data.data.filterlist.dateMoreOptions)]);
+          setTypeOptions([...JSON.parse(response.data.data.filterlist.typeOptions)]);
+          setCourseOptions([...JSON.parse(response.data.data.filterlist.courselist)]);
+          setListStatusOptions([...JSON.parse(response.data.data.filterlist.listStatusOptions)]);
+          setStarOptions([...JSON.parse(response.data.data.filterlist.starOptions)]);
+        }
+        else {
+          setRecordList([...recordList, ...response.data.data.list]);
+        }
+        setPageNum((prevPageNum) => prevPageNum + 1);
+      }
+      else {
+        setTotalCount(0);
+        setRecordList([]);
+        setDisplayMsg(response.data.data.msg);
+
+      }
+      setAutoLoader(false);
+      setIsFetching(false);
+      setFilterApiStatus(true);
+    }).catch(function (error) {
+      console.error('Error during login:', error);
+    });
+  }
+
+  const filterLabels = {
+        page_type: "Page Type",
+        datetypefilter: "Date Type",
+        dateMoreOptions: "Date Type",
+        instructorselect:"Faculty",
+        dateRangeValue: "Date Range",
+        listStatusOptions:"Status",
+        searchByOptions:"Search By",
+        searchtext:"Search Value",
+        checkedTeamItems:"Team",
+        type:"Type",
+        courseoption:"Course",
+        starrating:"Rating"
+        
+      };
+      const [filterCount, setFilterCount] = useState(0);
+     
+       const [filterApplyStatus, setFilterApplyStatus] = useState(false);
+     
+       const handleFilterCountChange = (count) => {
+         setFilterCount(count);
+       };
+
+  return (
+    <>
+    {(pageRoleAccess || pageContentAccessDept) && ( <>
+      <InnerHeader
+        heading="Reviews"
+        txtSubHeading="View and manage all reviews here."
+        showButton={true}
+        iconText="Add New Review"
+        onClick={openReviewAddPage}
+      />
+      <Card className="bg5 mt16 pb16">
+        <div className="myteam-filters v-center jcsb pl16 brd-b1 pb12 pt12 fww">
+          <div className="left-side-filter v-center fww">
+            <div className="mt8 mb12 ">
+              <Dropdown
+                label={dateLabel}
+                options={dateMoreOptions}
+                selectedValue={dateMore}
+                onValueChange={handleDateMoreChange}
+              />
+            </div>
+            <div className="report-date mr4 mb12 mt8 ml4">
+              {showDateInput && dateRangeValue && (
+                <div
+                  className="date-range-input"
+                  onClick={toggleDateRangePicker}
+                  style={{
+                    cursor: "pointer",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    color: "#7b7b7b",
+                    fontSize: "14px",
+                  }}
+                >
+                  {`${format(
+                    dateRangeValue[0].startDate,
+                    "dd/MM/yyyy"
+                  )} - ${format(dateRangeValue[0].endDate, "dd/MM/yyyy")}`}
+                </div>
+              )}
+              {showDateRangePicker && (
+                <div ref={dateRangePickerRef}>
+                  <DateRangePicker
+                    onChange={handleDateRangeChange}
+                    showSelectionPreview={true}
+                    moveRangeOnFirstSelection={false}
+                    months={2}
+                    ranges={dateRangeValue}
+                    direction="horizontal"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="category-filter-opt mr8 mt8 mb12">
+                <MultiDropdown
+                label="Course"
+                options={courseOptions}
+                selectedValues={selectbyCourse}
+                onSelect={handleSelectByType}
+              />
+            </div>
+            <div className="category-filter mr8 mt8 mb12 searching-drop">
+              <MultiDropdown
+                label="Star/Rating"
+                options={starOptions}
+                selectedValues={selectedCategory}
+                onSelect={handleSelectCategory}
+              />
+            </div>
+            <div className="status-filter mr8 mt8 mb12">
+              <MultiDropdown
+                label="Status"
+                options={listStatusOptions}
+                selectedValues={selectedStatus}
+                onSelect={handleSelectStatus}
+              />
+            </div>
+            <div className="mr8 plan-status mr8 mt8 mb12">
+              <Dropdown
+                label="Type"
+                options={typeOptions}
+                selectedValue={type}
+                onValueChange={handleTypeChange}
+              />
+            </div>
+            <div className="search-by-drp mt8 mb12 mr8">
+              <Dropdown
+                label={searchLabel}
+                options={searchByOptions}
+                selectedValue={searchBy}
+                onValueChange={handleSearchByChange}
+              />
+            </div>
+            <div className="search-filter mt8 mb12 v-center mr16">
+              {showSearchInput && (
+                <SearchInput
+                  onSearchChange={handleSearchChange}
+                  clearSignal={clearSignal}
+                  placeholder={searchLabel}
+                />
+              )}
+            </div>
+            <div
+              className="box-center filter-container br4 ls1 mt8 mb12"
+              onClick={handleFilterClick}
+            >
+              <TbFilterShare className="cp  fc5 filter-icon mr8" />
+              <span className="fs14">Filter</span>
+            </div>
+            <button className="bg1 fs12 pl12 pr12 pt8 pb8 fc3 cp br16 ls1 mr8" onClick={()=>applyFilter()}>
+              GO
+            </button>
+            {listFilter && listFilter.filterOnOff && (
+              <button
+              className="clear fs12 pl12 pr12 pt8 pb8 fc1 cp br16 ls1 fw6"
+              onClick={clearFilter}
+            >
+              Clear
+            </button>
+            )}
+
+          </div>
+        </div>
+        {filterApplyStatus && (
+                      <FilteredDataDisplay
+                        filterData={listFilter}
+                        labels={filterLabels}
+                        onClearAll={clearFilter}
+                        onFilterCountChange={handleFilterCountChange}
+                        listOptions={{
+                          courseOptions,
+                          starOptions,  
+                          listStatusOptions, 
+                          typeOptions,                       
+                          searchByOptions,
+                        }}
+                      />
+                    )}
+        <div class="mylead-filters v-center jcsb pl16 pt16 fww fs12 ">{"Total Results: "+totalCount}</div>
+        <div
+          className="blog-listing table-container df w100 fdc mt16"
+          style={{ overflow: "auto" }}
+        >
+          <table className="wsnw list-blog">
+            <thead className="w100">
+              <tr>
+                <th onClick={() => handleSortByChange("id")}>
+                  <p className="box-center">
+                    Id
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th onClick={() => handleSortByChange("type")}>
+                  <p className="box-center">
+                    Type
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th onClick={() => handleSortByChange("name")}  style={{width:150}}>
+                  <p className="box-center">
+                    Name
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                {/* <th onClick={() => handleSortByChange("title")}>
+                  <p className="box-center">
+                    Title
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th> */}
+                <th onClick={() => handleSortByChange("description")} style={{width:250}}>
+                  <p className="box-center">
+                    Description
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th onClick={() => handleSortByChange("rating")}>
+                  <p className="box-center">
+                    Rating
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                {/* <th onClick={() => handleSortByChange("courses")}>
+                  <p className="box-center">
+                    Courses
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th> */}
+                <th onClick={() => handleSortByChange("status")}>
+                  <p className="box-center">
+                    Status
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th onClick={() => handleSortByChange("display")}>
+                  <p className="box-center">
+                    Home
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                
+                <th onClick={() => handleSortByChange("create_date")}>
+                  <p className="box-center">
+                   Created Date
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th onClick={() => handleSortByChange("update_date")}>
+                  <p className="box-center" >
+                    Updated Date
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th onClick={() => handleSortByChange("order")}>
+                  <p className="box-center">
+                    Position
+                    <RiArrowUpDownFill className="cp ml4" />
+                  </p>
+                </th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody className="blg-list">
+              {sortList.map((review,index) => (
+                <tr key={review.id}>
+                  <td>{review.id}</td>
+                  <td  style={{
+                      color: giveTextColor(
+                        review.type === "Public"
+                          ? "Blogs"
+                              : review.type==='Inhouse'?
+                              "Rejected":review.type
+                      ),
+                      textTransform: "capitalize",
+                    }}>{review.type}</td>
+                  <td className="lh18">{review.name}</td>
+                  {/* <td>{review.title}</td> */}
+                  <td className="text-row lc3 lh18" style={{maxWidth:250}}>{review.description}</td>
+                  <td >{review.rating}</td>
+                  {/* <td className="text-row lc2 lh18">{review.courses}</td> */}
+                  <td
+                    style={{
+                      color: giveTextColor(
+                        review.article_status === "1"
+                          ? "Approve"
+                          : review.article_status === "0"
+                            ? "Rejected"
+                            : review.article_status === "2"
+                              ? "Draft"
+                              : review.article_status
+                      ),
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {review.status}
+                  </td>
+
+                  <td>
+                    <label className="checkbox-label cp p10">
+                      <input
+                        type="checkbox"
+                        className="cp"
+                        checked={review.display}
+                        onChange={(e) => {
+                          updateAtHomeDisplay(index,e.target.checked,review.id);
+                        }}
+                      />
+                    </label>
+                  </td>
+                  <td>{review.create_date?review.create_date:'-'}</td>
+                  <td>{review.update_date?review.update_date:'-'}</td>
+                  <td>
+		      {user.role === '1'?
+                    <input
+                      type="number"
+                      id="position"
+                      name="position"
+                      min={1}
+                      max={555}
+                      placeholder="Position"
+                      value={review.order}
+                      style={{ 
+                        backgroundColor: review.article_status!=="1" ? '#f9f9f9' : '',
+                        cursor: review.article_status!=="1" ? 'not-allowed' : '' 
+                      }}
+                      onChange={(e) => updateBlogPosition(index,e.target.value,review.id)}
+                      autoComplete="off"
+                      readOnly={review.article_status!=="1"}
+                      className="input-field-number-pos"
+                    />:review.order}
+
+                  </td>
+                  <td>
+                    <div className="action-icons box-center" onClick={()=>openDetailPage(index,review.id)}>
+                      <Tooltip title="Edit">
+                        <FaPencilAlt
+                          title="Edit"
+                          className="icon edit-icon ml12 cp fs18 fc5"
+                          style={{ verticalAlign: "middle", cursor: "pointer" }}
+                        />
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {displayMsg && 
+                  <div className="box-center mt12">
+                    {displayMsg}
+                  </div>
+          }
+          {autoLoader && (
+                  <div className="box-center mb12">
+                    <SmallLoader className={"mb12"} />
+                  </div>
+                )}
+        </div>
+        {showFilterPopup && (
+          <SidePopup show={showFilterPopup} onClose={closeFilter}>
+            <div className="">
+              <div className="df jcsb brd-b1 p12 box-center bg7 w100 fc1 ls2 lh22">
+                <p className="fs18 fc1 ">Filters</p>
+                <button onClick={closeFilter} className="lead-close-button">
+                  X
+                </button>
+              </div>
+              <div className="filter-lists pl16 pt16 pr8">
+                <div className="mb20">
+                  <p className="fs16 fw6 mb12">Category</p>
+                  <MultiDropdown
+                    label="Category"
+                    options={starOptions}
+                    selectedValues={selectedCategory}
+                    onSelect={handleSelectCategory}
+                  />
+                </div>
+                <div className="mb20">
+                  <p className="fs16 fw6 mb12">Status</p>
+                  <MultiDropdown
+                    label="Status"
+                    options={listStatusOptions}
+                    selectedValues={selectedStatus}
+                    onSelect={handleSelectStatus}
+                  />
+                </div>
+                <div className="pop-search-filter mt8 mb12 df w100 fdc">
+                  <div className="mb20">
+                    <Dropdown
+                      label={searchLabel}
+                      options={searchByOptions}
+                      selectedValue={searchBy}
+                      onValueChange={handleSearchByChange}
+                    />
+                  </div>
+                  {showSearchInput && (
+                    <>
+                      <p className="fs16 fw6 mb12 df ais">Search </p>
+                      <SearchInput
+                        onSearchChange={handleSearchChange}
+                        clearSignal={clearSignal}
+                        placeholder={searchLabel}
+                      />
+                    </>
+                  )}
+                </div>
+                <div className="filter-button-container mt16 pt16 box-center">
+                  <button
+                    type="button"
+                    className="bg1 fc3 pt10 pb10 pl16 pr16 br24"
+                    onClick={()=>applyFilter()}>
+                    Apply
+                  </button>
+                  <button
+                    type="button"
+                    className="ml24 pt10 pb10 pl16 pr16 br24"
+                    onClick={clearFilter}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+          </SidePopup>
+        )}
+
+       </Card>
+      </>
+      )}
+
+     {!pageRoleAccess && !pageContentAccessDept  && (
+            <NoPermission displayMsg={"No permission to access this page"} />
+      )}
+    </>
+  );
+};
+
+export default ReviewList;

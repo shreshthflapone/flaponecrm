@@ -1,0 +1,118 @@
+.course-header {
+  border-bottom: 2px solid #ccc;
+}
+.course-header svg {
+  min-width: 24px !important;
+}
+
+.content-section:not(:last-child) {
+  border-bottom: 2px solid #bababa;
+  padding-bottom: 48px;
+}
+
+.image-gallery .gallery-course {
+  flex: 0 0 60%;
+  max-width: 66%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.image-gallery img {
+  width: 66%;
+  height: 100%;
+  padding-bottom: 8px;
+}
+.course-left-right img {
+  margin: 8px;
+  max-width: 100%;
+  width: auto !important;
+  height: auto;
+}
+.course-left-right.reverse-layout {
+  flex-direction: row-reverse;
+}
+.course-material-content h2 {
+  color: #000;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.course-material-content {
+  margin-bottom: 12px;
+}
+.course-material-content ul {
+  list-style-type: disc;
+}
+
+.course-material-content ol {
+  list-style-type: decimal;
+}
+
+.course-material-content ol,
+.course-material-content ul {
+  padding-left: 20px;
+  margin: 0;
+}
+.course-material-content a {
+  text-decoration: underline;
+}
+.course-material-content strong,
+.course-material-content b {
+  font-weight: 600;
+}
+
+.course-material-content ul > li,
+.course-material-content ol > li {
+  margin: 0 0 8px 0;
+}
+.course-material-content p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.course-material-content table {
+  width: 100% !important;
+  margin-left: 0 !important;
+  height: 100% !important;
+}
+.course-material-content table tr td,
+.course-material-content table tr th {
+  border: 1px solid #ddd !important;
+}
+.course-material-content span {
+  line-height: 18px;
+}
+.course-material-content table tr td,
+.course-material-content table tr th {
+  white-space: nowrap !important;
+}
+@media screen and (max-width: 768px) {
+  .header-details .flx33,
+  .image-gallery .gallery-course,
+  .course-left-right img {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .image-gallery img {
+    height: auto;
+  }
+  .gallery-course.pb48 {
+    padding-bottom: 32px;
+  }
+  .course-left-right,
+  .course-left-right.reverse-layout {
+    flex-direction: column;
+  }
+  .course-left-right.mr24 {
+    margin-right: 0;
+  }
+  .course-left-right .ml24,
+  .course-material-content .ml8 {
+    margin-left: 0;
+  }
+  .course-left-right img {
+    margin-bottom: 16px;
+  }
+}

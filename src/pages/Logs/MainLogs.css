@@ -1,0 +1,149 @@
+.sortby-filter .selected-role {
+  margin-right: 16px;
+  padding: 0 16px;
+  height: 24px;
+}
+.report-date .react-datepicker__input-container input {
+  cursor: pointer;
+  padding: 10px;
+  border-bottom: 1px solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 132px;
+  font-size: 13px;
+  color: #000;
+  padding-right: 8px;
+}
+
+.mylead-table tbody tr:hover {
+  background-color: #eaeaea;
+  box-shadow: 0 0 10px #0000001a;
+  cursor: pointer;
+  transform: translateY(-5px);
+}
+.mylead-table tbody tr {
+  transition: transform 0.2s ease;
+}
+.course-list {
+  position: absolute;
+  background: #fff;
+  list-style: none;
+  padding: 8px;
+  z-index: 9;
+}
+.custom-dropdown input {
+  min-width: 120px;
+  max-width: 220px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  min-height: 40px;
+  outline: none;
+}
+.roll-input input {
+  outline: none;
+  max-width: 120px !important;
+}
+.student-filter .search-input {
+  justify-content: start !important;
+}
+.student-filter .search-input input,
+.lead-source-stud .multi-level-dropdown {
+  min-width: 100% !important;
+}
+
+.student-table td {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.avatar-sm {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.avatar-sm img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.gender-stud {
+  padding-top: 2px;
+}
+.batch-list tr td {
+  white-space: nowrap;
+}
+.rm .multi-level-dropdown {
+  width: 100%;
+}
+.pagination-btn {
+  border: none;
+  padding: 6px 16px;
+}
+.period {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 50px);
+  padding-bottom: 100px;
+  position: relative;
+}
+
+.pagination-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 24px 10px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+.ledger-table {
+  width: 100%;
+  table-layout: auto;
+}
+
+.ledger-table th,
+.ledger-table td {
+  white-space: nowrap;
+  padding: 8px;
+}
+.custom-select {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select select {
+  padding-right: 24px; 
+  appearance: none; 
+  background: url('../../assets/arrow-down.svg') no-repeat right 4px center; 
+  background-size: 16px;
+}
+
+
+@media screen and (max-width: 480px) {
+  .two-inputs {
+    flex-direction: column;
+  }
+  .two-inputs {
+    padding-bottom: 0;
+    padding-top: 0;
+  }
+  .two-inputs .flx48 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .activity,
+  .plan-st,
+  .dep,
+  .team {
+    margin-bottom: 12px;
+  }
+  .activity {
+    margin-top: 0;
+  }
+}

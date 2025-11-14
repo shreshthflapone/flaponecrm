@@ -1,0 +1,3123 @@
+import React, { useRef, useState, useEffect } from "react";
+import Card from "../../components/Card";
+import "../../pages/MyLeads/LeadDetail.css";
+import profileImage from "../../assets/profile.png";
+import info from "../../assets/information-info.svg";
+import {
+  FaAngleDown,
+  FaInfoCircle,
+  FaFileInvoice,
+  FaRegEye,
+  FaFileDownload,
+} from "react-icons/fa";
+import Timeline from "../../components/Timeline";
+import {
+  MdCurrencyRupee,
+  MdOutlineVerified,
+  MdOutlinePayments,
+  MdNavigateNext,
+  MdCall,
+  MdEmail,
+  MdOutlineWhatsapp,
+} from "react-icons/md";
+import { LuRefreshCw } from "react-icons/lu";
+import { RiArrowUpDownFill } from "react-icons/ri";
+import { Link } from "react-router-dom";
+import SingleDropdown from "../../components/SingleDropdown";
+import Select from "react-select";
+import axios from "axios";
+import Popup from "../../components/Popup/Popup";
+import PaymentLink from "../../components/Forms/PaymentLink";
+import UpdateStatus from "../../components/Forms/UpdateStatusForm";
+import SidePopup from "../../components/Popup/SidePopup";
+import Certificate from "../../components/Forms/Certificate";
+import Invoice from "../../components/Forms/Invoice";
+import Tooltip from "../../components/Tooltip";
+import countryCodeOptions from "../../data/CountryCodes";
+import { FaFileInvoiceDollar } from "react-icons/fa6";
+import { IoReceipt } from "react-icons/io5";
+import { PiCertificateFill } from "react-icons/pi";
+import { giveTextColor } from "../../helpers/textColors";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import constant from "../../constant/constant";
+import { logout } from "../../store/authSlice.js";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import NoPermission from "../../components/NoPermission.js";
+import { MdExpandMore, MdExpandLess } from "react-icons/md";
+import DynamicTooltip from "../../components/Dynamic_Tooltip.js";
+import { HiExternalLink } from "react-icons/hi";
+
+const LeadDetail = () => {
+  const { id } = useParams();
+  const user = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const accessRoleLimit = constant.accessRole;
+  const accessLeadDetailDept = constant.accessLeadDetailDept;
+  const userRole = user.role;
+  const userDept = user.dept_id;
+  const pageRoleAccess = accessRoleLimit.includes(userRole);
+  const pageLeadDetailAccessDept = accessLeadDetailDept.includes(userDept);
+
+  const statusOptions = [
+    { label: "Active", value: "Active" },
+    { label: "Inactive", value: "Inactive" },
+  ];
+
+  const [paymentData, setPaymentData] = useState([]);
+
+  const [plan, setPlan] = useState("Basic");
+  const [credit, setCredit] = useState("3000");
+  const [validity, setValidity] = useState("24 Days");
+  const [packages, setPackages] = useState("22 (PL-2, HL-1, DL-2)");
+  const [status, setStatus] = useState("Active");
+  const [segment, setSegment] = useState(["1", "2"]);
+  const [destination, setDestination] = useState("Manali");
+  const [teamSize, setTeamSize] = useState("2");
+  const [leadServed, setLeadServed] = useState("100");
+  const [leadSource, setLeadSource] = useState("Website");
+  const [leadRequired, setLeadRequired] = useState("100");
+  const [decisionMaker, setDecisionMaker] = useState("");
+  const [companyType, setCompanyType] = useState({
+    label: "Individual",
+    value: "individual",
+  });
+  const [companyName, setCompanyName] = useState("");
+  const [studentNow, setStudentNow] = useState(1);
+  const [studentRequired, setStudentRequired] = useState("");
+  const [website, setWebsite] = useState("");
+  const [altMobile, setAltMobile] = useState("");
+  const [altNumber, setAltNumber] = useState("");
+  const [assign, setAssign] = useState("");
+  const [cordinator, setCordinator] = useState("");
+  const [paymentLinkPopup, setPaymentLinkPopup] = useState(false);
+  const [updateStausPopup, setUpdateStausPopup] = useState(false);
+  const [sendCertificatePopup, setSendCertificatePopup] = useState(false);
+  const [sendInvoicePopup, setSendInvoicePopup] = useState(false);
+  const [paymentHistoryPopup, setPaymentHistoryPopup] = useState(false);
+  const [duplicatePopup, setDuplicatePopup] = useState(false);
+  const [countryCodeAltDropdown, setCountryCodeAltDropdown] = useState(false);
+  const [countryCode, setCountryCode] = useState("91");
+  const [countryCodeDropdown, setCountryCodeDropdown] = useState(false);
+
+  const [countryCodeAlt, setCountryCodeAlt] = useState("91");
+  const commentHistoryRef = useRef(null);
+  const dropdownRef1 = useRef(null);
+  const viewRef = useRef(null);
+  const sendMailRef = useRef(null);
+  const [clickedTypepdfId, setClickedTypepdfId] = useState(null);
+
+  const [userDetail, setUserDetail] = useState([]);
+  const [leadDetail, setLeadDetail] = useState([]);
+  const [duplicateData, setDuplicateData] = useState([]);
+  const [otherDetail, setOtherDetail] = useState([]);
+
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subcategoryOptions, setSubcategoryOptions] = useState([]);
+  const [courseOptions, setCourseOptions] = useState([]);
+  const [assignOptions, setAssignOptions] = useState([]);
+  const [cordinatorOptions, setCordinatorOptions] = useState([]);
+  const [coursePrice, setCoursePrice] = useState("0");
+  const [coursePriceTax, setCoursePriceTax] = useState("0");
+  const [coursePriceWithTax, setCoursePriceWithTax] = useState("0");
+  const [selectedBatchs, setSelectedBatchs] = useState([]);
+
+  const [paymentLink, setPaymentLink] = useState("");
+
+  const [workorderStatus, setWorkorderStatus] = useState(false);
+  const [scholarStatus, setScholarStatus] = useState(false);
+  const [category, setCategory] = useState("");
+  const [categoryValue, setCategoryValue] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [subcategoryValue, setSubcategoryValue] = useState("");
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedCoursesIds, setSelectedCoursesIds] = useState([]);
+  const [attachment, setAttachment] = useState({});
+  const companyOptions = [
+    { label: "Individual", value: "individual" },
+    { label: "Company", value: "company" },
+  ];
+
+  const [assignChangeAccess, setAssignChangeAccess] = useState(false);
+
+  const [commentData, setCommentData] = useState({});
+
+  const [finalAmount, setFinalAmount] = useState(0);
+  const [partialAmount, setPartialAmount] = useState(0);
+
+  const [workorderListData, setWorkorderListData] = useState([]);
+
+  const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [clickedTypepdf, setClickedTypepdf] = useState(null);
+  const dropdownRef = useRef(null);
+
+  const [updateBtnStatus, setUpdateBtnStatus] = useState(false);
+  const [newPendingStatus, setNewPendingStatus] = useState(false);
+  const [showMobileNumber, setShowMobileNumber] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
+
+  //Shreshth
+  const [sortConfig, setSortConfig] = useState({
+    key: "payment_date",
+    direction: "asc",
+  });
+  const [activeHistorySortColumn, setActiveHistorySortColumn] =
+    useState("payment_date");
+  //Shreshth
+
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  const [studentsData, setStudentsData] = useState([]);
+  const [expanded, setExpanded] = useState(false);
+  const [selectedStudentIndex, setSelectedStudentIndex] = useState(null);
+
+  const toggleExpand = () => setExpanded((prev) => !prev);
+
+  const toggleCourseView = (index) => {
+    setSelectedStudentIndex((prevIndex) =>
+      prevIndex === index ? null : index
+    );
+  };
+
+  const handleCategoryChange = (selectedCategory) => {
+    setCategoryValue(selectedCategory.value);
+    setCategory(selectedCategory);
+    setSubcategory("");
+    setSubcategoryValue("");
+    setSelectedCourses([]);
+    setCourseOptions([]);
+    getSubcategoryData(selectedCategory.value);
+  };
+
+  const handleSubcategoryChange = (selectedSubcategory) => {
+    setSubcategoryValue(selectedSubcategory.value);
+    setSubcategory(selectedSubcategory);
+    setSelectedCourses([]);
+    setSubcategoryOptions([]);
+    getCatByCourseData(selectedSubcategory.value);
+  };
+
+  const handleCourseChange = (selectedOptions) => {
+    setSelectedCourses(selectedOptions);
+    const course_ids = selectedOptions.map((obj) => obj.value);
+    setSelectedCoursesIds(course_ids);
+    getCoursePriceData(course_ids);
+
+    handleLeadForm("course_id", course_ids);
+  };
+
+  const handleHistoryClick = () => {
+    if (commentHistoryRef.current) {
+      commentHistoryRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const role = "executive";
+
+  const closePaymentLinkPopup = () => {
+    setPaymentLinkPopup(false);
+  };
+
+  const handlePaymentLink = () => {
+    getLeadDetail();
+    if (selectedCourses === undefined) {
+      toast.error("Please select course");
+    } else if (selectedCourses && selectedCourses.length < 1) {
+      toast.error("Please select course");
+    } else if (studentNow < 1 && companyType.value === "company") {
+      toast.error("Please Enter Student no");
+    } else {
+      setPaymentLinkPopup(true);
+    }
+  };
+
+  const openUpdateStatusPopup = () => {
+    getLeadDetail();
+    setUpdateStausPopup(true);
+    setUpdateBtnStatus(false);
+  };
+
+  const closeUpdateStatusPopup = () => {
+    setUpdateStausPopup(false);
+  };
+  const openSendCertificatePopup = () => {
+    setSendCertificatePopup(true);
+  };
+  const openSendInvoicePopup = () => {
+    getWorkorderList();
+    setSendInvoicePopup(true);
+  };
+  const closeSendCertificatePopup = () => {
+    setSendCertificatePopup(false);
+  };
+  const closeSendInvoicePopup = () => {
+    setSendInvoicePopup(false);
+  };
+  const handlePaymentHistoryPopupClose = () => {
+    setPaymentHistoryPopup(false);
+  };
+
+  const handleOpenPaymentHistory = () => {
+    getPaymentData();
+    setPaymentHistoryPopup(!paymentHistoryPopup);
+  };
+
+  const handleRedirectPaymentHistory = () => {
+    const updatefilter = {
+      selectedTab: "workorder",
+      page_type: "workorder",
+      searchtext: userDetail.user_id,
+      searchByOptions: "user_id",
+      listStatusOptions: [],
+      serviceStatus: "",
+      leadSource: {
+        label: "Source Type",
+        value: "",
+      },
+      dateRangeValue: "",
+      paymentType: "",
+      paymentMode: [],
+      paymentStatus: [],
+      teamSearch: [],
+      workOrderStatus: [],
+      dateOption: "",
+      dateRangeValuefilter: "",
+      categoryCheckedItems: [],
+      selectedCourses: [],
+      amountType: [],
+      setExpandView: true,
+    };
+    var oldFilter = {};
+    let tabParam = "workorder";
+    var getoldfilter = localStorage.getItem("allfilteroption");
+    if (getoldfilter) {
+      oldFilter = JSON.parse(getoldfilter);
+    }
+    oldFilter[tabParam] = updatefilter;
+    localStorage.setItem("allfilteroption", JSON.stringify(oldFilter));
+
+    let urlred = "https://my.flapone.com/my-finance";
+    //let urlred="http://localhost:3000/my-finance";
+    window.open(urlred);
+  };
+
+  const handleCountryCodeAltSelect = (selectedCountry) => {
+    setCountryCodeAlt(selectedCountry);
+    setCountryCodeAltDropdown(false);
+  };
+  const handleSendMailPassowrd = () => {
+    toast.success("Mail Sent Successfully. Check your Mail");
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef1.current &&
+        !dropdownRef1.current.contains(event.target)
+      ) {
+        setCountryCodeDropdown(false);
+      }
+
+      if (
+        dropdownRef1.current &&
+        !dropdownRef1.current.contains(event.target)
+      ) {
+        setCountryCodeAltDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [dropdownRef1]);
+
+  const handleLogout = () => {
+    // Dispatch the logout action to clear user data
+    dispatch(logout());
+    // Redirect to the login page
+    navigate("/login");
+  };
+  //Shreshth
+  const handleHistorySortByChange = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setActiveHistorySortColumn(key);
+    setSortConfig({ key, direction });
+    sortPaymentData(key, direction);
+  };
+
+  const sortPaymentData = (key, direction) => {
+    const sortedData = [...paymentData].sort((a, b) => {
+      if (direction === "asc") {
+        return a[key] > b[key] ? 1 : -1;
+      } else {
+        return a[key] < b[key] ? 1 : -1;
+      }
+    });
+    setPaymentData(sortedData);
+  };
+
+  const handlehideshowcrid = async(type,user_data)=>{
+      if(type=='mobile'){
+        setShowMobileNumber(true);
+      }else{
+        setShowEmail(true);
+      }
+      axios({
+        method: "post",
+        url: `${constant.base_url}/admin/mylead_detail.php?fun=updatelogview`,
+        headers: { "Auth-Id": user.auth_id },
+        data: {
+          type:type,
+          user_data:user_data,
+          lead_data:leadDetail
+        },
+      })
+        .then(function (response) {
+          if (response.data.login.status === 0) {
+            handleLogout();
+            return false;
+          }
+          getLeadStsData(leadDetail.enq_id, userDetail.user_id);
+        })
+        .catch(function (error) {
+          console.error("Error during login:", error);
+        });
+  }
+  //Shresht
+  //==================Api Request==================
+  
+  const getLeadDetail = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status === "1") {
+          const leadData = response.data.data.lead_detail;
+          const userData = response.data.data.user_detail;
+          const otherData = response.data.data.other_details;
+          const categoryListData = otherData.categorylist;
+
+          setCategoryOptions(categoryListData);
+          setAssignOptions(otherData.agentlist);
+          setCordinatorOptions(otherData.coordinator_list);
+          setOtherDetail(otherData);
+          setLeadDetail(leadData);
+          setUserDetail(userData);
+          setCategory(leadData.category);
+          setSubcategory(leadData.subcategory);
+
+          if (leadData.student_count > 0) {
+            setStudentNow(leadData.student_count);
+          }
+          if (leadData.cat_id) {
+            getSubcategoryData(leadData.cat_id);
+          }
+
+          if (leadData.subcat_id) {
+            getCatByCourseData(leadData.subcat_id);
+          } else {
+            getCatByCourseData(leadData.cat_id);
+          }
+          if (leadData.batch_detail) {
+            setSelectedBatchs(leadData.batch_detail);
+          }
+
+          if (otherData.workorder && !otherData.courseExist) {
+            setSelectedCourses(leadData.courses);
+            setSelectedCoursesIds(leadData.course_id);
+          } else if (!otherData.workorder && !otherData.courseExist) {
+            setSelectedCourses(leadData.courses);
+            setSelectedCoursesIds(leadData.course_id);
+          } else if (otherData.workorder && otherData.courseExist) {
+            setSelectedCourses(leadData.courses);
+            setSelectedCoursesIds(leadData.course_id);
+          }
+
+          if (otherData.course_amount) {
+            setCoursePrice(otherData.course_amount);
+            setCoursePriceTax(otherData.course_amount_tax);
+            setCoursePriceWithTax(otherData.course_amount_withtax);
+          } else {
+            setCoursePrice(leadData.course_amount);
+            setCoursePriceTax(otherData.course_amount_tax);
+            setCoursePriceWithTax(otherData.course_amount_withtax);
+          }
+
+          if (otherData.workorder_pending_amount) {
+            setPartialAmount(otherData.workorder_pending_amount);
+          }
+          if (otherData.scholarship_status) {
+            setScholarStatus(otherData.scholarship_status);
+          }
+
+          if (otherData.agentidlist) {
+            const exists = otherData.agentidlist.includes(user.userid);
+            if (exists) {
+              setAssignChangeAccess(true);
+            }
+          }
+
+          if (otherData.workorder) {
+            setWorkorderStatus(otherData.workorder);
+            setFinalAmount(leadData.course_final_amount);
+          } else {
+            let amount;
+
+            if (leadData.student_count > 0) {
+              amount = leadData.course_amount * leadData.student_count;
+            } else {
+              amount = leadData.course_amount * studentNow;
+            }
+
+            //const taxRate = 0.18; // 18% tax rate
+            //const taxAmount = parseInt(amount * taxRate, 10); // Using parseInt to get the integer part
+            //const totalAmount = parseInt(amount + taxAmount, 10); // Using parseInt to get the integer part
+            const totalAmount = amount; // Using parseInt to get the integer part
+            setFinalAmount(totalAmount);
+            setPartialAmount(totalAmount);
+          }
+
+          if (leadData.flapone_agent_id && otherData.agentlist) {
+            setAssign(
+              otherData.agentlist.find(
+                (option) => option.value === leadData.flapone_agent_id
+              )
+            );
+          }
+
+          if (userData.flapone_coordinator && otherData.coordinator_list) {
+            setCordinator(
+              otherData.coordinator_list.find(
+                (option) => option.value === userData.flapone_coordinator
+              )
+            );
+          }
+
+          if (userData.status) {
+            setStatus(
+              statusOptions.find((option) => option.value === userData.status)
+            );
+          }
+          if (userData.user_type) {
+            setCompanyType(
+              companyOptions.find(
+                (option) => option.value === userData.user_type
+              )
+            );
+          }
+          if (otherData.myteamstudentlist) {
+            setStudentsData(otherData.myteamstudentlist);
+          }
+
+          getLeadStsData(leadData.enq_id, userData.user_id);
+        } else {
+          navigate("/");
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  useEffect(() => {
+    if (id !== undefined) {
+      getLeadDetail();
+    } else {
+      handleNextClick();
+    }
+  }, [id, studentNow]);
+
+  //==================Api Request==================
+  const getPaymentData = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=paymentdata`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        lead_id: leadDetail.enq_id,
+        user_id: userDetail.user_id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        const payment_list = response.data.data.payment_list;
+
+        setPaymentData(payment_list);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const getDuplicateData = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=userenquirylist`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        lead_id: leadDetail.enq_id,
+        user_id: userDetail.user_id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        const enquiry_list = response.data.data.enquiry_list;
+
+        setDuplicateData(enquiry_list);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  //==================Subcategory Api Request==================
+  const getSubcategoryData = async (category_id) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=subcategory`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        category_id: category_id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        const subcategory_list = response.data.data.cat_list;
+        if (response.data.data.status === "1") {
+          setSubcategoryOptions(subcategory_list);
+        } else {
+          setSubcategoryOptions([]);
+          getCatByCourseData(category_id);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  //==================Course Api Request==================
+  const getCatByCourseData = async (category_id) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=catbycourse`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        category_id: category_id ? category_id : category,
+        user_id: userDetail.user_id ? userDetail.user_id : id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        const course_list = response.data.data.course_list;
+        setCourseOptions(course_list);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const getCoursePriceData = async (course_ids) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=coursePriceDetail`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        courseIds: course_ids,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        const course_data = response.data.data.courseprice;
+        const batch_detail = response.data.data.batch_detail;
+        if (course_data) {
+          setCoursePrice(course_data);
+          const amount = parseInt(course_data) * studentNow;
+          // const taxRate = 0.18; // 18% tax rate
+          // const taxAmount = parseInt(amount * taxRate, 10); // Using parseInt to get the integer part
+          const totalAmount = parseInt(amount);
+          // Using parseInt to get the integer part
+          setFinalAmount(totalAmount);
+          setPartialAmount(totalAmount);
+
+          if (totalAmount > 0) {
+            setNewPendingStatus(true);
+          }
+        } else {
+          setCoursePrice(0);
+          setFinalAmount(0);
+          setPartialAmount(0);
+          setNewPendingStatus(false);
+        }
+        if (batch_detail) {
+          setSelectedBatchs(response.data.data.batch_detail);
+        } else {
+          setSelectedBatchs([]);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  
+  
+ 
+  
+  const getLeadStsData = async (lead_id, user_id) => {
+    if (user_id) {
+      axios({
+        method: "post",
+        url: `${constant.base_url}/admin/mylead_detail.php?fun=leadStsData`,
+        headers: { "Auth-Id": user.auth_id },
+        data: {
+          lead_id: lead_id,
+          user_id: user_id,
+        },
+      })
+        .then(function (response) {
+          if (response.data.login.status === 0) {
+            handleLogout();
+            return false;
+          }
+
+          const stsData = response.data.data.lead_sts_detail;
+
+          setCommentData(stsData);
+        })
+        .catch(function (error) {
+          console.error("Error during login:", error);
+        });
+    }
+  };
+
+  const signuinStudentAccount = (user_id) => {
+    if (user_id) {
+      axios({
+        method: "post",
+        url: `${constant.base_url}/admin/mylead_detail.php?fun=genrateLoginEncriptKey`,
+        headers: { "Auth-Id": user.auth_id },
+        data: {
+          cid: user_id,
+          type: "admin",
+        },
+      })
+        .then(function (response) {
+          if (response.data.login.status === 0) {
+            handleLogout();
+            return false;
+          }
+          if (response.data.data) {
+            let urlred =
+              "https://student.flapone.com/" + "login/" + response.data.data;
+            window.open(urlred);
+          }
+        })
+        .catch(function (error) {
+          console.error("Error during login:", error);
+        });
+    }
+  };
+
+  const handleDuplicatePopupp = () => {
+    getDuplicateData();
+    setDuplicatePopup(!duplicatePopup);
+  };
+
+  const handleLeadForm = (key, value, param = "") => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=leadUpdate`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+        lead_id: leadDetail.enq_id,
+        key: key,
+        value: value,
+        param: param,
+      },
+    }).then(function (response) {
+      if (response.data.login.status === 0) {
+        handleLogout();
+        return false;
+      }
+
+      const respdata = response.data.data;
+
+      if (respdata.status === 1) {
+        getLeadStsData(leadDetail.enq_id, userDetail.user_id);
+      }
+    });
+  };
+
+  const handleSaveUpdateData = (updatedata) => {
+    // return false;
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=updateLeadStatus`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+        user_data: userDetail,
+        lead_data: leadDetail,
+        fields: updatedata,
+      },
+    }).then(function (response) {
+      if (response.data.login.status === 0) {
+        handleLogout();
+        return false;
+      }
+
+      const respdata = response.data.data;
+      if (respdata.status === "1") {
+        getLeadStsData(leadDetail.enq_id, userDetail.user_id);
+        setUpdateStausPopup(false);
+      }
+
+      if (respdata.status === "0") {
+        toast.error(respdata.msg);
+        setUpdateBtnStatus(false);
+      }
+
+      if (respdata.workorderstatus === "1") {
+        setWorkorderStatus(true);
+      }
+
+      if (updatedata.status === "booked") {
+        getLeadDetail();
+      }
+    });
+  };
+
+  const handleSetStatus = (selectedStatus) => {
+    handleLeadForm("status", selectedStatus.value);
+    setStatus(selectedStatus);
+  };
+
+  const handleSetCompanyType = (selectedCompanyType) => {
+    handleLeadForm("user_type", selectedCompanyType.value);
+    if (selectedCompanyType.value === "individual") {
+      handleLeadForm("student_count", 1);
+      setStudentNow(1);
+    }
+    setCompanyType(selectedCompanyType);
+  };
+
+  const handleAltNumber = (number) => {
+    handleLeadForm("guardian_contact_number", number);
+    setAltNumber(number);
+  };
+
+  const handleDecisionMaker = (name) => {
+    handleLeadForm("guardian_name", name);
+    setDecisionMaker(name);
+  };
+
+  const handleCompanyName = (coname) => {
+    handleLeadForm("company_name", coname);
+    setCompanyName(coname);
+  };
+
+  const handleStudentNow = (stuno) => {
+    handleLeadForm("student_count", stuno);
+    setStudentNow(stuno);
+
+    let amount;
+    if (stuno > 0) {
+      amount = leadDetail.course_amount * stuno;
+    } else {
+      amount = leadDetail.course_amount * studentNow;
+    }
+
+    const taxRate = 0.18; // 18% tax rate
+    const taxAmount = parseInt(amount * taxRate, 10); // Using parseInt to get the integer part
+    const totalAmount = parseInt(amount + taxAmount, 10); // Using parseInt to get the integer part
+    setFinalAmount(totalAmount);
+    setPartialAmount(totalAmount);
+  };
+
+  const handleStudentRequired = (stureq) => {
+    handleLeadForm("student_required", stureq);
+    setStudentRequired(stureq);
+  };
+
+  const handleWebsite = (website) => {
+    const mapUrlRegex =
+      /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-./?%&=]*)?$/i;
+    const isValid = mapUrlRegex.test(website);
+    if (!isValid) {
+      toast.error("Invalid Website url");
+      return false;
+    }
+
+    handleLeadForm("website", website);
+    setWebsite(website);
+
+    const updatedUserDetail = {
+      ...userDetail,
+      website: website,
+    };
+    setUserDetail(updatedUserDetail);
+  };
+
+  const handleSetAssign = (selectedAssignuser) => {
+    let leadIds = [];
+    leadIds.push(userDetail.user_id);
+    let agentId = selectedAssignuser.value;
+
+    if (leadIds) {
+      if (agentId > 0) {
+        setAssignedToUser(leadIds, agentId);
+        //handleLeadForm("flapone_agent_id", selectedAssignuser, assign);
+        setAssign(selectedAssignuser);
+      } else {
+        toast.error("Please select RM");
+      }
+    }
+  };
+
+  const handleSetCoordinator = (selectedCoordinator) => {
+    let leadIds = [];
+    leadIds.push(userDetail.user_id);
+    let agentId = selectedCoordinator.value;
+    if (leadIds) {
+      if (agentId > 0) {
+        setCoordinatorToUser(leadIds, agentId);
+        //handleLeadForm("flapone_coordinator", selectedCoordinator, cordinator);
+        setCordinator(selectedCoordinator);
+      } else {
+        toast.error("Please select Coordinator");
+      }
+    }
+  };
+
+  const handleUploadAttachment = (file) => {
+    let formData = new FormData();
+    formData.append("file", file);
+    formData.set("auth_id", user.auth_id);
+    formData.set("fun", "uploadImg");
+
+    axios
+      .post(
+        `${constant.base_url}/admin/mylead_detail.php?fun=uploadImg`,
+        formData,
+        {
+          headers: {
+            "Auth-Id": user.auth_id,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      )
+      .then((response) => {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status === "1") {
+          const respdata = response.data.data;
+          setAttachment(respdata.image);
+          toast.success("File Uploaded Successfully");
+        }
+      })
+      .catch((error) => {
+        toast.error("Failed to Upload");
+      });
+  };
+
+  const generatePaymentLink = async (updatedata) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=paymentLinkGenerate`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        amountchk: updatedata && updatedata.amountchk,
+        lead_id: leadDetail.enq_id,
+        user_id: userDetail.user_id,
+        course_id: selectedCoursesIds,
+        course_name: updatedata && updatedata.courses ? updatedata.courses : "",
+        course_amount: updatedata.course_amount,
+        course_gst:
+          updatedata && updatedata.course_gst ? updatedata.course_gst : "0",
+        amount: updatedata && updatedata.amount ? updatedata.amount : "0",
+        received_amount:
+          updatedata && updatedata.receivedAmount
+            ? updatedata.receivedAmount
+            : "0",
+        received_amount_gst:
+          updatedata && updatedata.receivedAmountGst
+            ? updatedata.receivedAmountGst
+            : "0",
+        received_amountwith_gst:
+          updatedata && updatedata.receivedAmountWithGst
+            ? updatedata.receivedAmountWithGst
+            : "0",
+        finalAmount: finalAmount,
+        partialAmount: partialAmount,
+        currency: "INR",
+        name: userDetail.name,
+        email: userDetail.email_id,
+        mobile: userDetail.mobile_number,
+        scholarship:
+          updatedata && updatedata.scholarship ? updatedata.scholarship : "",
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+        if (response.data.data.status === "1") {
+          const paymentLink = response.data.data.paymentlink;
+          setPaymentLink(paymentLink);
+          toast.success(response.data.data.msg);
+
+          getLeadStsData(leadDetail.enq_id, userDetail.user_id);
+        } else {
+          toast.error(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const handleNextClick = () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=getnextassign`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        id: id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status == 1) {
+          navigate("/my-leads/" + response.data.data.uid);
+          toast.error(response.data.data.msg);
+        } else {
+          navigate("/my-reports");
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  //==================Course Api Request==================
+  const getWorkorderList = async () => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=workOrderList`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        const wo_order_list = response.data.data.wo_order_list;
+        setWorkorderListData(wo_order_list);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  //==================Course Api Request==================
+  const handleSendInvoice = async (invoiceId) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=sendIvoice`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+        invoiceId: invoiceId,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status) {
+          toast.success(response.data.data.msg);
+        } else {
+          toast.error(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  //==================Course Api Request==================
+  const handleSendReceipt = async (receiptId) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=sendReceipt`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+        receiptId: receiptId,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status) {
+          toast.success(response.data.data.msg);
+        } else {
+          toast.error(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  //==================getInvoicePdfUrl Api Request==================
+  const [invoiceFileName, setInvoiceFileName] = useState("");
+
+  const getInvoicePdfUrl = async (invoiceId) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=getInvoicePdf`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+        invoiceId: invoiceId,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status) {
+          setInvoiceFileName(response.data.data.invoice_file_name);
+          if (response.data.data.invoice_file_name) {
+            window.open(
+              constant.invoicepdfurl + response.data.data.invoice_file_name
+            );
+          }
+
+          toast.success(response.data.data.msg);
+        } else {
+          toast.error(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const [paymentFileName, setPaymentFileName] = useState("");
+  const getReceiptPdfUrl = async (receiptId) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mylead_detail.php?fun=getReceiptPdf`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {
+        user_id: userDetail.user_id,
+        receiptId: receiptId,
+      },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+
+        if (response.data.data.status) {
+          setPaymentFileName(response.data.data.payment_file_name);
+          toast.success(response.data.data.msg);
+          if (response.data.data.payment_file_name) {
+            window.open(
+              constant.invoicepdfurl + response.data.data.payment_file_name
+            );
+          }
+        } else {
+          toast.error(response.data.data.msg);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+
+  const refreshPage = () => {
+    window.location.reload();
+  };
+
+  function showAttachment(url) {
+    window.open(url, "_blank");
+  }
+
+  const toggleDropdown = (index, type) => {
+    const key = `${index}-${type}`;
+    setDropdownOpen(dropdownOpen === key ? null : key);
+  };
+
+  const isDropdownOpen = (index, type) => {
+    return dropdownOpen === `${index}-${type}`;
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !viewRef.current?.contains(event.target) &&
+        !sendMailRef.current?.contains(event.target)
+      ) {
+        setDropdownOpen(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleRedirectStudentFromLeadDetail = (user_id) => {
+    if (user_id) {
+      axios({
+        method: "post",
+        url: `${constant.base_url}/admin/mylead_detail.php?fun=genrateLoginEncriptKey`,
+        headers: { "Auth-Id": user.auth_id },
+        data: {
+          cid: user_id,
+          type: "admin",
+        },
+      })
+        .then(function (response) {
+          if (response.data.login.status === 0) {
+            handleLogout();
+            return false;
+          }
+
+          // checkUserLogin(response);
+
+          if (response.data.data) {
+            let urlred =
+              "https://www.flapone.com/" + "login/" + response.data.data;
+            window.open(urlred);
+          }
+        })
+        .catch(function (error) {
+          console.error("Error during login:", error);
+        });
+    }
+  };
+
+  const setCoordinatorToUser = async (leadids, toassign) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=assignedcordinatorToUser`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { enquiry_id: leadids, cord_id: toassign },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+        getLeadStsData(leadDetail.enq_id, userDetail.user_id);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const handleRedirectSetFilter = (
+    storage,
+    tab,
+    object
+  ) => {
+    var oldFilter = {};
+    let updatefilter = object;
+
+    oldFilter[tab] = updatefilter;
+    localStorage.setItem(storage, JSON.stringify(oldFilter));
+  };
+  const handleClickNavigte = async (param) => {
+    if(param.key){
+      window.open(`/${param.url}/${param.key}`,"_blank");  
+    }else{
+      window.open(`/${param.url}`,"_blank");
+    }
+    if(param.key){
+      handleRedirectSetFilter(param.storage,param.key,param.object);
+    }
+  };
+  const setAssignedToUser = async (leadids, toassign) => {
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=assignedLeadToUser`,
+      headers: { "Auth-Id": user.auth_id },
+      data: { enquiry_id: leadids, agent_id: toassign },
+    })
+      .then(function (response) {
+        if (response.data.login.status === 0) {
+          handleLogout();
+          return false;
+        }
+        getLeadStsData(leadDetail.enq_id, userDetail.user_id);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  };
+  const statusColorMap = {
+    
+    "New": "blue",
+    "Batch Running": "Batch_Running",
+    "Dropped": "red",
+    "Batch Allotted": "Batch_Allotted",
+    "Batch Completed": "Batch_Completed",
+    "Course Completed": "darkgreen",
+    "Invite": "yellow",
+  
+    
+    "-": "News",
+    "Booked": "Running",
+    "Hot": "Running",
+    "Follow-Up": "News",
+    "Interested": "News",
+    "Call Later": "purple",
+    "Ask To Call Latter": "purple",
+    "Junk": "red",
+    "Not Interested": "blue",
+    "No Response": "Draft",
+  };
+  
+  return (
+    <>
+      {/* {(pageRoleAccess || pageLeadDetailAccessDept) && ( */}
+      <div className="lead-detail-container df">
+        <div className="left-side-detail">
+          <div className="detail-header mb16 df jcsb fww pl12 desk-lead-detail">
+            <div className="header-left v-center left-header-tooltip">
+              <Tooltip
+                title={userDetail.last_login_date_time_show}
+                place={"bottom"}
+              >
+                {userDetail.last_login_date_time <= 5 ? (
+                  <div className="green-status mr8 "></div>
+                ) : userDetail.last_login_date_time <= 60 ? (
+                  <div className="orange-status mr8 "></div>
+                ) : userDetail.last_login_date_time === "no login" ? (
+                  <div className="red-status mr8 "></div>
+                ) : (
+                  <div className="grey-status mr8 "></div>
+                )}
+              </Tooltip>
+
+              <div className="comp-details">
+                <div className="comp-name v-center fww">
+                  {userDetail.user_type === "company" ? (
+                    <p className="fs20 fw6 mr4 ls1">
+                      {userDetail.company_name
+                        ? userDetail.company_name
+                        : userDetail.name}
+                    </p>
+                  ) : (
+                    <p className="fs20 fw6 mr4 ls1">{userDetail.name}</p>
+                  )}
+
+                  <p className="fs16 propship ttc">({userDetail.user_type})</p>
+                </div>
+                <div className="comp-address df mt4 fs14 aic">
+                  {userDetail.user_account_type && (
+                    <p
+                      className={`fs10 ls2 pl12 pr12 pt4 pb4 ${userDetail.user_account_type === "Free" ? "fc1 brd2" : "fc25 brd3"} mr8 br24`}
+                    >
+                      {userDetail.user_account_type}
+                    </p>
+                  )}
+                  <p className="agent-city mr4 v-center">
+                    {userDetail.user_id && (
+                      <span className="lead-id">{userDetail.user_id}</span>
+                    )}
+                    {userDetail &&
+                      (userDetail.city ||
+                        userDetail.state ||
+                        userDetail.country ||
+                        userDetail.pincode) && <span className="ml4">|</span>}
+                  </p>
+
+                  {userDetail && userDetail.city && (
+                    <p className="agent-city mr4 ttc">
+                      {userDetail.city}
+                      {(userDetail.state ||
+                        userDetail.country ||
+                        userDetail.pincode) &&
+                        `,`}
+                    </p>
+                  )}
+
+                  {userDetail && userDetail.state && (
+                    <p className="agent-state mr4 ttc">{userDetail.state}</p>
+                  )}
+
+                  {/* {userDetail && userDetail.country && (
+                      <p className="agent-country mr4 ttc">
+                        {userDetail.country}
+                        {userDetail.pincode && ` - `}
+                      </p>
+                    )} */}
+
+                  {userDetail && userDetail.pincode && (
+                    <p className="agent-pincode mr4">{userDetail.pincode}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="header-right df fww ais">
+              {/* <Tooltip title="Refresh page" >
+                 <button
+                  className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp"
+                  onClick={refreshPage}
+                >
+                 <LuRefreshCw />
+                </button>
+              </Tooltip> */}
+              <button
+                className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp"
+                onClick={openUpdateStatusPopup}
+              >
+                <FaInfoCircle className="pr8" />
+                Update Status
+              </button>
+              <button
+                className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp"
+                onClick={handlePaymentLink}
+              >
+                <MdOutlinePayments className="pr8" />
+                Payment Link
+              </button>
+              {user.dept_id === "7" && (
+                <button
+                  className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 v-center cp"
+                  onClick={handleNextClick}
+                >
+                  Next
+                  <MdNavigateNext className="pl8" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="lead-detail-inofs v-center w100 fww brd-t1">
+          {userDetail.last_lead_user_status && (
+  <div className="sale-status box-center fdc cp" onClick={handleHistoryClick}>
+    <p className="brd-b1 pb4">Last Sales Activity</p>
+    <p className="fc13">
+      <span
+        style={{
+          color: giveTextColor(
+            statusColorMap[userDetail.last_lead_user_status] || userDetail.last_lead_user_status
+          )
+        }}
+      >
+        {userDetail.last_lead_user_status}
+      </span>{" "}
+      <span className="fc16 fs12">
+        <DynamicTooltip text="Last comment(LSD)/follow-up(F) date">
+          {userDetail.last_wo_created_date}
+        </DynamicTooltip>
+      </span>
+    </p>
+  </div>
+)}
+
+            {/* {userDetail.co_last_lead_user_status && <div className="sale-status box-center fdc cp" onClick={handleHistoryClick}>
+              <p className="brd-b1 pb4">Last Coordinator Activity</p>
+              <p
+                className="fc13"
+              >
+              {userDetail.co_last_lead_user_status} <span className="fc16 fs12"><DynamicTooltip text={`Last comment/follow-up date`}>{userDetail.co_last_wo_created_date}</DynamicTooltip></span>
+              </p>
+            </div>} */}
+            {userDetail.payment_workorder_status && 
+            <div className="sale-status box-center fdc cp" onClick={()=>handleClickNavigte(userDetail.redirect)}>
+              <p className="brd-b1 pb4">Payment</p>
+              <p className={`${userDetail.payment_workorder_status === 'Success' ? "fc13" : "fc6"}`}>
+          {userDetail.payment_workorder_status === 'Success' ? "Completed" : userDetail.payment_workorder_status}              
+          </p></div>}    
+	  {userDetail?.course_detail?.map((course, index) => (
+              course.redirect ? (
+                <div key={index} className="corner-box sale-status box-center fdc company-detail-info pr">
+                  <span className="corner-ribbon"></span>
+                  <p className="brd-b1 pb4 box-center">
+                    <span className="cp" onClick={()=>handleClickNavigte(course.redirect_course)}>{course.course_name}{" "}</span>
+                    <DynamicTooltip
+                      direction="bottom"
+                      text={`Click to view the company details`}
+                      onClickFunction={() => handleClickNavigte(course.redirect)}
+                    >
+                      <img src={info} alt="Traveler" className="cp ml4" />
+                    </DynamicTooltip>
+                  </p>
+                  <p className="fc13">
+                    <span  className="cp" onClick={()=>handleClickNavigte(course.redirect_course)} style={{color: giveTextColor(statusColorMap[course.course_status] || course.course_status)}}>{course.course_status}{" "}</span>
+                    <span className="fc16 fs12 cp" onClick={()=>handleClickNavigte(course.redirect_wid)}>{course.course_wo_create_date}</span>
+                  </p>
+                </div>
+              ) : (
+                <div key={index} className="sale-status box-center fdc">
+                  <p className="brd-b1 pb4 cp" onClick={()=>handleClickNavigte(course.redirect_course)}>{course.course_name}</p>
+                  <p className="fc25">
+                    <span  className="cp" onClick={()=>handleClickNavigte(course.redirect_course)}  style={{color: giveTextColor(statusColorMap[course.course_status] || course.course_status)}}>{course.course_status}{" "}</span>
+                    <span className="fc16 fs12 cp" onClick={()=>handleClickNavigte(course.redirect_wid)}>{course.course_wo_create_date}</span>
+                  </p>
+                </div>
+              )
+            ))}
+         
+         {userDetail?.course_company_inv?.map((course, index) => (
+           <div className="sale-status box-center fdc">
+          <p className="brd-b1 pb4 cp" onClick={()=>handleClickNavigte(course.redirect_course)}>{course.course_name}</p>
+           <p className="">
+           <span  className="cp" onClick={()=>handleClickNavigte(course.redirect_course)}><DynamicTooltip text={`Total allowed students for enrollment`} direction="right">T:{course?.T}</DynamicTooltip> | <DynamicTooltip  text={`Seats still available`} direction="right">P:{course?.P}</DynamicTooltip></span> <span className="fc16 fs12 cp" onClick={()=>handleClickNavigte(course.redirect_wid)}><DynamicTooltip text={`Workorder created date`}>{course.course_wo_create_date}</DynamicTooltip></span>
+           </p>
+         </div>
+         ))}
+            {userDetail?.student_attendance?.map((student, index) => (
+              <div className="sale-status box-center fdc cp" onClick={()=>handleClickNavigte(student.redirect)}>
+              <p className="brd-b1 pb4">Attendance</p>
+              <p className="">
+                <DynamicTooltip text={`T = Total Classes till today`}>T:{student.TC}</DynamicTooltip> | <DynamicTooltip text={`P = Present`}>P:{student.P} </DynamicTooltip> | <DynamicTooltip text={`A = Absent`}>A:{student.A}</DynamicTooltip> {/*    <span className="fc16 fs12"> 
+                <DynamicTooltip text={`Workorder created date`}> {student.course_wo_create_date}</DynamicTooltip></span>*/}
+              </p>
+            </div>
+            ))}
+            
+          </div>
+
+          <Card className={"bg5"}>
+            <div className="lead-detail-form-first form-row">
+              <div className="form-group mr4">
+                <SingleDropdown
+                  label="User Type"
+                  options={companyOptions}
+                  selectedOption={companyType}
+                  onSelect={handleSetCompanyType}
+                  isReadOnly={
+                    userDetail.user_account_type !== "Free" || workorderStatus
+                  }
+                />
+              </div>
+
+              {companyType.value === "company" && (
+                <>
+                  <div className="form-group mr4">
+                    <label>Company Name</label>
+                    <input
+                      type="text"
+                      name="company"
+                      placeholder="Company name"
+                      //readOnly={role === "executive" ? true : false}
+                      defaultValue={userDetail.company_name}
+                      // className={role === "executive" ? "bg6" : ""}
+                      onBlur={(e) => handleCompanyName(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group mr4">
+                    <label>Students Ready to Enroll </label>
+                    <input
+                      type="number"
+                      name="student-now"
+                      placeholder="No of students enroll now"
+                      readOnly={workorderStatus}
+                      defaultValue={studentNow}
+                      // className={role === "executive" ? "bg6" : ""}
+                      onChange={(e) => handleStudentNow(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group mr4">
+                    <label>Total Students Required</label>
+                    <input
+                      type="number"
+                      placeholder="No of students required"
+                      name="students required"
+                      readOnly={workorderStatus}
+                      defaultValue={leadDetail.student_required}
+                      // className={role === "executive" ? "bg6" : ""}
+                      onChange={(e) => handleStudentRequired(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Website</label>
+                    <input
+                      type="text"
+                      placeholder="Website"
+                      name="website"
+                      //readOnly={role === "executive" ? true : false}
+                      defaultValue={userDetail.website}
+                      // className={role === "executive" ? "bg6" : ""}
+                      onBlur={(e) => handleWebsite(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            <form className="lead-detail-form individual">
+              <div className="form-row">
+                <div className="form-group">
+                  <SingleDropdown
+                    label="Category"
+                    options={categoryOptions}
+                    selectedOption={category}
+                    onSelect={handleCategoryChange}
+                    isReadOnly={workorderStatus}
+                  />
+                </div>
+
+                <div className="form-group ml12 mr12 sub-cat">
+                  {!category ? (
+                    <Tooltip title={"Please select category first"}>
+                      <SingleDropdown
+                        label="Subcategory"
+                        options={subcategoryOptions}
+                        selectedOption={subcategory}
+                        onSelect={handleSubcategoryChange}
+                        isReadOnly={!category || workorderStatus}
+                        className={!category ? "bg6" : ""}
+                      />
+                    </Tooltip>
+                  ) : (
+                    <SingleDropdown
+                      label="Subcategory"
+                      options={subcategoryOptions}
+                      selectedOption={subcategory}
+                      onSelect={handleSubcategoryChange}
+                      isReadOnly={!category || workorderStatus}
+                    />
+                  )}
+                </div>
+
+                <div className="form-group-segment course-full mb8 form-group-third">
+                  <label
+                    className={`${!category || workorderStatus ? "mb24 " : "mb12"}`}
+                  >
+                    Interested In (Course Name)
+                  </label>
+                  {!category ? (
+                    <Tooltip title={"Please select category first"}>
+                      <div className="form-group-segment course-full mt8 mb8 form-group-third">
+                        <Select
+                          isMulti
+                          name="segment"
+                          options={courseOptions}
+                          value={selectedCourses}
+                          onChange={handleCourseChange}
+                          placeholder="Select Course"
+                          isDisabled={!category || workorderStatus}
+                          title="Please select Courses"
+                          className={!category ? "bg6" : ""}
+                        />
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <div className=" form-group-segment course-full mt8">
+                      <Select
+                        isMulti
+                        name="segment"
+                        options={courseOptions}
+                        value={selectedCourses}
+                        onChange={handleCourseChange}
+                        placeholder="Select Course"
+                        isDisabled={!category || workorderStatus}
+                        title="Please select Courses"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* {otherDetail.mystudentcourse && (
+                <div className="form-group-segment course-full">
+                  <div className="form-group-segment v-center mb12">
+                    <Tooltip title={"Pending Course"}>
+                      {otherDetail.mystudentcoursep && (
+                        <p className="fs12 ls1 test pl12 pr12 pt4 pb4 bg17 fc3 br24 mr8">
+                          {otherDetail.mystudentcoursep}
+                        </p>
+                      )}
+                    </Tooltip>
+
+                    <Tooltip title={"Running Course"}>
+                      {otherDetail.mystudentcourser && (
+                        <p className="fs12 ls1 test pl12 pr12 pt4 pb4 bg4 fc3 br24 mr8">
+                          {otherDetail.mystudentcourser}
+                        </p>
+                      )}
+                    </Tooltip>
+
+                    <Tooltip title={"Completed Course"}>
+                      {otherDetail.mystudentcoursec && (
+                        <p className="fs12 ls1 test pl12 pr12 pt4 pb4 bg13 fc3 br24">
+                          {otherDetail.mystudentcoursec}
+                        </p>
+                      )}
+                    </Tooltip>
+                  </div>
+                </div>
+              )} */}
+            </form>
+
+            {/* <div className="df aic leadUpdate">
+              <button
+                className="btn-status br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp ls1"
+                onClick={(e) => {
+                  signuinStudentAccount(userDetail.user_id);
+                }}
+              >
+                Student Profile
+              </button>
+            </div> */}
+
+            <div className="df aic leadUpdate" ref={commentHistoryRef}>
+              <p className="fs14">Comment History</p>
+            </div>
+            <Timeline commentData={commentData} Tooltip={Tooltip} />
+          </Card>
+        </div>
+        <div className="right-side-detail">
+          <div className="detail-header mb16 df jcsb fww pl12 mobile-lead-detail">
+            <div className="header-left df">
+              <Tooltip
+                title={userDetail.last_login_date_time_show}
+                place={"bottom"}
+              >
+                {userDetail.last_login_date_time <= 5 ? (
+                  <div className="green-status mr8 "></div>
+                ) : userDetail.last_login_date_time <= 60 ? (
+                  <div className="orange-status mr8 "></div>
+                ) : userDetail.last_login_date_time === "no login" ? (
+                  <div className="red-status mr8 "></div>
+                ) : (
+                  <div className="grey-status mr8 "></div>
+                )}
+              </Tooltip>
+              <div className="comp-details">
+                <div className="comp-name v-center fww">
+                  {userDetail.user_type === "company" ? (
+                    <p className="fs20 fw6 mr4 ls1">
+                      {userDetail.company_name
+                        ? userDetail.company_name
+                        : userDetail.name}
+                    </p>
+                  ) : (
+                    <p className="fs20 fw6 mr4 ls1">{userDetail.name}</p>
+                  )}
+
+                  <p className="fs16 propship ttc">({userDetail.user_type})</p>
+                </div>
+                <div className="comp-address df mt4 fs14 aic">
+                  {userDetail.user_account_type && (
+                    <p
+                      className={`fs10 ls2 pl12 pr12 pt4 pb4 ${userDetail.user_account_type === "Free" ? "fc1 brd2" : "fc25 brd3"} mr8 br24`}
+                    >
+                      {userDetail.user_account_type}
+                    </p>
+                  )}
+                  <p className="agent-city mr4 v-center">
+                    {userDetail.user_id && (
+                      <span className="lead-id">{userDetail.user_id}</span>
+                    )}
+                    {userDetail &&
+                      (userDetail.city ||
+                        userDetail.state ||
+                        userDetail.country ||
+                        userDetail.pincode) && <span className="ml4">|</span>}
+                  </p>
+
+                  {userDetail && userDetail.city && (
+                    <p className="agent-city mr4 ttc">
+                      {userDetail.city}
+                      {(userDetail.state ||
+                        userDetail.country ||
+                        userDetail.pincode) &&
+                        `,`}
+                    </p>
+                  )}
+
+                  {userDetail && userDetail.state && (
+                    <p className="agent-state mr4 ttc">
+                      {userDetail.state}
+                      {(userDetail.country || userDetail.pincode) && `,`}
+                    </p>
+                  )}
+
+                  {userDetail && userDetail.country && (
+                    <p className="agent-country mr4 ttc">
+                      {userDetail.country}
+                      {userDetail.pincode && ` - `}
+                    </p>
+                  )}
+
+                  {userDetail && userDetail.pincode && (
+                    <p className="agent-pincode mr4">{userDetail.pincode}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="header-right df fww aic">
+              {/* <Tooltip title="Refresh page" >
+                 <button
+                  className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp"
+                  onClick={refreshPage}
+                >
+                 <LuRefreshCw />
+                </button>
+              </Tooltip> */}
+              <button
+                className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp"
+                onClick={openUpdateStatusPopup}
+              >
+                <FaInfoCircle className="pr8" />
+                Update Status
+              </button>
+              <button
+                className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 mr8 v-center cp"
+                onClick={handlePaymentLink}
+              >
+                <MdOutlinePayments className="pr8" />
+                Payment Link
+              </button>
+              {user.dept_id === "7" && (
+                <button
+                  className="btn-status bg1 br24 fs14 mt4 fc3 pl12 pr12 pt8 pb8 v-center cp"
+                  onClick={handleNextClick}
+                >
+                  Next
+                  <MdNavigateNext className="pl8" />
+                </button>
+              )}
+            </div>
+          </div>
+          
+          <Card className={"bg5"}>
+            <div className="">
+              {/* <div className="status-pending-history-header p12 brd-b1 df jcsb ls1 ">
+                <p className="fs14">
+                  Status:
+                  <span
+                    className="fs14 ls2 pl8 pt4 pb4 fc1 ml4 br24 mr8"
+                    style={{ textTransform: "capitalize" }}
+                  >
+                    {userDetail.last_lead_status
+                      ? userDetail.last_lead_status
+                      : "NA"}
+                  </span>
+                </p>
+              </div> */}
+              <div className="traveler-all-details">
+              <DynamicTooltip text="Click for View Student Profile" styleCustom={{ display: "block" }}>
+                <div
+                  className="tac pt12 pr cp"
+                  onClick={(e) => {
+                    signuinStudentAccount(userDetail.user_id);
+                  }}
+                >
+                  <img
+                    src={
+                      userDetail.user_image
+                        ? userDetail.user_image
+                        : profileImage
+                    }
+                    alt="Traveler"
+                  />
+                  {userDetail.name && (
+                    <p className="agent-name fs16 fw6 mb8 ttc">
+                      {userDetail.name}
+                      <span className="fc5 ml4 fs14">
+                        {userDetail.gender || userDetail.age
+                          ? `(${userDetail.gender ? userDetail.gender : ""}${userDetail.gender && userDetail.age ? " - " : ""}${userDetail.age ? `${userDetail.age}y` : ""})`
+                          : ""}
+                      </span>
+                    </p>
+                  )}
+
+                  {userDetail.last_login_date && (
+                    <p className="member-since mb8">
+                      Last Activity:{" "}
+                      <span className="fc1">{userDetail.last_login_date}</span>
+                    </p>
+                  )}
+                  <div>
+                    <div class="student-link-detail box-center br50 fs18 fc3 bg1">
+                      <HiExternalLink className="fc3" />
+                    </div>
+
+                  </div>
+</div></DynamicTooltip>
+
+
+                <div className="form-row detail-side-bar lead-page-details">
+                  <div className="ml8 status" style={{"width":"17%"}}>
+                    <SingleDropdown
+                      label="Status"
+                      options={statusOptions}
+                      selectedOption={status}
+                      onSelect={handleSetStatus}
+                      isReadOnly={user.role !== "1" && user.dept_id !== "7"}
+                      cc={true}
+                    />
+                  </div>
+
+                  {otherDetail.assignaccess ? (
+                    <div className=" ml8 assigned-to rm"  style={{"width":"35%"}}>
+                      <SingleDropdown
+                        label="RM"
+                        options={assignOptions}
+                        selectedOption={assign}
+                        onSelect={handleSetAssign}
+                        isReadOnly={
+                          assignChangeAccess || pageRoleAccess ? "" : true
+                        }
+                        cc={true}
+                      />
+                    </div>
+                  ) : (
+                    <div className="">
+                      <label>Agent</label>
+                      <input
+                        className="bg6"
+                        type="text"
+                        readOnly={true}
+                        value={otherDetail.flapone_agent_name || ""} // Ensure otherData.agent is the correct property
+                      />
+                    </div>
+                  )}
+
+                  {userDetail.stage === "paid" && (
+                    <div className="mr8 rm"  style={{"width":"35%"}}>
+                      <SingleDropdown
+                        label="Cordinator"
+                        options={cordinatorOptions}
+                        selectedOption={cordinator}
+                        onSelect={handleSetCoordinator}
+                        cc={true}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="lead-profile-info mt8">
+                  <ul className="pl12 pr12 ls1">
+                
+                    <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                      <span className="info-label fs14 fc16">Email:</span>
+                      {userDetail.email_id ? (
+                        <span className="v-center fc14 detail-mob">
+                          {userDetail.user_account_type === "Paid" ? (
+                            <span
+                              className={`v-center fs12 mr8 ${!showEmail ? "cp fc19" : "fc14"}`}
+                              onClick={() => {
+                                if (!showEmail) {
+                                  handlehideshowcrid('email',userDetail)
+                                }
+                              }}
+                              
+                            >
+                              {showEmail ? (
+                                <a
+                                  href={`tel:${userDetail.email_id}`}
+                                  className="v-center fc14 fs14"
+                                >
+                                  {userDetail.email_id || "NA"}
+                                </a>
+                              ) : (
+                                "Show Email"
+                              )}
+                            </span>
+                          ) : (
+                            <a
+                              href={`tel:${userDetail.email_id}`}
+                              className="v-center fc14 fs14"
+                            >
+                              
+                              {userDetail.email_id || "NA"}
+                            </a>
+                          )}
+
+                          <Tooltip
+                            title={`${
+                              userDetail.email_status === "1"
+                                ? "Verified"
+                                : "Not Verified"
+                            }`}
+                          >
+                            <MdOutlineVerified
+                              className={`${
+                                userDetail.email_status === "1"
+                                  ? "fc13"
+                                  : "fc17"
+                              } fs18 ml4`}
+                            />
+                          </Tooltip>
+
+                         
+                        </span>
+                      ) : (
+                        <span className="fs14 ">NA</span>
+                      )}
+                    </li>
+                    <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                      <span className="info-label fs14 fc16">Mobile:</span>
+                      {userDetail.mobile_number ? (
+                        <span className="v-center fc14 detail-mob">
+                          {userDetail.user_account_type === "Paid" ? (
+                            <span
+                              className={`v-center fs12 mr8 ${!showMobileNumber ? "cp fc19" : "fc14"}`}
+                              onClick={() => {
+                                if (!showMobileNumber) {
+                                  handlehideshowcrid('mobile',userDetail)
+                                }
+                              }}
+                              
+                            >
+                              {showMobileNumber ? (
+                                <a
+                                  href={`tel:${userDetail.mobile_number}`}
+                                  className="v-center fc14 fs14"
+                                >
+                                  <MdCall className="mr4" />
+                                  {userDetail.mobile_number || "NA"}
+                                </a>
+                              ) : (
+                                "Show Mobile"
+                              )}
+                            </span>
+                          ) : (
+                            <a
+                              href={`tel:${userDetail.mobile_number}`}
+                              className="v-center fc14 fs14"
+                            >
+                              <MdCall className="mr4" />
+                              {userDetail.mobile_number || "NA"}
+                            </a>
+                          )}
+
+                          <Tooltip
+                            title={`${
+                              userDetail.mobile_status === "1"
+                                ? "Verified"
+                                : "Not Verified"
+                            }`}
+                          >
+                            <MdOutlineVerified
+                              className={`${
+                                userDetail.mobile_status === "1"
+                                  ? "fc13"
+                                  : "fc17"
+                              } fs18 ml4`}
+                            />
+                          </Tooltip>
+
+                          {userDetail.whatsapp_status>0 && <DynamicTooltip
+                            direction="left"
+                            text={`${
+                              userDetail.mobile_status &&
+                              "Responded Via WhatsApp"
+                            }`}
+                          >
+                            <MdOutlineWhatsapp
+                              className={`${
+                                userDetail.whatsapp_status === "1"
+                                  ? "fc13"
+                                  : "fc17"
+                              } fs18 ml4`}
+                            />
+                          </DynamicTooltip>}
+                        </span>
+                      ) : (
+                        <span className="fs14 ">NA</span>
+                      )}
+                    </li>
+                  {otherDetail.paymentcount &&
+                      otherDetail.paymentcount > 0 && (
+                        <li
+                          className="lead-profile-info df jcsb aic p12 df jcsb aic p12 cp fc24 abs"
+                          onClick={(e) => {
+                            //handleOpenPaymentHistory();
+                            handleRedirectPaymentHistory();
+                          }}
+                        >
+                          <DynamicTooltip text={`Total Received Amount`}>
+                          <span className="info-label fs14">
+                            Total Recd. Amt
+                            <span className="fc12">
+                              {otherDetail.invoicestatus === false &&
+                                otherDetail.workorder_pending_amount > 0 &&
+                                " (Pending)"}
+                            </span>
+                            <span className="fc2">
+                              {otherDetail.invoicestatus === true &&
+                                !otherDetail.workorder_pending_amount &&
+                                " (Completed)"}
+                            </span>
+                            :
+                          </span>
+                          </DynamicTooltip>
+                          
+                          <span className="info-value fs14 v-center">
+                            <p className="v-center">
+                              <MdCurrencyRupee />
+                              <DynamicTooltip text={`Total Received Amount`}>
+                              {otherDetail.total_amount_received
+                                ? otherDetail.total_amount_received
+                                : "0"}
+                              <span className="ml4">
+                                (
+                                {otherDetail.paymentcount
+                                  ? otherDetail.paymentcount
+                                  : "0"}
+                                )
+                              </span>
+                              </DynamicTooltip>
+                            </p>
+                          </span>
+                          
+                         
+                          
+                        </li>
+                      )}
+                      {otherDetail.pending_approval_amount && otherDetail.pending_approval_amount>0 && (
+                      <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                        <span className="info-label fs14 fc16">Last Paid (Approval Pending):</span>
+                        <span className="info-value fs14">
+                          <p className="v-center">
+                            
+                            {otherDetail.pending_approval_amount
+                              ? "₹"+otherDetail.pending_approval_amount
+                              : "0"}{" "}
+                            {otherDetail.pending_payment_date}
+                          </p>
+                        </span>
+                      </li>
+                    )}
+                    {userDetail.last_work_status>0 && (
+                       <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12 cp fc24 abs"  onClick={(e) => {
+                        handleRedirectPaymentHistory();
+                      }}>
+                       <span className="info-label fs14 ">Last Workorder:</span>
+                       <span className="info-value fs14">
+                         <p className="v-center">
+                          
+                           <MdCurrencyRupee />
+                           <DynamicTooltip text={`Received Amount`}>
+                           {userDetail.last_wo_rec_amnt
+                             ? userDetail.last_wo_rec_amnt
+                             : "0"}{" / "}</DynamicTooltip>
+                              
+                            <MdCurrencyRupee />
+                            <DynamicTooltip text={`Sales Amount`}>
+                           {userDetail.last_wo_sales_amnt
+                             ? userDetail.last_wo_sales_amnt
+                             : "0"}{" "}</DynamicTooltip>
+                             
+                           
+                         </p>
+                       </span>
+                     </li>
+                    )}
+                    {userDetail.last_payment_date && (
+                        <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                          <span className="info-label fs14 fc16">
+                            Last Payment Date:
+                          </span>
+                          <span className="info-value fs14">
+                            {" "}
+                            {userDetail.last_payment_date}
+                          </span>
+                        </li>
+                      )}
+                       {userDetail.last_workorder_date && (
+                        <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                          <span className="info-label fs14 fc16">
+                            Last Workorder Date:
+                          </span>
+                          <span className="info-value fs14">
+                            {" "}
+                            {userDetail.last_workorder_date}
+                          </span>
+                        </li>
+                      )}
+                 
+                   
+                    
+                   
+
+                   
+                    {leadDetail?.question_collection &&
+                      Object.entries(leadDetail.question_collection).map(
+                        ([key, { short_question, answer }]) => (
+                          <li
+                            key={key}
+                            className="lead-profile-info df jcsb aic p12"
+                          >
+                            <span className="info-label fs14 fc16">
+                              {short_question}
+                            </span>
+                            <span className="info-value fs14">{answer}</span>
+                          </li>
+                        )
+                      )}
+
+                    
+
+                    {userDetail.language && (
+                      <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                        <span className="info-label fs14 fc16">
+                          Language Preferred:
+                        </span>
+                        {userDetail.language ? (
+                          <span className="info-value fs14">
+                            {userDetail.language}
+                          </span>
+                        ) : (
+                          <span className="fs14 ">NA</span>
+                        )}
+                      </li>
+                    )}
+
+                    {userDetail.address && (
+                      <li className="lead-profile-info df jcsb aic  p12 df jcsb aic p12">
+                        <span className="info-label fs14 fc16">Address:</span>
+                        <span className="info-value fs14">
+                          {userDetail.address}
+                        </span>
+                      </li>
+                    )}
+                    <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                      <span className="info-label fs14 fc16">Lead Source:</span>
+                      {leadDetail.source ? (
+                        <span className="info-value fs14">
+                          {" "}
+                          {leadDetail.source}
+                        </span>
+                      ) : (
+                        <span className="fs14 ">NA</span>
+                      )}
+                    </li>
+                    {otherDetail.enquiry_count > "0" && (
+                      <li
+                        className="lead-profile-info df jcsb aic p12 df jcsb aic p12 cp fc24"
+                        onClick={(e) => {
+                          handleDuplicatePopupp();
+                        }}
+                      >
+                        <span className="info-label fs14">
+                          No. of Enquiries:
+                        </span>
+                        <span className="info-value fs14">
+                          {" "}
+                          {otherDetail.enquiry_count}
+                        </span>
+                      </li>
+                    )}
+                    {leadDetail.create_date && (
+                      <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                        <span className="info-label fs14 fc16">
+                          Last Inquiry Date:
+                        </span>
+                        <span className="info-value fs14">
+                          {" "}
+                          {leadDetail.create_date}
+                        </span>
+                      </li>
+                    )}
+                    {userDetail.created_date && (
+                      <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                        <span className="info-label fs14 fc16">
+                          Signup Date:
+                        </span>
+                        <span className="info-value fs14">
+                          {" "}
+                          {userDetail.created_date}
+                        </span>
+                      </li>
+                    )}
+                     {userDetail.website && (
+                      <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                        <span className="info-label fs14 fc16">Website:</span>
+                        <span className="info-value fs14">
+                          <Link to="https://www.flapone.com/">
+                            {userDetail.website}
+                          </Link>
+                        </span>
+                      </li>
+                    )}
+                    <li className="lead-profile-info df jcsb aic p12 df jcsb aic p12">
+                      <span className="info-label fs14 fc16">User id:</span>
+                      <span className="info-value fs14">
+                        {userDetail.user_id}{" "}
+                      </span>
+                    </li>
+
+                    {/*leadDetail?.question_collection && 
+                        Object.entries(leadDetail.question_collection).map(([key, { short_question, answer }]) => (
+                          <li key={key} className="lead-profile-info df jcsb aic p12">
+                            <span className="info-label fs14 fc16">
+                              {short_question}
+                            </span>
+                            <span className="info-value fs14">
+                              {answer}
+                            </span>
+                          </li>
+                        ))*/}
+                  </ul>
+
+                  <div className="payment-buttons df aic jcc fs12 ls1 p12 mt16">
+                    {/* <div
+                        className="resete-pass fc1 pt8 pb8 pl8 pr8 tdu cp mr8 fs14"
+                        onClick={handleSendMailPassowrd}
+                      >
+                        Forgot Password
+                      </div> */}
+                    {/* <div
+                        className="pymnt-hist bg1 pt8 pb8 pl8 pr8 fc3 cp mr8"
+                        onClick={openSendCertificatePopup}
+                      >
+                        Send Certificate
+                      </div> */}
+
+                    {otherDetail.invoicestatus && (
+                      <div
+                        className="pymnt-hist bg5 pt8 pb8 pl8 pr8 fc1 brd2 cp mr8"
+                        onClick={openSendInvoicePopup}
+                      >
+                        Send invoice
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+          
+          {userDetail.user_type === "company" && studentsData?.length > 0 &&(
+             <Card className={"bg5 pl12 pr12 mystud-detail mt24"}>
+              <div className="lead-profile-info">
+                <ul class="ls1">
+                  <li
+                    class="lead-profile-info df jcsb aic pl12 pr12 pt8 pb8 cp br4"
+                    onClick={toggleExpand}
+                  >
+                    <span class="info-label fs14 fc16">My Students</span>
+                    <span className="fs14 v-center fc1">
+                      {studentsData.length}
+                      {expanded ? (
+                        <MdExpandLess
+                          className="expand-icon fs22 fc1"
+                          style={{ cursor: "pointer" }}
+                        />
+                      ) : (
+                        <MdExpandMore
+                          className="expand-icon fs22 fc1"
+                          style={{ cursor: "pointer" }}
+                        />
+                      )}
+                    </span>
+                  </li>
+                </ul>
+
+                {expanded && (
+                  <table className="student-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th className="tar">Last Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentsData &&
+                        studentsData.length > 0 &&
+                        studentsData.map((student, index) => (
+                          <React.Fragment key={index}>
+                            <tr
+                              onClick={() =>
+                                handleRedirectStudentFromLeadDetail(
+                                  student.user_id
+                                )
+                              }
+                              className="cp"
+                            >
+                              <td className="leads-tool-fix">
+                                {student.name}
+
+                                <p>
+                                  <DynamicTooltip text={student.email}>
+                                    <a href={`mailto:${student.email}`}>
+                                      <MdEmail className="fs16 ml4 fc5" />
+                                    </a>
+                                  </DynamicTooltip>
+                                  <DynamicTooltip text={student.mobile}>
+                                    <a href={`tel:${student.mobile}`}>
+                                      <MdCall className="fs16 ml4 fc5" />
+                                    </a>
+                                  </DynamicTooltip>
+                                </p>
+                              </td>
+                              <td
+                                className="last-status cp "
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleCourseView(index);
+                                }}
+                              >
+                                <span
+                                  className={`v-center jce ${student.last_status === "Running" || student.last_status === "Pending" ? "fc1" : student.last_status === "Completed" ? "fc13" : ""}`}
+                                >
+                                  {student.last_status}
+                                  <MdExpandMore className="expand-icon fs22 cp" />
+                                </span>
+                              </td>
+                            </tr>
+
+                            {student.courses &&
+                              student.courses.length > 0 &&
+                              selectedStudentIndex === index && (
+                                <tr className="course-row">
+                                  <td colSpan="4">
+                                    <table className="course-table">
+                                      <thead>
+                                        <tr>
+                                          <th>Course</th>
+                                          <th className="tar">Status</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {student.courses.map((course, i) => (
+                                          <tr key={i}>
+                                            <td>{course.course_name}</td>
+                                            <td
+                                              className={`tar ${course.course_status === "Running" || course.course_status === "Pending" ? "fc1" : course.course_status === "Completed" ? "fc13" : ""}`}
+                                            >
+                                              {course.course_status}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              )}
+                          </React.Fragment>
+                        ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </Card>
+          )}
+        </div>
+        {paymentLinkPopup && (
+          <Popup
+            onClose={closePaymentLinkPopup}
+            title={"Generate Payment Link"}
+          >
+            <PaymentLink
+              userLoginData={user}
+              onClose={closePaymentLinkPopup}
+              categoryOptions={categoryOptions}
+              subcategoryOptions={subcategoryOptions}
+              courseOptions={courseOptions}
+              getSubcategoryData={getSubcategoryData}
+              getCatByCourseData={getCatByCourseData}
+              getCoursePriceData={getCoursePriceData}
+              amount={coursePrice}
+              setAmount={setCoursePrice}
+              coursePriceTax={coursePriceTax}
+              coursePriceWithTax={coursePriceWithTax}
+              category={category}
+              subcategory={subcategory}
+              selectedCourses={selectedCourses}
+              setCategory={setCategory}
+              setSubcategory={setSubcategory}
+              setSelectedCourses={setSelectedCourses}
+              selectedCoursesIds={selectedCoursesIds}
+              setSelectedCoursesIds={setSelectedCoursesIds}
+              generatePaymentLink={generatePaymentLink}
+              paymentLink={paymentLink}
+              setPaymentLink={setPaymentLink}
+              studentNo={studentNow}
+              finalAmount={finalAmount}
+              setFinalAmount={setFinalAmount}
+              partialAmount={partialAmount}
+              setPartialAmount={setPartialAmount}
+              workorderStatus={workorderStatus}
+              scholarStatus={scholarStatus}
+              otherDetail={otherDetail}
+              handleLeadForm={handleLeadForm}
+            />
+          </Popup>
+        )}
+
+        {updateStausPopup && (
+          <Popup onClose={closeUpdateStatusPopup} title={"Update Status"}>
+            <UpdateStatus
+              newPendingStatus={newPendingStatus}
+              userLoginData={user}
+              onClose={closeUpdateStatusPopup}
+              toast={toast}
+              categoryOptions={categoryOptions}
+              subcategoryOptions={subcategoryOptions}
+              courseOptions={courseOptions}
+              getSubcategoryData={getSubcategoryData}
+              getCatByCourseData={getCatByCourseData}
+              getCoursePriceData={getCoursePriceData}
+              amount={coursePrice}
+              setAmount={setCoursePrice}
+              coursePriceTax={coursePriceTax}
+              coursePriceWithTax={coursePriceWithTax}
+              category={category}
+              subcategory={subcategory}
+              selectedCourses={selectedCourses}
+              setCategory={setCategory}
+              setSubcategory={setSubcategory}
+              setSelectedCourses={setSelectedCourses}
+              companyType={companyType}
+              studentNo={studentNow}
+              setStudentNo={setStudentNow}
+              finalAmount={finalAmount}
+              setFinalAmount={setFinalAmount}
+              partialAmount={partialAmount}
+              setPartialAmount={setPartialAmount}
+              workorderStatus={workorderStatus}
+              scholarStatus={scholarStatus}
+              saveUpdateData={handleSaveUpdateData}
+              setUpdateBtnStatus={setUpdateBtnStatus}
+              updateBtnStatus={updateBtnStatus}
+              userDetail={userDetail}
+              otherDetail={otherDetail}
+              handleUploadAttachment={handleUploadAttachment}
+              attachment={attachment}
+              setSelectedCoursesIds={setSelectedCoursesIds}
+              selectedCoursesIds={selectedCoursesIds}
+              handleLeadForm={handleLeadForm}
+              optionBatchs={selectedBatchs}
+            />
+          </Popup>
+        )}
+
+        {sendCertificatePopup && (
+          <Popup onClose={closeSendCertificatePopup} title={"Send Certificate"}>
+            <Certificate onClose={closeSendCertificatePopup} />
+          </Popup>
+        )}
+        {sendInvoicePopup && (
+          <Popup onClose={closeSendInvoicePopup} title={"Send Invoice"}>
+            <Invoice
+              onClose={closeSendInvoicePopup}
+              workorderList={workorderListData}
+              sendInvoice={handleSendInvoice}
+              toast={toast}
+              getInvoicePdfUrl={getInvoicePdfUrl}
+              invoicepdfurl={constant.invoicepdfurl}
+              invoiceFileName={invoiceFileName}
+            />
+          </Popup>
+        )}
+        {paymentHistoryPopup && (
+          <SidePopup
+            show={paymentHistoryPopup}
+            onClose={handlePaymentHistoryPopupClose}
+            className="full-width"
+          >
+            <div className="selected-plan-details">
+              <div className="df jcsb profile-card-header brd-b1 p16 box-center bg7  w100 fc1 ls2 lh22">
+                <p className="fs18 fc1 ">Payment History</p>
+                <button
+                  onClick={() => {
+                    setPaymentHistoryPopup(false);
+                    document.body.style.overflow = "auto";
+                  }}
+                  className="lead-close-button"
+                >
+                  X
+                </button>
+              </div>
+              <div className="booked p16" style={{ overflow: "auto" }}>
+                <table className="ledger-table cp w100 wsnw">
+                  <thead>
+                    <tr>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("payment_date")
+                        }
+                        className={
+                          activeHistorySortColumn === "payment_date"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Date
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("payment_gateway_id")
+                        }
+                        className={
+                          activeHistorySortColumn === "payment_gateway_id"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Pymt ID
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("flapone_work_order_id")
+                        }
+                        className={
+                          activeHistorySortColumn === "flapone_work_order_id"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          WO Id
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() => handleHistorySortByChange("course_name")}
+                        className={
+                          activeHistorySortColumn === "course_name" ? "fc1" : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Course Name
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("discount_type")
+                        }
+                        className={
+                          activeHistorySortColumn === "discount_type"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Amt Type
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("course_amount")
+                        }
+                        className={
+                          activeHistorySortColumn === "course_amount"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Course MRP
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("total_amount")
+                        }
+                        className={
+                          activeHistorySortColumn === "total_amount"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Sale Amount
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() => handleHistorySortByChange("amount")}
+                        className={
+                          activeHistorySortColumn === "amount" ? "fc1" : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Recd Amt
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      {/* <th
+                          onClick={() =>
+                            handleHistorySortByChange("discount_amount")
+                          }
+                          className={
+                            activeHistorySortColumn === "discount_amount"
+                              ? "fc1"
+                              : ""
+                          }
+                        >
+                          <p className="box-center">
+                            Discount
+                            <RiArrowUpDownFill className="cp ml4" />
+                          </p>
+                        </th> */}
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("pending_amount")
+                        }
+                        className={
+                          activeHistorySortColumn === "pending_amount"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Pending Amt
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("payment_gateway_type")
+                        }
+                        className={
+                          activeHistorySortColumn === "payment_gateway_type"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Type
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("payment_mode")
+                        }
+                        className={
+                          activeHistorySortColumn === "payment_mode"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Mode
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th>
+                        <p className="box-center">Att.</p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("approver_comment")
+                        }
+                        className={
+                          activeHistorySortColumn === "approver_comment"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Comment
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("payment_gateway_status")
+                        }
+                        className={
+                          activeHistorySortColumn === "payment_gateway_status"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Pymt Status
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("work_order_status")
+                        }
+                        className={
+                          activeHistorySortColumn === "work_order_status"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          WO Status
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th
+                        onClick={() =>
+                          handleHistorySortByChange("service_status")
+                        }
+                        className={
+                          activeHistorySortColumn === "service_status"
+                            ? "fc1"
+                            : ""
+                        }
+                      >
+                        <p className="box-center">
+                          Course Status
+                          <RiArrowUpDownFill className="cp ml4" />
+                        </p>
+                      </th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentData &&
+                      paymentData.map((paid, index) => (
+                        <tr
+                          key={index}
+                          className={
+                            paid.payment_gateway_status === "Rejected"
+                              ? "cross"
+                              : ""
+                          }
+                        >
+                          <td>{paid.payment_date}</td>
+                          <td>
+                            {paid.payment_gateway_id
+                              ? paid.payment_gateway_id
+                              : "--"}
+                          </td>
+                          <td>{paid.work_order_id}</td>
+                          <td>
+                            {paid.course_name && (
+                              <Tooltip title={paid.course_name}>
+                                {paid.course_name.length > 20
+                                  ? `${paid.course_name.slice(0, 20)}...`
+                                  : paid.course_name}
+                              </Tooltip>
+                            )}
+                          </td>
+                          <td>
+                            <span
+                              style={{
+                                color: giveTextColor(
+                                  paid.discount_type === "Discount"
+                                    ? "Draft"
+                                    : "Completed"
+                                ),
+                              }}
+                            >
+                              {paid.discount_type}
+                            </span>
+                          </td>
+                          <td>{formatter.format(paid.course_amount)}</td>
+                          <td>{formatter.format(paid.total_amount)}</td>
+                          <td>
+                            {paid.discount_type === "Discount" ||
+                            paid.discount_type === "Scholarship"
+                              ? formatter.format(paid.discount_amount)
+                              : formatter.format(paid.amount)}
+                          </td>
+                          {/* <td
+                              style={{
+                                color: giveTextColor(
+                                  paid.pending_amount === "0"
+                                    ? "red"
+                                    : "success"
+                                ),
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {formatter.format(paid.discount_amount)}
+                            </td> */}
+                          <td
+                            style={{
+                              color: giveTextColor(
+                                paid.pending_amount === "0" ? "success" : "red"
+                              ),
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {formatter.format(paid.pending_amount)}
+                          </td>
+                          <td>{paid.payment_gateway_type}</td>
+                          <td>{paid.payment_mode}</td>
+                          <td>
+                            {paid.attachment ? (
+                              <Tooltip title="View Attachment">
+                                <FaRegEye
+                                  className="icon edit-icon cp fs18 fc8"
+                                  onClick={() =>
+                                    showAttachment(paid.attachment)
+                                  }
+                                />
+                              </Tooltip>
+                            ) : (
+                              "--"
+                            )}
+                          </td>
+                          <td className="scrollable-cell">
+                            <p>
+                              {paid.approver_comment
+                                ? paid.approver_comment
+                                : "--"}
+                            </p>
+                          </td>
+                          <td
+                            style={{
+                              color: giveTextColor(paid.payment_gateway_status),
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {paid.payment_gateway_status}
+                          </td>
+                          <td
+                            style={{
+                              color: giveTextColor(paid.work_order_status),
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {paid.work_order_status}
+                          </td>
+                          <td
+                            style={{
+                              color: giveTextColor(paid.service_status),
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {paid.service_status === "Success"
+                              ? "Completed"
+                              : paid.service_status}
+                          </td>
+
+                          <td>
+                            <div className="box-center" ref={dropdownRef}>
+                              {paid.payment_gateway_status === "Success" &&
+                                paid.discount_type != "Discount" &&
+                                paid.discount_type != "Scholarship" && (
+                                  <Tooltip title="Receipt">
+                                    <IoReceipt
+                                      className="icon edit-icon cp fs18 fc8"
+                                      style={{
+                                        verticalAlign: "middle",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() =>
+                                        toggleDropdown(index, "receipt")
+                                      }
+                                    />
+                                  </Tooltip>
+                                )}
+
+                              {paid.payment_gateway_status !== "Rejected" &&
+                                paid.work_order_status === "Success" && (
+                                  <Tooltip title="Invoice">
+                                    <FaFileInvoice
+                                      className="fc8 fs18 mr8 cp ml12"
+                                      onClick={() =>
+                                        toggleDropdown(index, "invoice")
+                                      }
+                                    />
+                                  </Tooltip>
+                                )}
+                            </div>
+
+                            {isDropdownOpen(index, "receipt") && (
+                              <div className="bill-menu">
+                                <p
+                                  className="bill-item cp ls1"
+                                  onClick={() =>
+                                    getReceiptPdfUrl(paid.payment_id)
+                                  }
+                                  ref={viewRef}
+                                >
+                                  <FaRegEye className="mr4 fc8" /> View
+                                </p>
+                                <p
+                                  className="bill-item cp ls1"
+                                  onClick={() =>
+                                    handleSendReceipt(paid.payment_id)
+                                  }
+                                  ref={sendMailRef}
+                                >
+                                  <FaFileDownload className="mr4 fc8" /> Send
+                                  Mail
+                                </p>
+                              </div>
+                            )}
+
+                            {isDropdownOpen(index, "invoice") && (
+                              <div className="bill-menu">
+                                <p
+                                  className="bill-item cp ls1"
+                                  onClick={() =>
+                                    getInvoicePdfUrl(paid.flapone_work_order_id)
+                                  }
+                                  ref={viewRef}
+                                >
+                                  <FaRegEye className="mr4 fc8" /> View
+                                </p>
+                                <p
+                                  className="bill-item cp ls1"
+                                  onClick={() =>
+                                    handleSendInvoice(
+                                      paid.flapone_work_order_id
+                                    )
+                                  }
+                                  ref={sendMailRef}
+                                >
+                                  <FaFileDownload className="mr4 fc8" /> Send
+                                  Mail
+                                </p>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </SidePopup>
+        )}
+
+        {duplicatePopup && (
+          <SidePopup
+            show={duplicatePopup}
+            onClose={() => {
+              setDuplicatePopup(false);
+            }}
+            className="full-width"
+          >
+            <div className="selected-plan-details">
+              <div className="df jcsb profile-card-header brd-b1 p12 box-center bg7  w100 fc1 ls2 lh22">
+                <p className="fs18 fc1 ">
+                  Enquires ({otherDetail.enquiry_count}){" "}
+                </p>
+                <button
+                  onClick={() => {
+                    setDuplicatePopup(false);
+                    document.body.style.overflow = "auto";
+                  }}
+                  className="lead-close-button"
+                >
+                  X
+                </button>
+              </div>
+              <div className="booked p8" style={{ overflow: "auto" }}>
+                <table className="ledger-table cp w100 wsnw">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Category</th>
+                      <th>Course</th>
+                      <th>Source</th>
+                      <th>Enquiry Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {duplicateData &&
+                      duplicateData.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.id}</td>
+                          <td>{item.category_name}</td>
+                          <td className="wspl">{item.course_name}</td>
+                          <td
+                            style={{
+                              color: giveTextColor(item.source),
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {item.source}
+                          </td>
+                          <td>{item.create_date}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </SidePopup>
+        )}
+        <ToastContainer position="bottom-right" />
+      </div>
+      {/* )} */}
+
+      {/* {!pageRoleAccess && !pageLeadDetailAccessDept && (
+        <NoPermission displayMsg={"No permission to access this page"} />
+      )} */}
+    </>
+  );
+};
+
+export default LeadDetail;

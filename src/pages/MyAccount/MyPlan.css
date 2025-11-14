@@ -1,0 +1,134 @@
+.profile-card-header {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.profile-info {
+  padding: 0 12px;
+}
+.profile-info ul li:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.profile-info ul li:nth-child(odd) {
+  background-color: #fff;
+}
+
+.best-performer {
+  justify-content: end;
+  flex: 0 0 45%;
+  max-width: 45%;
+}
+.info-value {
+  word-wrap: break-word;
+  display: inline-block;
+  line-height: 16px;
+  max-width: 232px;
+}
+.course-info ul li:nth-child(2n) {
+  background-color: #f0f0f0;
+}
+
+.course-section,
+.course-highlights,
+.course-price {
+  padding: 16px 24px;
+}
+.course-section strong {
+  font-weight: 600;
+}
+.course-section h2,
+.sub-overview h3,
+.course-highlights h2,
+.course-price h2 {
+  margin-bottom: 10px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0.6px;
+}
+.course-section p {
+  margin-bottom: 10px;
+  line-height: 20px;
+  letter-spacing: 0.6px;
+  font-size: 16px;
+}
+.course-section ul,.course-section ol {
+  padding-left: 24px;
+}
+.course-section ul li, .course-section ol li {
+  font-size: 14px;
+  margin-bottom: 10px;
+  line-height: 18px;
+  letter-spacing: 0.6px;
+}
+.course-section ul li {
+  list-style-type: disc !important;
+}
+.course-section ol li {
+  list-style-type: decimal !important;
+}
+.course-section h2,
+.course-highlights h2 {
+  font-size: 18px;
+}
+.course-section h3 {
+  font-size: 16px;
+}
+.highlight-list li {
+  list-style: none;
+}
+.course-price {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+.profile-card-header{
+  position: sticky;
+  top:0;
+}
+
+.highlight-row td {
+  padding-left: 16px;
+}
+.highlight-row:not(:last-child) {
+  border-bottom: 1px solid #ccc;
+}
+
+.highlight-value {
+  padding: 12px;
+}
+
+
+@media only screen and (max-width: 480px) {
+  .w66 {
+    width: 100%;
+  }
+  .account-details .card-wrapper {
+    flex-direction: column;
+  }
+  .plan-extra-details {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+}
+
+@media only screen and (min-width: 481px) and (max-width: 768px) {
+  .w66 {
+    width: 100%;
+  }
+  .account-details .card-wrapper {
+    flex-direction: column;
+  }
+  .plan-extra-details {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+}
+@media only screen and (min-width: 769px) and (max-width: 1200px) {
+  .w66 {
+    width: 90%;
+  }
+  .best-performer .pr16 {
+    padding-right: 8px;
+  }
+}

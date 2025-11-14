@@ -1,0 +1,2188 @@
+import React, { useEffect, useRef, useState } from "react";
+import "../MyStudents/MyStudents.css";
+import SingleDropdown from "../../components/SingleDropdown";
+import Tooltip from "../../components/Tooltip";
+import Popup from "../../components/Popup/Popup";
+import CalendarComponent from "../../components/CalendarComponent.js";
+import moment from "moment";
+import { useNavigate } from "react-router-dom";
+import { RiArrowUpDownFill } from "react-icons/ri";
+import { RiLoader2Fill } from "react-icons/ri";
+import { giveTextColor } from "../../helpers/textColors";
+import { HiOutlineDocumentCheck } from "react-icons/hi2";
+import { CiCalendarDate } from "react-icons/ci";
+import SidePopup from "../../components/Popup/SidePopup";
+import axios from "axios";
+import StudentHistroy from "./StudentHistroy";
+import { IoIosAirplane, IoMdListBox } from "react-icons/io";
+import ImagePdfUpload from "../../components/ImagePdfUpload";
+import Dropdown from "../../components/Dropdown";
+import { DateRangePicker } from "react-date-range";
+import constant from "../../constant/constant.js";
+import { logout } from "../../store/authSlice.js";
+import { useDispatch } from "react-redux";
+import {
+  startOfMonth,
+  endOfMonth,
+  parse,
+  format,
+  addDays,
+  subMonths,
+  addMonths,
+  startOfToday,
+  startOfYesterday,
+  startOfWeek,
+  endOfWeek,
+  subWeeks,
+} from "date-fns";
+import DatePicker from "react-datepicker";
+import { toast } from "react-toastify";
+import DynamicTooltip from "../../components/Dynamic_Tooltip.js";
+import { useTitle } from "../../hooks/useTitle.js";
+import AddLogForm from "../../components/Forms/AddLog.js";
+
+
+const AllStudents = ({
+  recordList,
+  setRecordList,
+  displayMsg,
+  allApiFilter,
+  handleSortByChange,
+  signuinStudentAccount,
+  handleGenrateRoll,
+  setAssignedToUser,
+  handleStudentHistory,
+  setCoordinatorToUser,
+  recordListHistory,
+  setBatchToUser,
+  allApidata,
+  activeSortColumn,
+  user,
+  applyFilter,
+  handleCellClick,
+  selectedTab,
+  listFilter
+  }) => {
+    useTitle("Batch Completed - Flapone Aviation");
+    
+  const [allStudentsData, setAllStudentsData] = useState([]);
+
+  const [addLogPopup, setAddLogPopup] = useState(false);
+  const [studnetUserDetail, setStudnetUserDetail] = useState([]);
+  const [rollNoInput, setRollNoInput] = useState({});
+  const [assigned, setAssigned] = useState({});
+  const [assignedBatch, setAssignedBatch] = useState({});
+  const [assignedCoordinator, setAssignedCoordinator] = useState({});
+  const [selectedLeads, setSelectedLeads] = useState([]);
+  const [isAssignToPopupVisible, setAssignToPopupVisible] = useState(false);
+  const [attendanceShow, setAttendanceShow] = useState(false);
+  const [studentHistory, setStudentHistory] = useState(false);
+  const [instructorFormShow, setInstructorFormShow] = useState(false);
+  const [sameCourseCheck, setSameCourseCheck] = useState("");
+  const [courseBaseBatchOption, setCourseBaseBatchOption] = useState(null);
+  const navigate = useNavigate();
+  const dateRangePickerRef = useRef(null);
+  const [sError, setSError] = useState({});
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(true);
+  const [studnetUserCourseEdit, setStudnetUserCourseEdit] = useState([]);
+  const [theoryDateRange, setTheoryDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+  ]);
+  
+  const [flyingDateRange, setFlyingDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+  ]);
+  const inital_data = {
+    registrationForm: "",
+    flyingLog: "",
+    simLog: "",
+    attedanceLog: "",
+    theorydate: `${format(theoryDateRange[0].startDate, "dd-MM-yyyy")} | ${format(theoryDateRange[0].endDate, "dd-MM-yyyy")}`,
+    flyingDate: `${format(flyingDateRange[0].startDate, "dd-MM-yyyy")} | ${format(flyingDateRange[0].endDate, "dd-MM-yyyy")}`,
+    issueDate: "",
+    issueDate_upload: "",
+    coc: "",
+    cocRollno: "",
+    formD4: "",
+    transactionReceipt: "",
+    transactionId: "",
+    rpcCertificate: "",
+    rpcNumber: "",
+    rpcTheory: "",
+    progressTest: "",
+    rpcTheoryTest:"",
+    skillTest: "",
+    batchId: "",
+    feedbackForm: "",
+    instructor: { label: "Select Instructor", value: "" },
+    remarks: "",
+    pagetype:"classend"
+  }
+    const [instructorSubmitForm, setInstructorSubmitForm] = useState(inital_data);
+  useEffect(() => {
+    setAllStudentsData([...recordList]);
+  }, [recordList]);
+ 
+
+  const [agentOptions, setAgentOptions] = useState([...JSON.parse(allApiFilter.agentOptions)]);
+  const [instructorOptions, setInstructorOptions] = useState([...(allApiFilter.facultyoption?JSON.parse(allApiFilter.facultyoption):[])]);
+  const [coordinatorOptions, setCoordinatorOptions] = useState([...JSON.parse(allApiFilter.coordinatorassignlist)]);
+  const [batchOptions, setBatchOptions] = useState(allApiFilter.allbatchlist);
+  const [FlyingBatchOptions, setFlyingBatchOptions] = useState(allApiFilter.allflyingbatchlist);
+  const [isHeaderCheckboxChecked, setIsHeaderCheckboxChecked] =useState(false);
+
+
+  const currentDate = moment().format("DD/MM/YYYY");
+  const handleCheckboxChange = (leadId) => {
+    setSelectedLeads((prevSelectedLeads) => {
+     
+      if (prevSelectedLeads.includes(leadId.id)) {
+        if(selectedLeads.length ==1){
+          setSameCourseCheck("");
+        }
+        return prevSelectedLeads.filter((id) => id !== leadId.id);
+      } else {
+        
+        // if (selectedLeads.length > 0) {
+          
+        //   if (leadId.courseId !== sameCourseCheck) {
+        //     toast.warn("Please select leads from the same course");
+        //     return prevSelectedLeads; 
+        //   } else {
+            
+        //     return [...prevSelectedLeads, leadId.id];
+        //   }
+        // } else {
+         
+        //   if (sameCourseCheck === '') {
+        //     setSameCourseCheck(leadId.courseId);
+        //     setCourseBaseBatchOption(
+        //       Array.isArray(batchOptions[leadId.courseId])
+        //         ? batchOptions[leadId.courseId]
+        //         : batchOptions[0]
+        //     );
+        //   }
+          
+        //   return [...prevSelectedLeads, leadId.id];
+        // }
+
+        return [...prevSelectedLeads, leadId.id];
+      }
+    });
+  };
+  
+  
+  const handleAssignToClick = () => {
+    const updates = {};
+  
+    if (assigned.value > 0) {
+      updates.rmid = assigned.value;
+    }
+    if (assignedBatch.value > 0) {
+      updates.allotted_batch = assignedBatch.value;
+    }
+    if (assignedCoordinator.value > 0) {
+      updates.coordinatorid = assignedCoordinator.value;
+    }
+  
+    if (Object.keys(updates).length > 0) {
+      setAllStudentsData(prevData =>
+        prevData.map(lead => {
+          if (selectedLeads.includes(lead.id)) {
+            return { ...lead, ...updates };
+          }
+          return lead;
+        })
+      );
+  
+      if (assigned.value > 0) {
+        setAssignedToUser(selectedLeads, assigned.value);
+      }
+      if (assignedBatch.value > 0) {
+        var allstudentid = [];
+        allStudentsData.map((lead) => {
+          if (selectedLeads.includes(lead.id)) {
+            allstudentid.push(lead.id+"|"+lead.wo_id+"|"+lead.courseId);
+          }
+        });
+        setBatchToUser(allstudentid, assignedBatch.value);
+      }
+      if (assignedCoordinator.value > 0) {
+        setCoordinatorToUser(selectedLeads, assignedCoordinator.value);
+      }
+    }
+  
+    setSelectedLeads([]);
+    setAssigned({});
+    setAssignedCoordinator({});
+    setAssignedBatch({});
+    setAssignToPopupVisible(false);
+  };
+  
+  
+  const handleAssignToDropdownChange = (event, leadId,keytype) => {
+    if(keytype==='allotted_batch' || keytype==='allottedflying_batch'){
+      let split_lead_id = leadId.split("|")[0];
+      const updatedLeads = allStudentsData.map((lead) => {
+        if (lead.id === split_lead_id) {
+          return { ...lead, [keytype==='allottedflying_batch'?"fly_batch_id":keytype]: event.target.value };
+        } else {
+          return lead;
+        }
+      });
+      setAllStudentsData(updatedLeads);
+    }else{
+      const updatedLeads = allStudentsData.map((lead) => {
+        if (lead.id === leadId) {
+          return { ...lead, [keytype]: event.target.value };
+        } else {
+          return lead;
+        }
+      });
+      setAllStudentsData(updatedLeads);
+    }
+    if (event.target.value && keytype==='rmid') {
+      setAssignedToUser([leadId], event.target.value);
+    }else if(event.target.value && keytype==='coordinatorid'){
+        setCoordinatorToUser([leadId], event.target.value);
+    }
+    else if(event.target.value && keytype==='allotted_batch'){
+        setBatchToUser([leadId], event.target.value,keytype);
+    }
+    else if(event.target.value && keytype==='allottedflying_batch'){
+        setBatchToUser([leadId], event.target.value,keytype);
+    }
+  };
+  const handleHeaderCheckboxChange = (event) => {
+    let temp_coursid = 0;
+    if(event.target.checked){
+    let  allLeadIds = allStudentsData.map((lead) => {
+      if (temp_coursid === 0) {
+        temp_coursid = lead.courseId; 
+        setSameCourseCheck(lead.courseId); 
+        setCourseBaseBatchOption(Array.isArray(batchOptions[temp_coursid]) ? batchOptions[temp_coursid] : batchOptions[0]);
+      }
+      return lead.id;
+      // if (lead.courseId === temp_coursid ) {
+      //   return lead.id; 
+      // }
+    }).filter(Boolean);
+      setIsHeaderCheckboxChecked(allLeadIds.length>0); 
+      setSelectedLeads(event.target.checked ? allLeadIds : []); 
+    }else{
+      setIsHeaderCheckboxChecked(false); 
+      setSelectedLeads([]);
+      setSameCourseCheck(""); 
+    }
+  };
+  
+
+  
+  //setIsHeaderCheckboxChecked(allStudentsData.length && selectedLeads.length > 0);
+
+  const handleAssignToButtonClick = () => {
+    setAssignToPopupVisible(true);
+  };
+  const closePopup = () => {
+    setAssignToPopupVisible(false);
+  };
+  const handleRowClick = (leadId) => {
+    if(user.role=='1' || user.role=='2'){
+      window.open(`/my-leads/${leadId}`, '_blank');
+    }else{
+      navigate(`/my-leads/${leadId}`);
+    }
+  };
+  const handleRollNoChange = (e, studentId) => {
+    const value = e.target.value;
+
+    setRollNoInput((prev) => ({ ...prev, [studentId]: value }));
+  };
+
+  // const handleRollNoSubmit = (studentId) => { 
+  //   const updatedStudents = allStudentsData.map((student) =>
+  //     student.id === studentId
+  //       ? { ...student, roll_no: rollNoInput[studentId] }
+  //       : student
+  //   );
+  //   setAllStudentsData(updatedStudents);
+  //   setRollNoInput((prev) => ({ ...prev, [studentId]: "" }));
+  // };
+  
+
+  const [remarks, setRemarks] = useState("");
+  
+
+  const handleFileUpload = (fieldName, file) => {
+
+    // const value = file ? URL.createObjectURL(file) : "";
+    // setInstructorSubmitForm((prevState) => ({
+    //   ...prevState,
+    //   [fieldName]: value,
+    // }));
+  };
+  const handleRemarksChange = (e) => {
+    setRemarks(e.target.value);
+  };
+  const handleInstructorChange = (value) => {
+    setInstructorSubmitForm((prevState) => ({
+      ...prevState,
+      instructor: value,
+    }));
+  };
+  const handleInputChange = (field, value) => {
+    setInstructorSubmitForm((prevState) => ({
+      ...prevState,
+      [field]: value,
+    }));
+  };
+
+  const [showDateRangeCalendar, setShowDateRangeCalendar] = useState(false);
+  const [dateRangeValue, setDateRangeValue] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+  ]);
+  const [dateRangeValue1, setDateRangeValue1] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 0),
+      key: "selection",
+    },
+  ]);
+  const [dateTimeType, setDateTimeType] = useState("");
+
+  const toggleDateRangeCalendar = (field) => {
+    setShowDateRangeCalendar((prev) => (prev === field ? null : field));
+  };
+
+  const staticRanges = [
+    {
+      label: "Today",
+      range: () => ({
+        startDate: startOfToday(),
+        endDate: new Date(),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[0].range();
+        if (dateTimeType === "Today") {
+          return true;
+        } else if (!dateTimeType) {
+          if (dateRangeValue[0].startDate.getTime() === startDate.getTime()) {
+            setDateTimeType("Today");
+            return true;
+          }
+        }
+        return false; // Explicitly return false if condition is not met
+      },
+    },
+    {
+      label: "Yesterday",
+      range: () => ({
+        startDate: startOfYesterday(),
+        endDate: startOfYesterday(),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[1].range();
+        if (dateTimeType === "Yesterday") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Yesterday");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "This Week",
+      range: () => ({
+        startDate: startOfWeek(new Date()),
+        endDate: endOfWeek(new Date()),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[2].range();
+        if (dateTimeType === "This Week") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("This Week");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "Last Week",
+      range: () => ({
+        startDate: startOfWeek(subWeeks(new Date(), 1)),
+        endDate: endOfWeek(subWeeks(new Date(), 1)),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[3].range();
+        if (dateTimeType === "Last Week") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Last Week");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "This Month",
+      range: () => ({
+        startDate: startOfMonth(new Date()),
+        endDate: endOfMonth(new Date()),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[4].range();
+        if (dateTimeType === "This Month") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("This Month");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "Last Month",
+      range: () => ({
+        startDate: startOfMonth(subMonths(new Date(), 1)),
+        endDate: endOfMonth(subMonths(new Date(), 1)),
+      }),
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[5].range();
+        if (dateTimeType === "Last Month") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() === startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime() === endDate.getTime()
+          ) {
+            setDateTimeType("Last Month");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "All Time",
+      range: () => ({
+        startDate: new Date(2021, 0, 1),
+        endDate: new Date(),
+      }),
+      hasCustomRendering: true,
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[6].range();
+        if (dateTimeType === "All Time") {
+          return true;
+        } else if (!dateTimeType) {
+          if (dateRangeValue[0].startDate.getTime() === startDate.getTime()) {
+            setDateTimeType("All Time");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+    {
+      label: "Custom",
+      range: () => ({
+        startDate: new Date(),
+        endDate: new Date(),
+      }),
+      hasCustomRendering: true,
+      isSelected: () => {
+        const { startDate, endDate } = staticRanges[7].range();
+        if (dateTimeType === "Custom") {
+          return true;
+        } else if (!dateTimeType) {
+          if (
+            dateRangeValue[0].startDate.getTime() &&
+            dateRangeValue[0].endDate.getTime()
+          ) {
+            setDateTimeType("Custom");
+            return true;
+          }
+        }
+        return false;
+      },
+    },
+  ];
+
+  const selectRange = () => {
+    for (let i = 0; i < staticRanges.length; i++) {
+      if (staticRanges[i].isSelected()) {
+        // Once a match is found, exit the loop
+        break; // Exit the loop after the first successful match
+      }
+    }
+  };
+  
+
+  // Call the function to start the check
+  selectRange();
+
+ 
+  
+  const [showTheoryDateCalendar, setShowTheoryDateCalendar] = useState(false);
+  const [showFlyingDateCalendar, setShowFlyingDateCalendar] = useState(false);
+  
+  
+  const toggleTheoryDateCalendar = () => {
+    setShowTheoryDateCalendar(!showTheoryDateCalendar);
+  };
+  
+  const toggleFlyingDateCalendar = () => {
+    setShowFlyingDateCalendar(!showFlyingDateCalendar);
+  };
+  
+  const handleTheoryDateChange = (item) => {
+    
+    setTheoryDateRange([item.selection]);
+    setInstructorSubmitForm((prev) => ({
+      ...prev,
+      theorydate: `${format(item.selection.startDate, "dd-MM-yyyy")} | ${format(
+        item.selection.endDate,
+        "dd-MM-yyyy"
+      )}`,
+    }));
+  };
+  
+  const handleFlyingDateChange = (item) => {
+    setFlyingDateRange([item.selection]);
+    setInstructorSubmitForm((prev) => ({
+      ...prev,
+      flyingDate: `${format(item.selection.startDate, "dd-MM-yyyy")} | ${format(
+        item.selection.endDate,
+        "dd-MM-yyyy"
+      )}`,
+    }));
+  };
+  
+  const handleClickOutside = (event) => {
+    if (
+      dateRangePickerRef.current &&
+      !dateRangePickerRef.current.contains(event.target)
+    ) {
+      setShowTheoryDateCalendar(false);
+      setShowFlyingDateCalendar(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showTheoryDateCalendar || showFlyingDateCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showTheoryDateCalendar,showFlyingDateCalendar]);
+  const [selectedClassValue, setSelectedClassValue] = useState("select");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationResponse, setConfirmationResponse] = useState(null);
+  const [pendingValue, setPendingValue] = useState(null);
+  const [holdMarkRecord, setHoldCurrentCompleteMarkRecord] = useState(null);
+  const convertDateToReactFormat = (batchStartDate, batchEndDate) => {
+    // Convert input dates into a standardized format
+    const startDate = new Date(batchStartDate);
+    const endDate = new Date(batchEndDate);
+  
+    // Adjust time zone to UTC
+    startDate.setHours(18, 30, 0, 0);
+    endDate.setHours(18, 30, 0, 0);
+  
+    // Format the output in the desired format
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      key: "selection"
+    };
+  };
+
+  //Shreshth 04-April
+  const [showBatchConfirmation, setShowBatchConfirmation] = useState(false);
+  const [batchDataFromPopup, setBatchDataFromPopup] = useState(null);
+  const [selectedBatchOption, setSelectedBatchOption] = useState();
+  const [selectedBatchId, setSelectedBatchId] = useState(null);
+  
+  const [courseDocStatusMessage, setCourseDocStatusMessage] = useState(null);
+
+  const handleBatchSelection = (event) => {
+    const selectedValue = event.target.value;
+    setSelectedBatchOption(selectedValue);
+    setSelectedBatchId(null);
+    if (selectedValue === "theory") {
+      setSelectedBatchId([batchDataFromPopup?.batch_obj?.value]);
+    } else if (selectedValue === "flying") {
+      setSelectedBatchId([batchDataFromPopup?.batchflying_obj?.value]);
+    } else if (selectedValue === "both") {
+      setSelectedBatchId([batchDataFromPopup?.batch_obj?.value, batchDataFromPopup?.batchflying_obj?.value]); 
+    }
+  };
+  
+  const handlebatchConfirmation = () => {
+    if(selectedBatchId != null){
+      setShowBatchConfirmation(false);
+      setShowConfirmation(true);
+    } else {
+      toast.warning("Please select the at least one batch");
+      setShowConfirmation(true);
+    }
+  };
+
+  const handleGetUserClassStatus = (value,studentRecord) => {    
+    setSError({});
+    setBatchDataFromPopup(null);
+    setHoldCurrentCompleteMarkRecord(null)
+    setInstructorSubmitForm(inital_data);
+    if(studentRecord.batch_start_date && studentRecord.batch_end_date){
+      let retur_date = convertDateToReactFormat(studentRecord.batch_start_date,studentRecord.batch_end_date);
+      setTheoryDateRange([retur_date]);
+      setInstructorSubmitForm((prev) => ({
+        ...prev,
+        theorydate: `${format(retur_date.startDate, "dd-MM-yyyy")} | ${format(
+          retur_date.endDate,
+          "dd-MM-yyyy"
+        )}`,
+      })); 
+    }
+    if(studentRecord.fly_start_date && studentRecord.fly_end_date){
+      let retur_date = convertDateToReactFormat(studentRecord.fly_start_date,studentRecord.fly_end_date);
+      setFlyingDateRange([retur_date]);
+      setInstructorSubmitForm((prev) => ({
+        ...prev,
+        flyingDate: `${format(retur_date.startDate, "dd-MM-yyyy")} | ${format(
+          retur_date.endDate,
+          "dd-MM-yyyy"
+        )}`,
+      }));
+    }
+    if(studentRecord.batch_end_date){
+      
+      let retur_date = convertDateToReactFormat(studentRecord.batch_end_date,studentRecord.batch_end_date);
+      handleIssueDateChange(retur_date.startDate);
+    }
+    if (value === "not_completed") {
+      if(studentRecord.theory_batch_id > 0 && studentRecord.fly_batch_id > 0){
+        setShowBatchConfirmation(true);
+        setBatchDataFromPopup(studentRecord);
+        setHoldCurrentCompleteMarkRecord(studentRecord);
+      } else {
+        const SingleBatchId = studentRecord?.theory_batch_id > 0 ? studentRecord?.theory_batch_id : studentRecord?.fly_batch_id;
+        setShowConfirmation(true);
+        setSelectedBatchId([SingleBatchId]);
+        setHoldCurrentCompleteMarkRecord(studentRecord);  
+      }
+      
+    } else if (value === "completed"){
+      //if(studentRecord.workorder_payment_amount<=0){
+        setHoldCurrentCompleteMarkRecord(studentRecord);
+        getCourseDocStatus(studentRecord);
+        
+        
+        
+        const getOldFilter = localStorage.getItem("allfilterstudent");
+        let updatefilter = {
+          ...listFilter,
+             trigger:"",
+        };
+        let oldFilter2;
+        if (getOldFilter) {
+          oldFilter2 = JSON.parse(getOldFilter);
+        }else{
+            oldFilter2={};
+        }
+
+        oldFilter2[selectedTab] = updatefilter;
+        localStorage.setItem("allfilterstudent", JSON.stringify(oldFilter2));
+        
+      //}
+      //else{
+      //  toast.warn("Payment is Remaining!");
+      //}
+    }
+
+  };
+  const getExistingData = (allstudentdata) =>{
+        axios({
+        method: "post",
+        url: `${constant.base_url}/admin/mystudent_list.php?fun=getstudentrecord`,
+        headers: { "Auth-Id": user.auth_id },
+        data: {holdMarkRecord:allstudentdata,pagetype:"classend"},
+      })
+      .then(function (response){
+        checkUserLogin(response);
+          if (response.data.data.status === "1") {
+            let res = response.data.data.data;
+            setStudnetUserCourseEdit({...res});
+            if(res.theory_start_date && res.theory_end_date){
+              let retur_date = convertDateToReactFormat(res.theory_start_date,res.theory_end_date);
+              setTheoryDateRange([retur_date]);
+              setInstructorSubmitForm((prev) => ({
+                ...prev,
+                theorydate: `${format(retur_date.startDate, "dd-MM-yyyy")} | ${format(
+                  retur_date.endDate,
+                  "dd-MM-yyyy"
+                )}`,
+              })); 
+            }
+            if(res.fly_start_date && res.fly_end_date){
+              let retur_date = convertDateToReactFormat(res.fly_start_date,res.fly_end_date);
+              setFlyingDateRange([retur_date]);
+              setInstructorSubmitForm((prev) => ({
+                ...prev,
+                flyingDate: `${format(retur_date.startDate, "dd-MM-yyyy")} | ${format(
+                  retur_date.endDate,
+                  "dd-MM-yyyy"
+                )}`,
+              }));
+            }
+            
+             let filterdateobj = instructorOptions.find(
+              (item) => item.value === res.instructor_id
+            );
+           
+           setRemarks(prevRemarks => res.remark);
+            let updatedata = {
+                  ...instructorSubmitForm,
+                  registrationForm:res.registrationForm?.url,
+                  flyingLog:res.flyingLog?.url,
+                  simLog:res.simLog?.url,
+                  attedanceLog:res.attedanceLog?.url,
+                  coc:res.coc?.url,
+                  formD4:res.formD4?.url,
+                  transactionReceipt:res.transactionReceipt?.url,
+                  rpcCertificate:res.rpcCertificate?.url,
+                  progressTest:res.progressTest?.url,
+                  rpcTheoryTest:res.rpcTheoryTest?.url,
+                  skillTest:res.skillTest?.url,
+                  feedbackForm:res.feedbackForm?.url,
+                  batchId:res.dgca_batch_id,
+                  cocRollno:res.coc_roll_no,
+                  rpcNumber:res.rpc_number,
+                  transactionId:res.transaction_id,
+                  instructor:filterdateobj,
+                  remarks:res.remark,
+		  issueDate:parse(res.issue_date, 'yyyy-MM-dd', new Date()),
+		  issueDate_upload:`${format(res.issue_date, "dd-MM-yyyy")}`,
+                  edit:0,
+                  pagetype:"classend"
+                };
+            setInstructorSubmitForm({...updatedata});
+            setInstructorFormShow(true);
+          }else{
+            toast.warn(response.data.data.msg);
+          }
+          setIsLoading(false);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+  }
+  const getCourseDocStatus = (allstudentdata) => {
+    setConfirmationResponse("Yes");
+    setShowConfirmation(false);
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=studentCourseDocStatus`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {holdMarkRecord:allstudentdata},
+    })
+    .then(function (response){
+      checkUserLogin(response);
+       if(response.data.data.courseAmountpaidMessage){
+             setInstructorFormShow(false);
+             toast.warning(response.data.data.courseAmountpaidMessage);
+             return false;
+       }else{
+              getExistingData(allstudentdata);
+              //setInstructorFormShow(true);
+       }
+
+       if (response.data.data.status === "1") {
+        setCourseDocStatusMessage(response.data.data.msg);
+       } 
+    })
+    .catch(function (error) {
+      console.error("Error during login:", error);
+    });
+  };
+
+  const confirmChange = () => {
+    setConfirmationResponse("Yes");
+    setShowConfirmation(false);
+    axios({
+      method: "post",
+      url: `${constant.base_url}/admin/mystudent_list.php?fun=removelist`,
+      headers: { "Auth-Id": user.auth_id },
+      data: {holdMarkRecord:holdMarkRecord, selectedBatchId:selectedBatchId},
+    })
+    .then(function (response){
+      checkUserLogin(response);
+      if (response.data.data.status === "1") {
+        toast.success(response.data.data.msg);
+        setInstructorFormShow(false);
+        document.body.style.overflow = "auto";
+        applyFilter();
+      } 
+      //setSubmitLoader(false);
+    })
+    .catch(function (error) {
+      console.error("Error during login:", error);
+    });
+  };
+
+  const cancelChange = () => {
+    setConfirmationResponse("No");
+    setShowConfirmation(false);
+  };
+
+  const cancelBatchSelectPopup = () => {
+    setBatchDataFromPopup(null);
+    setHoldCurrentCompleteMarkRecord(null);
+    setShowBatchConfirmation(false);
+  }
+
+  
+useEffect(() => {
+  const getOldFilter = localStorage.getItem("allfilterstudent");
+
+  if (getOldFilter) {
+    const oldFilter = JSON.parse(getOldFilter);
+    const currentTabFilter = oldFilter[selectedTab] || null;
+    
+
+    if (currentTabFilter && currentTabFilter.trigger!="") {
+      const student = allStudentsData.find(
+        (s) => s.id === currentTabFilter.searchByValue
+      );
+
+      if (student) {
+        handleGetUserClassStatus("completed", student);
+      } 
+    }
+   
+        
+  }
+}, [selectedTab, allStudentsData]); 
+
+  const customDateFormat = "dd/MM/yyyy";
+  const handleIssueDateChange = (date) => {
+    setInstructorSubmitForm((prevForm) => ({
+      ...prevForm,
+      issueDate: date,
+      issueDate_upload:`${format(date, "dd-MM-yyyy")}`,
+    }));
+    
+  };
+  
+  function validateSubjectFormData() {
+    // Initialize an object to hold error messages
+    const errors = {};
+    setSError({});
+    Object.keys(instructorSubmitForm).map((field) => {
+      if(holdMarkRecord.course_category_name=='drone'){
+        if (['issueDate', 'batchId', 'theorydate', 'flyingDate', 'registrationForm', 'flyingLog', 'simLog', 'attedanceLog', 'coc', 'cocRollno'].includes(field) && !instructorSubmitForm[field]) {
+          errors[field] = "this field is required";
+        } else if (['rpcCertificate', 'rpcNumber', 'progressTest', 'rpcTheoryTest'].includes(field) && (holdMarkRecord.courseId === "1" || holdMarkRecord.courseId === "2") && !instructorSubmitForm[field]) {
+          errors[field] = "this field is required";
+        } /*else if (['formD4', 'transactionId', 'transactionReceipt'].includes(field) && ((holdMarkRecord.courseId === "1" || holdMarkRecord.courseId === "2") && holdMarkRecord.passport_status === 0) && !instructorSubmitForm[field]) {
+          errors[field] = "this field is required";
+        }*/
+    }else{
+      if (['theorydate'].includes(field) && !instructorSubmitForm[field]) {
+        errors[field] = "this field is required";
+      }
+    }
+    });    
+    if (Object.keys(errors).length > 0) {
+      setSError(errors);
+      return false;
+    }
+    return true;
+  }
+  const checkUserLogin = (response) => {
+    if (response.data.login.status === 0) {
+      dispatch(logout());
+      navigate("/login");
+    }
+  };
+  const handleInstructorSubmit = () => {
+    if (validateSubjectFormData()) {
+      axios({
+        method: "post",
+        url: `${constant.base_url}/admin/mystudent_list.php?fun=submitdocdata`,
+        headers: { "Auth-Id": user.auth_id },
+        data: { instructorSubmitForm: instructorSubmitForm,holdMarkRecord:holdMarkRecord},
+      })
+      .then(function (response){
+        checkUserLogin(response);
+         if(response.data.data.courseAmountpaidMessage){
+             toast.warning(response.data.data.courseAmountpaidMessage);
+          }
+
+        if (response.data.data.status === "1") {
+
+          if(response.data.data.docstatus === 1){
+             toast.error(response.data.data.msg);
+             return false;
+          }
+
+          toast.success(response.data.data.msg);
+          setInstructorFormShow(false);
+          document.body.style.overflow = "auto";
+          applyFilter();
+        } else {
+          if (response.data.data.error !== undefined) {
+            setSError(response.data.data.error);
+          }
+        }
+        //setSubmitLoader(false);
+      })
+      .catch(function (error) {
+        console.error("Error during login:", error);
+      });
+    }
+  };
+
+  const handleAddLogs = (student) => {
+   
+  setStudnetUserDetail({
+    studentListOption: [
+      { value: "", label: "Select Student" },
+      {
+        value: student.id,
+        label: student.name,
+        name: student.name,
+      }
+    ],
+    name:student.name,
+    user_type: student.user_type,
+    company_type: student.company_name!=="-"?student.company_name:"",
+    student_id: student.user_id
+  });
+
+  setAddLogPopup(true);
+};
+
+  const handleAddLogPopupClose = () => {
+    setAddLogPopup(false);
+  }
+
+  return (
+    <>
+      <div className="mylead-filters v-center jcsb pl16 brd-b1 pb8 pt8 fww fs12 ">
+        Total Results:  {allApidata.total_count || 0}
+      </div>
+      <div
+        className="booked table-container df w100 fdc mt16"
+        style={{ overflow: "auto" }}
+      >
+        <table className="mylead-table cp wsnw">
+          <thead className="w100">
+            <tr>
+              <th>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    className="cp"
+                    checked={isHeaderCheckboxChecked}
+                    onChange={handleHeaderCheckboxChange}
+                  />
+                </label>
+              </th>
+              <th onClick={() => handleSortByChange("id")} className={activeSortColumn === "id" ? "fc1" : ""}>
+                <p className="box-center">
+                  ID
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              {/* <th onClick={() => handleSortByChange("course_status_student")} className={activeSortColumn === "course_status_student" ? "fc1" : ""}>
+                <p className="box-center">
+                  Status
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th> */}
+
+              <th onClick={() => handleSortByChange("workorder_payment_status_text")} className={activeSortColumn === "workorder_payment_status_text" ? "fc1" : ""}>
+                <p className="box-center">
+                <DynamicTooltip direction="bottom" text="Payment">Pymt</DynamicTooltip>
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th>
+                <p className="box-center">
+                  Mark
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("name")} className={activeSortColumn === "name" ? "fc1" : ""}>
+                <p className="box-center">
+                  Name
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+               <th onClick={() => handleSortByChange("company_name")} className={activeSortColumn === "company_name" ? "fc1" : ""}>
+                              <p className="box-center">
+                                 <DynamicTooltip direction="bottom" text="Company Name">Company <br/>Name</DynamicTooltip>
+                                <RiArrowUpDownFill className="cp ml4" />
+                              </p>
+                            </th>
+              {/* <th onClick={() => handleSortByChange("roll_no")} className={activeSortColumn === "roll_no" ? "fc1" : ""}>
+                <p className="box-center">
+                  Roll No.
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th> */}
+              <th onClick={() => handleSortByChange("course")} className={activeSortColumn === "course" ? "fc1" : ""}>
+                <p className="box-center">
+                  Course
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("rm_obj")} className={activeSortColumn === "rm_obj" ? "fc1" : ""}>
+                <p className="box-center">
+                <DynamicTooltip direction="bottom" text="Relationship Manager">RM</DynamicTooltip>
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("co_obj")} className={activeSortColumn === "co_obj" ? "fc1" : ""}>
+                <p className="box-center">
+                  Coordinator
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("batch_obj")} className={activeSortColumn === "batch_obj" ? "fc1" : ""}>
+                <p className="box-center">
+                  Theory
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("flying_obj")} className={activeSortColumn === "flying_obj" ? "fc1" : ""}>
+                <p className="box-center">
+                  Flying
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              {/* <th onClick={() => handleSortByChange("preferred_batch")} className={activeSortColumn === "preferred_batch" ? "fc1" : ""}>
+                <p className="box-center">
+                  P.Batch
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th> */}
+           
+              <th onClick={() => handleSortByChange("branch")} className={activeSortColumn === "branch" ? "fc1" : ""}>
+                <p className="box-center">
+                  Branch
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("batch_start_date_long")} className={activeSortColumn === "batch_start_date_long" ? "fc1" : ""}>
+                <p className="box-center">
+                  Start Date
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th onClick={() => handleSortByChange("batch_end_date_long")} className={activeSortColumn === "batch_end_date_long" ? "fc1" : ""}>
+                <p className="box-center">
+                  End Date
+                  <RiArrowUpDownFill className="cp ml4" />
+                </p>
+              </th>
+              <th>
+                <p className="box-center mr5">
+                  Action
+                  
+                </p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {allStudentsData.length === 0 ? (
+              <tr>
+                <td colSpan="20" className="no-students">
+                  No Students Available
+                </td>
+              </tr>
+            ) : (
+              allStudentsData.map((student, index) => {
+                return (
+                  <tr key={index} onClick={() => handleRowClick(student.id)}>
+                    <td>
+                      <label className="checkbox-label cp p10">
+                        <input
+                          type="checkbox"
+                          className="cp"
+                          checked={selectedLeads.includes(student.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCheckboxChange(student);
+                          }}
+                        />
+                      </label>
+                    </td>
+                    <td>{student.id}</td>
+
+                    {/* <td
+                      style={{
+                        color: giveTextColor(
+                          student.course_status_student === "New"
+                            ? "blue"
+                            : student.course_status_student === "Running"
+                              ? "Running"
+                              : student.course_status_student === "Dropped"
+                                ? "red"
+                                : student.course_status_student === "Batch Allotted"
+                                  ? "Running"
+                                  : student.course_status_student
+                        ),
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {student.course_status_student}
+                    </td> */}
+                    <td
+                      style={{
+                        color: giveTextColor(
+                          student.workorder_payment_status_text.includes("Pending")
+                            ? "Pending"
+                            : student.workorder_payment_status_text === "Completed"
+                              ? "Completed"
+                              : student.workorder_payment_status_text
+                                ? "Rejected"
+                                : student.payment_status
+                        ),
+                        textTransform: "capitalize",
+                      }}
+                      onClick={(e) => {e.preventDefault();
+                        e.stopPropagation(); handleCellClick(student,'wid')}}
+                    >
+                      {student.workorder_payment_status_text}
+                    </td>
+                    <td className="assigned leads-tool-fix">
+                      <select
+                        value={selectedClassValue}
+                        onChange={(event) => {
+                          handleGetUserClassStatus(event.target.value,student);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <option value="select" disabled>
+                          Select
+                        </option>
+                        <option value="completed">Completed</option>
+                        <option value="not_completed">Not Done</option>
+                      </select>
+                    </td>
+                    <td className="leads-tool-fix fs15">
+                      <span
+                        style={{
+                          color: giveTextColor(
+                            student.user_type === "student"
+                              ? ""
+                              : student.user_type === "company"
+                                ? "Draft"
+                                : ""
+                          ),
+                        }}
+                      >
+                        {student.name && (
+                          <Tooltip title={student.name}>
+                            {student.name.length > 13
+                              ? `${student.name.slice(0, 13)}...`
+                              : student.name}
+                          </Tooltip>
+                        )}
+                      </span>
+                    </td>
+                    <td className="leads-tool-fix fs15">
+                                          {student.company_name && (
+                                              <Tooltip title={student.company_name}>
+                                                {student.company_name.length > 13
+                                                  ? `${student.company_name.slice(0, 13)}...`
+                                                  : student.company_name}
+                                              </Tooltip>
+                                            )}
+                                        </td>
+
+                    {/* <td className="roll-input leads-tool-fix">
+                      {student.roll_no ? (
+                        student.roll_no
+                      ) : (
+                        <Tooltip title="Genrate Roll Number">
+                        <RiLoader2Fill 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleGenrateRoll(student.id);
+                        }}
+                        />
+                        </Tooltip>
+                      )}
+                    </td> */}
+
+                    <td className="leads-tool-fix">
+                      {student.course && (
+                        <Tooltip title={student.course}>
+                          {student.course.length > 20
+                            ? `${student.course.slice(0, 20)}...`
+                            : student.course}
+                        </Tooltip>
+                      )}
+                    </td>
+                    <td className="assigned leads-tool-fix ttc">
+                       {student.rm_obj && student.rm_obj.label?student.rm_obj.label:"-"}
+                    {/* {student.rmid ? agentOptions.find(agent => agent.value === student.rmid)?.label || "-" : "-"} */}
+                      {/* <Tooltip
+                        title={
+                            student.rmid
+                              ? agentOptions.find(
+                                  (agent) => agent.value == student.rmid
+                                )?.label || "Select Agent"
+                              : "Select Agent"
+                        }
+                      >
+                        <select
+                          value={
+                            student.rmid
+                          }
+                          onChange={(event) => {
+                            handleAssignToDropdownChange(event, student.id,'rmid');
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          {agentOptions.map(
+                            (leadopt, index) =>
+                              leadopt.label != "All" && (
+                                <option key={index} value={leadopt.value}>
+                                  {leadopt.label}
+                                </option>
+                              )
+                          )}
+                        </select>
+                      </Tooltip> */}
+                    </td>
+                    <td className="assigned leads-tool-fix">
+                      <Tooltip
+                        title={
+                         student.coordinatorid
+                              ? coordinatorOptions.find(
+                                  (cord) => cord.value == student.coordinatorid
+                                )?.label || "Select Coordinator"
+                              : "Select Coordinator"
+                        }
+                      >
+                        <select
+                          value={
+                           student.coordinatorid
+                          }
+                          onChange={(event) => {
+                            handleAssignToDropdownChange(event, student.id,'coordinatorid');
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          {coordinatorOptions.map(
+                            (leadopt, index) =>
+                              leadopt.label != "All" && (
+                                <option key={index} value={leadopt.value}>
+                                  {leadopt.label}
+                                </option>
+                              )
+                          )}
+                        </select>
+                      </Tooltip>
+                    </td>
+                    {/* <td>{student.preferred_batch}</td> */}
+                    <td className="assigned leads-tool-fix">
+                      {student.batch_obj?.label ? student.batch_obj?.label : Array.isArray(student.courseId>0 && student.allotted_batch>0 && batchOptions[student.courseId])
+                      ? batchOptions[student.courseId]?.find((batchopt) => batchopt.value === student.allotted_batch)?.label  || "-":  <Tooltip
+                      title={
+                        student.allotted_batch
+                            ? (Array.isArray(batchOptions[student.courseId]) ? batchOptions[student.courseId] : batchOptions[0])?.find(
+                                (batchopt) => batchopt.value == student.allotted_batch
+                              )?.label || "Select Batch"
+                            : "Select Batch"
+                      }
+                    >
+                      <select
+                        value={
+                          student.allotted_batch
+                        }
+                        onChange={(event) => {
+                          handleAssignToDropdownChange(event, student.id+"|"+student.wo_id+"|"+student.courseId,'allotted_batch');
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        {(Array.isArray(batchOptions[student.courseId]) ? batchOptions[student.courseId] : batchOptions[0])?.map(
+                          (leadopt, index) =>
+                            leadopt.label != "All" && (
+                              <option key={index} value={leadopt.value}>
+                                {leadopt.label}
+                              </option>
+                            )
+                        )}
+                      </select>
+                    </Tooltip>}
+                    
+                    </td>
+                    <td className="assigned leads-tool-fix">
+                    {student.batchflying_obj?.label ? student.batchflying_obj?.label : Array.isArray(student.courseId>0 && student.fly_batch_id>0 && FlyingBatchOptions[student.courseId])
+                      ? FlyingBatchOptions[student.courseId]?.find((batchopt) => batchopt.value ==student.fly_batch_id)?.label  || '-':
+                      <Tooltip
+                        title={
+                          student.fly_batch_id
+                            ? (
+                                Array.isArray(FlyingBatchOptions[student.courseId]) 
+                                ? FlyingBatchOptions[student.courseId] 
+                                : []
+                              )?.find(batchopt => batchopt.value === student.fly_batch_id)?.label 
+                            || "Select Batch"
+                            : "Select Batch"
+                        }
+                      >
+                        <select
+                          value={student.fly_batch_id || ""}
+                          onChange={(event) => {
+                            handleAssignToDropdownChange(event, `${student.id}|${student.wo_id}|${student.courseId}`, 'allottedflying_batch');
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          
+                             {(Array.isArray(FlyingBatchOptions[student.courseId]) ? FlyingBatchOptions[student.courseId] : FlyingBatchOptions[0])?.map((leadopt, index) => (
+                                leadopt.label !== "All" && (
+                                  <option key={index} value={leadopt.value}>
+                                    {leadopt.label}
+                                  </option>
+                                )
+                              ))
+                          }
+                        </select>
+                      </Tooltip>}
+                    </td>
+
+
+                    <td>{student.branch}</td>
+                    <td>{student.batch_start_date}</td>
+                    <td>{student.batch_end_date}</td>
+                    <td>
+                      <p className="v-center">
+                      <Tooltip
+                        title={
+                          `${student.doc_status === "1" ? "Documentation \n Complete" : "Documentation \n Incomplete"}`
+                        }
+                      >
+                      <HiOutlineDocumentCheck
+                        className={` cp fs20 mr8 ${student.doc_status === "1" ? "fc2" : "fc5"}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          signuinStudentAccount(student.id);
+                        }}
+                      />
+                      </Tooltip>
+                      {/* <CiCalendarDate
+                        className="icon cp fs20 fc5 mr8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttendanceShow(true);
+                        }}
+                      /> */}
+                      <Tooltip
+                        title={'Course History'}
+                      >
+                       <IoMdListBox
+                        className="icon cp fs20 fc5 mr8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStudentHistory(true);
+                          handleStudentHistory(student.id);
+                        }}
+                      />
+                      </Tooltip>
+                      {((user.role === '1' || user.dept_id === "3" || user.dept_id === "9") && student?.course_category_name==='drone' && student.fly_batch_id>0 && student.activeflyingbatch>0) && <DynamicTooltip
+                        text={'Add Flying Log'}
+                        direction="left"
+                      >
+                       <IoIosAirplane
+                        className="icon cp fs20 fc5 "
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddLogs(student);
+                        }}
+                      />
+                      </DynamicTooltip>}
+                      </p>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+
+        {selectedLeads.length > 0 && (
+          <div className="df fc3 fixed-buttons-mylead">
+            <button
+              type="button"
+              className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 fc3"
+              onClick={handleAssignToButtonClick}
+            >
+              Assign To
+            </button>
+          </div>
+        )}
+        {isAssignToPopupVisible && (
+          <Popup onClose={closePopup} title={"Assigned"}>
+            <div className="v-center jcsb ">
+              <div className=" course-name flx100">
+                <div className="assigned mb12">
+                  <SingleDropdown
+                    label="Assign Coordinator"
+                    options={coordinatorOptions}
+                    selectedOption={assignedCoordinator}
+                    onSelect={setAssignedCoordinator}
+                    placeholder="Select Coordinator"
+                  />
+                </div>
+              </div>
+              {/* <div className=" course-name flx48">
+                <div className="assigned mb12">
+                  <SingleDropdown
+                    label="Assign Batch"
+                    options={courseBaseBatchOption}
+                    selectedOption={assignedBatch}
+                    placeholder="Select Batch"
+                    onSelect={setAssignedBatch}
+                  />
+                </div>
+              </div> */}
+            </div>
+
+            {/* <div className="assigned">
+              <SingleDropdown
+                label="Assign RM"
+                options={agentOptions}
+                selectedOption={assigned}
+                placeholder="Select RM"
+                onSelect={setAssigned}
+              />
+            </div> */}
+            <div className="button-container myteam-filters">
+              <button
+                type="button"
+                className="clear btn-cancel"
+                onClick={closePopup}
+              >
+                Cancel
+              </button>
+              <button
+                className="update-button btn-blue box-center"
+                onClick={handleAssignToClick}
+              >
+                Update
+              </button>
+            </div>
+          </Popup>
+        )}
+        {attendanceShow && (
+          <SidePopup
+            show={attendanceShow}
+            customClass={"top"}
+            onClose={() => {
+              setAttendanceShow(false);
+              document.body.style.overflow = "auto";
+            }}
+            className="full-width"
+          >
+            <div className="df jcsb profile-card-header brd-b1 p12 box-center bg7  w100 fc1 ls2 lh22">
+              <p className="fs18 fc1 ">Student Attendance</p>
+              <button
+                onClick={() => {
+                  setAttendanceShow(false);
+                  document.body.style.overflow = "auto";
+                }}
+                className="lead-close-button"
+              >
+                X
+              </button>
+            </div>
+            <div className="p8 w100">
+              <CalendarComponent />
+            </div>
+          </SidePopup>
+        )}
+         {studentHistory && (
+          <SidePopup
+            show={studentHistory}
+            onClose={() => {
+              setStudentHistory(false);
+              document.body.style.overflow = "auto";
+            }}
+            className="full-width"
+          >
+            <div className="df jcsb profile-card-header brd-b1 p12 box-center bg7  w100 fc1 ls2 lh22">
+              <p className="fs18 fc1 ">Student Course History</p>
+              <button
+                onClick={() => {
+                  setStudentHistory(false);
+                  document.body.style.overflow = "auto";
+                }}
+                className="lead-close-button"
+              >
+                X
+              </button>
+            </div>
+            <div className="p8 w100">
+                <StudentHistroy
+                recordListHistory={recordListHistory}
+                setAttendanceShow={setAttendanceShow}
+                agentOptions={agentOptions}
+                coordinatorOptions={coordinatorOptions}
+                batchOptions={batchOptions}
+                FlyingBatchOptions={FlyingBatchOptions}
+                handleCellClick={handleCellClick}
+
+
+                />
+            </div>
+          </SidePopup>
+        )}
+       {instructorFormShow && !isLoading && (
+                  <SidePopup
+                    show={instructorFormShow}
+                    onClose={() => {
+                      setInstructorFormShow(false);
+                      document.body.style.overflow = "auto";
+                    }}
+                    className="full-width"
+                  >
+                    <div className="df jcsb profile-card-header brd-b1 p12 box-center bg7  w100 fc1 ls2 lh22">
+                      <p className="fs18 fc1 ">Upload Details</p>
+                      <button
+                        onClick={() => {
+                          setInstructorFormShow(false);
+                          document.body.style.overflow = "auto";
+                        }}
+                        className="lead-close-button"
+                      >
+                        X
+                      </button>
+                    </div>
+                    {holdMarkRecord.course_category_name==='aircrafts' && <div className="pl32 w100 inst-upload-form">
+                      <div className="df fww inst-form-upload mt16">
+                    
+                      <div className="lead-source-stud searching-drop w100 flx22 form-group-settings mr32">
+                          <p className="fc15 fw6 fs14 ls1 mb8">Instructor</p>
+                          <Dropdown
+                            label="Select Instructor"
+                            options={instructorOptions}
+                            selectedValue={instructorSubmitForm.instructor}
+                            onValueChange={handleInstructorChange}
+                          />
+                        </div>
+                        <div className="insr-rep report-date flx22 w100 form-group-settings mr32 pr">
+                          <p className="fc15 fw6 fs14 ls1 mb8">Theory Date<span className="fc4">*</span></p>
+                          <div
+                            onClick={toggleTheoryDateCalendar}
+                            className="date-range-input"
+                            style={{
+                              cursor: "pointer",
+                              padding: "10px",
+                              border: "1px solid #ccc",
+                              borderRadius: "4px",
+                              color: "#7b7b7b",
+                              fontSize: "14px",
+                            }}
+                          >
+                          {`${format(new Date(theoryDateRange[0].startDate), "dd/MM/yyyy")} - ${format(new Date(theoryDateRange[0].endDate), "dd/MM/yyyy")}`}
+                            {}
+                          </div>
+                          {showTheoryDateCalendar && (
+                            <div ref={dateRangePickerRef}>
+                              <DateRangePicker
+                                onChange={handleTheoryDateChange}
+                                showSelectionPreview={true}
+                                moveRangeOnFirstSelection={false}
+                                months={2}
+                                ranges={theoryDateRange}
+                                direction="horizontal"
+                                staticRanges={staticRanges}
+                                renderStaticRangeLabel={(range) => (
+                                  <span>{range.label}</span>
+                                )}
+                              />
+                            </div>
+                          )}
+                      </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("registrationForm", file)
+                            }
+                            imgData={instructorSubmitForm.registrationForm}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "registrationForm"
+                            defaultMessage="Upload Reg/Admission Form"
+                            editdata={studnetUserCourseEdit.registrationForm}
+                            title={"Admission Form"}
+                          />
+                        </div>
+                        <div className="comments-input cmt-inst w100 mr32">
+                          <label className="fc15 fw6 fs14 mb12 ls1">Remarks</label>
+                          <textarea
+                            className="comments p12 br4 h48"
+                            value={instructorSubmitForm.remarks}
+                            onChange={(e) =>
+                              handleInputChange("remarks", e.target.value)
+                            }
+                            placeholder="Any Remarks..."
+                          />
+                        </div>
+                      </div>
+        
+          <p className="error-text tac">{courseDocStatusMessage &&(
+                        courseDocStatusMessage 
+                      )}</p>
+        
+                      <div className="add-more box-center mt12">
+                        <button
+                          type="button"
+                          className="btn-blue bg1 br24 fs14 cp pl24 pr24 pt10 pb10 ml24 ls2"
+                          onClick={handleInstructorSubmit}
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </div>}
+                    {holdMarkRecord.course_category_name==='drone' && <div className="pl32 w100 inst-upload-form">
+                      <div className="df fww inst-form-upload jcsb mt16">
+                        <div className="flx22 form-group-settings mr32 w100">
+                          <p className="fc15 fw6 fs14 ls1">Issue Date<span className="fc4">*</span></p>
+                          <div className="class-calendar">
+                            <DatePicker
+                              dateFormat={customDateFormat}
+                              selected={instructorSubmitForm.issueDate? instructorSubmitForm.issueDate : parse(holdMarkRecord.batch_end_date, "d LLL yyyy", new Date())}
+                              onChange={handleIssueDateChange}
+                              placeholderText="Select Issue Date"
+                              showIcon
+                              
+                            />
+                          </div>
+                          {<p className="error-text">{sError.issueDate}</p>}
+                        </div>
+                        <div className="form-group-settings address-proof flx22 mr32 w100">
+                          <label htmlFor="batchId" className="df fs14 ls1 fw6">
+                          DGCA Batch ID<span className="fc4">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Enter Batch ID"
+                            autoComplete="off"
+                            className="bg1 br4 h40 mt8 fs14 w100 p16"
+                            value={instructorSubmitForm.batchId}
+                            onChange={(e) =>
+                              handleInputChange("batchId", e.target.value)
+                            }
+                          />
+                          {<p className="error-text">{sError.batchId}</p>}
+                        </div>
+                        <div className="insr-rep report-date flx22 w100 form-group-settings mr32 pr">
+                          <p className="fc15 fw6 fs14 ls1 mb8">Theory Date<span className="fc4">*</span></p>
+                          <div
+                            onClick={toggleTheoryDateCalendar}
+                            className="date-range-input"
+                            style={{
+                              cursor: "pointer",
+                              padding: "10px",
+                              border: "1px solid #ccc",
+                              borderRadius: "4px",
+                              color: "#7b7b7b",
+                              fontSize: "14px",
+                            }}
+                          >
+                          {`${format(new Date(theoryDateRange[0].startDate), "dd/MM/yyyy")} - ${format(new Date(theoryDateRange[0].endDate), "dd/MM/yyyy")}`}
+        
+                            
+                          </div>
+                          {showTheoryDateCalendar && (
+                            <div ref={dateRangePickerRef}>
+                              <DateRangePicker
+                                onChange={handleTheoryDateChange}
+                                showSelectionPreview={true}
+                                moveRangeOnFirstSelection={false}
+                                months={2}
+                                ranges={theoryDateRange}
+                                direction="horizontal"
+                                staticRanges={staticRanges}
+                                renderStaticRangeLabel={(range) => (
+                                  <span>{range.label}</span>
+                                )}
+                              />
+                            </div>
+                          )}
+                           {<p className="error-text">{sError.theorydate}</p>}
+                        </div>
+                        <div className="insr-rep report-date flx22 w100 form-group-settings mr32 pr">
+                          <p className="fc15 fw6 fs14 ls1 mb8">Flying Date<span className="fc4">*</span></p>
+                          <div
+                            onClick={toggleFlyingDateCalendar}
+                            className="date-range-input"
+                            style={{
+                              cursor: "pointer",
+                              padding: "10px",
+                              border: "1px solid #ccc",
+                              borderRadius: "4px",
+                              color: "#7b7b7b",
+                              fontSize: "14px",
+                            }}
+                          >
+                            
+                          {`${format(new Date(flyingDateRange[0].startDate), "dd/MM/yyyy")} - ${format(new Date(flyingDateRange[0].endDate), "dd/MM/yyyy")}`}
+                          </div>
+                          {showFlyingDateCalendar && (
+                            <div ref={dateRangePickerRef}>
+                              <DateRangePicker
+                                onChange={handleFlyingDateChange}
+                                showSelectionPreview={true}
+                                moveRangeOnFirstSelection={false}
+                                months={2}
+                                ranges={flyingDateRange}
+                                direction="horizontal"
+                                staticRanges={staticRanges}
+                                renderStaticRangeLabel={(range) => (
+                                  <span>{range.label}</span>
+                                )}
+                              />
+                            </div>
+                          )}
+                            {<p className="error-text">{sError.flyingDate}</p>}
+                        </div>
+        
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("registrationForm", file)
+                            }
+                            imgData={instructorSubmitForm.registrationForm}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "registrationForm"
+                            defaultMessage="Upload Reg/Admission Form"
+                            title={"Admission Form"}
+                            complusory={1}
+                            editdata={studnetUserCourseEdit.registrationForm}
+                          />
+                          {<p className="error-text">{sError.registrationForm}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("flyingLog", file)
+                            }
+                            imgData={instructorSubmitForm.flyingLog}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "flyingLog"
+                            defaultMessage="Upload Flying Log"
+                            title={"Flying Log"}
+                            complusory={1}
+                            editdata={studnetUserCourseEdit.flyingLog}
+                          />
+                           {<p className="error-text">{sError.flyingLog}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) => handleFileUpload("simLog", file)}
+                            imgData={instructorSubmitForm.simLog}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "simLog"
+                            defaultMessage="Upload Simulator Log"
+                            title={"Simulator log"}
+                            complusory={1}
+                            editdata={studnetUserCourseEdit.simLog}
+                          />
+                           {<p className="error-text">{sError.simLog}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("attedanceLog", file)
+                            }
+                            imgData={instructorSubmitForm.attedanceLog}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "attedanceLog"
+                            defaultMessage="Upload Attendance Log"
+                            title={"Attendance Log"}
+                            complusory={1}
+                            editdata={studnetUserCourseEdit.attedanceLog}
+                          />
+                           {<p className="error-text">{sError.attedanceLog}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) => handleFileUpload("coc", file)}
+                            imgData={instructorSubmitForm.coc}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "coc"
+                            defaultMessage="Upload COC"
+                            title={"Course completion Certificate"}
+                            complusory={1}
+                            editdata={studnetUserCourseEdit.coc}
+                          />
+                          {<p className="error-text">{sError.coc}</p>}
+                        </div>
+                        <div className="form-group-settings address-proof flx22 w100 mr32">
+                          <label htmlFor="cocRollno" className="df fs14 ls1 fw6">
+                            COC Roll No<span className="fc4">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Enter COC Roll No"
+                            autoComplete="off"
+                            className="bg1 br4 h40 mt8 fs14 w100 p16"
+                            value={instructorSubmitForm.cocRollno}
+                            onChange={(e) =>
+                              handleInputChange("cocRollno", e.target.value)
+                            }
+                          />
+                           {<p className="error-text">{sError.cocRollno}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                        <ImagePdfUpload
+                          onImageUpload={(file) =>
+                            handleFileUpload("rpcCertificate", file)
+                          }
+                          imgData={instructorSubmitForm.rpcCertificate}
+                          holdMarkRecord={holdMarkRecord}
+                          instructorSubmitForm={instructorSubmitForm}
+                          setInstructorSubmitForm = {setInstructorSubmitForm}
+                          filedName = "rpcCertificate"
+                          defaultMessage="Upload RPC Certificate"
+                          title="RPC Certificate"
+                          editdata={studnetUserCourseEdit.rpcCertificate}
+                          complusory={`${(holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2")  ? 1 : 0}`}
+                        />
+                         {<p className="error-text">{sError.rpcCertificate}</p>}
+                        </div>
+                        <div className="form-group-settings address-proof flx22 w100 mr32">
+                          <label htmlFor="batchId" className="df fs14 ls1 fw6">
+                            RPC Number{(holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2") && <span className="fc4">*</span>}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Enter RPC Number"
+                            autoComplete="off"
+                            className="bg1 br4 h40 mt8 fs14 w100 p16"
+                            value={instructorSubmitForm.rpcNumber}
+                            onChange={(e) =>
+                              handleInputChange("rpcNumber", e.target.value)
+                            }
+                          />
+                          {<p className="error-text">{sError.rpcNumber}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("transactionReceipt", file)
+                            }
+                            imgData={instructorSubmitForm.transactionReceipt}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "transactionReceipt"
+                            defaultMessage="Upload Transaction Receipt"
+                            title={"Transaction Receipt"}
+                            editdata={studnetUserCourseEdit.transactionReceipt}
+                            //complusory={`${((holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2") && holdMarkRecord.passport_status==0)  ? 1 : 0}`}
+                          />
+                          {<p className="error-text">{sError.transactionReceipt}</p>}
+                        </div>
+                        <div className="form-group-settings address-proof flx22 w100 mr32">
+                          <label htmlFor="batchId" className="df fs14 ls1 fw6">
+                            Transaction ID {/*{((holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2") && holdMarkRecord.passport_status==0) && <span className="fc4">*</span>} */}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Enter Transaction ID"
+                            autoComplete="off"
+                            className="bg1 br4 h40 mt8 fs14 w100 p16"
+                            value={instructorSubmitForm.transactionId}
+                            onChange={(e) =>
+                              handleInputChange("transactionId", e.target.value)
+                            }
+                          />
+                          {<p className="error-text">{sError.transactionId}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) => handleFileUpload("formD4", file)}
+                            imgData={instructorSubmitForm.formD4}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "formD4"
+                            defaultMessage="Upload Form D4"
+                            title={"Form D4"}
+                            editdata={studnetUserCourseEdit.formD4}
+                            //complusory={`${((holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2") && holdMarkRecord.passport_status==0)  ? 1 : 0}`}
+                          />
+                          {<p className="error-text">{sError.formD4}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("rpcTheoryTest", file)
+                            }
+                            imgData={instructorSubmitForm.rpcTheoryTest}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "rpcTheoryTest"
+                            defaultMessage="Upload RPC Theory"
+                            title={"RPC Theory Test For RPC"}
+                            editdata={studnetUserCourseEdit.rpcTheoryTest}
+                            complusory={`${(holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2")  ? 1 : 0}`}
+                          />
+                          {<p className="error-text">{sError.rpcTheoryTest}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("progressTest", file)
+                            }
+                            imgData={instructorSubmitForm.progressTest}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "progressTest"
+                            defaultMessage="Upload Progress Test For RPC"
+                            title={"Progress Test For RPC"}
+                            editdata={studnetUserCourseEdit.progressTest}
+                            complusory={`${(holdMarkRecord.courseId == "1" || holdMarkRecord.courseId == "2")  ? 1 : 0}`}
+                          />
+                          {<p className="error-text">{sError.progressTest}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("skillTest", file)
+                            }
+                            imgData={instructorSubmitForm.skillTest}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "skillTest"
+                            defaultMessage="Upload Skill Test"
+                            editdata={studnetUserCourseEdit.skillTest}
+                            title={"Skill Test"}
+                          />
+                          {<p className="error-text">{sError.skillTest}</p>}
+                        </div>
+                        <div className="flx22 mb12 mr32 w100">
+                          <ImagePdfUpload
+                            onImageUpload={(file) =>
+                              handleFileUpload("feedbackForm", file)
+                            }
+                            imgData={instructorSubmitForm.feedbackForm}
+                            holdMarkRecord={holdMarkRecord}
+                            instructorSubmitForm={instructorSubmitForm}
+                            setInstructorSubmitForm = {setInstructorSubmitForm}
+                            filedName = "feedbackForm"
+                            defaultMessage="Upload Feedback Form"
+                            editdata={studnetUserCourseEdit.feedbackForm}
+                            title={"Feedback Form"}
+                          />
+                          {<p className="error-text">{sError.feedbackForm}</p>}
+                        </div>
+                        <div className="lead-source-stud searching-drop w100 flx22 form-group-settings mr32">
+                          <p className="fc15 fw6 fs14 ls1 mb8">Instructor</p>
+                          <Dropdown
+                            label="Select Instructor"
+                            options={instructorOptions}
+                            selectedValue={instructorSubmitForm.instructor}
+                            onValueChange={handleInstructorChange}
+                          />
+                        </div>
+                        <div className="comments-input cmt-inst w100 mr32">
+                          <label className="fc15 fw6 fs14 mb12 ls1">Remarks</label>
+                          <textarea
+                            className="comments p12 br4 h48"
+                            value={instructorSubmitForm.remarks}
+                            onChange={(e) =>
+                              handleInputChange("remarks", e.target.value)
+                            }
+                            placeholder="Any Remarks..."
+                          />
+                        </div>
+                      </div>
+        
+                    <p className="error-text tac">{courseDocStatusMessage &&(
+                      courseDocStatusMessage 
+                    )}</p>
+        
+                      <div className="add-more box-center mt12">
+                        <button
+                          type="button"
+                          className="btn-blue bg1 br24 fs14 cp pl24 pr24 pt10 pb10 ml24 ls2"
+                          onClick={handleInstructorSubmit}
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </div>}
+                  </SidePopup>
+                )}
+        {showConfirmation && (
+          <div className="student-roaster">
+            <Popup title="" onClose={cancelChange}>
+              <p className="ls1 lh22 fs16 mb24 tac">
+                Are you sure you want to change to{" "}
+                <strong>Not Completed</strong>?
+              </p>
+              <div className="popup-buttons df jcc">
+                <button
+                  onClick={confirmChange}
+                  className="update-button btn-blue box-center mr24"
+                >
+                  Yes
+                </button>
+                <button onClick={cancelChange} className="btn-cancel">
+                  No
+                </button>
+              </div>
+            </Popup>
+          </div>
+        )}
+        {showBatchConfirmation && (
+          <div className="student-roaster">
+            <Popup title="" onClose={cancelBatchSelectPopup}>
+              <p className="ls1 lh22 fs16 mb24 tac">
+                Select the batch that you have marked as {" "} <b>Not Completed</b>
+              </p>
+              <div className="batch-options">
+                <label className={`radio-option ${selectedBatchOption === "theory" ? "active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="batch"
+                    value="theory"
+                    checked={selectedBatchOption === "theory"}
+                    onChange={handleBatchSelection}
+                  />
+                  <span className="custom-radio"></span>
+                  {batchDataFromPopup?.batch_obj?.label}
+                </label>
+
+                <label className={`radio-option ${selectedBatchOption === "flying" ? "active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="batch"
+                    value="flying"
+                    checked={selectedBatchOption === "flying"}
+                    onChange={handleBatchSelection}
+                  />
+                  <span className="custom-radio"></span>
+                  {batchDataFromPopup?.batchflying_obj?.label}
+                </label>
+
+                <label className={`radio-option ${selectedBatchOption === "both" ? "active" : ""}`}>
+                  <input
+                    type="radio"
+                    name="batch"
+                    value="both"
+                    checked={selectedBatchOption === "both"}
+                    onChange={handleBatchSelection}
+                  />
+                  <span className="custom-radio"></span>
+                  Both
+                </label>
+              </div>
+              <div className="popup-buttons mb24 df jcc">
+                <button onClick={handlebatchConfirmation} className="update-button btn-blue box-center mr24">
+                  Submit
+                </button>
+                <button onClick={cancelBatchSelectPopup} className="btn-cancel">
+                  Cancel
+                </button>
+              </div>
+            </Popup>
+          </div>
+        )}
+        {addLogPopup && (
+          <Popup 
+            onClose={handleAddLogPopupClose} 
+            title={
+              studnetUserDetail && (studnetUserDetail.name || studnetUserDetail.company_name)
+                ? `${
+                    studnetUserDetail.user_type === "company"
+                      ? studnetUserDetail.company_name || studnetUserDetail.name
+                      : studnetUserDetail.name
+                  }'s Flying Log - Add`
+                : "Student Flying Log - Add"
+            }
+          >
+            <AddLogForm
+              onClose={handleAddLogPopupClose}
+              userDetail={studnetUserDetail}
+            />
+          </Popup>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default AllStudents;

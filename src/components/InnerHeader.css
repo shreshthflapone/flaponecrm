@@ -1,0 +1,38 @@
+.myteam-button svg {
+  width: 20px;
+  height: 20px;
+  font-weight: 800;
+}
+.myteam-button button {
+  color: #fff;
+}
+.myteam-button button {
+  padding: 12px 20px;
+  border-radius: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+.btn-blue {
+  background-color: #f4836c;
+  color: #fff;
+}
+
+@media screen and (max-width: 480px) {
+  .myteam-button {
+    margin-left: 0;
+    margin-top: 12px;
+    justify-content: start;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .inner-header .flx60,
+  .inner-header .flx75 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

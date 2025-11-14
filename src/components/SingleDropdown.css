@@ -1,0 +1,17 @@
+.searching-drop input{
+    margin-top: 0 !important;
+    border-radius: inherit !important;
+    border-top: none !important;
+    border-left:none !important;
+    border-right:none !important
+}
+
+.dropdown-container.student-log-select {
+    min-width: 70px;;
+}
+
+.student-log-select .selected-role {
+    width: 70px;
+    padding: 5px;
+    margin: 0;
+}

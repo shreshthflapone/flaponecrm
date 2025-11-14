@@ -1,0 +1,440 @@
+import React, { useState, useEffect } from "react";
+import "./NestTab.css";
+import { FaPlus, FaMinus } from "react-icons/fa";
+import SmallLoader from "../SmallLoader";
+import { format } from "date-fns";
+import formatDateRange from "../../helpers/formatDateRange";
+import newFormatDateRange from "../../helpers/newFormatDateRange";
+import DynamicTooltip from "../../components/Dynamic_Tooltip";
+
+const SalesNestTab = ({ dateRangeValue, leadVerified, isSecondDateVisible, allTabRecord, listFilter, setListFilter, activeTab, setActiveTab, activeCategory, setActiveCategory, activeSubCategory, setActiveSubCategory, applyFilter, activeTabVal, activeCategoryVal, activeSubCategoryVal, setActiveTabVal, setActiveCategoryVal, setActiveSubCategoryVal,dataStatus }) => {
+  
+  const [breakdownData, setBreakdownData] = useState({});
+  const [dates, setDates] = useState([]);
+  // const [expandedRows, setExpandedRows] = useState({4:4});
+  const [expandedRows, setExpandedRows] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [expandedTabData, setExpandedTabData] = useState({});
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [LeadTaData, setLeadTaData] = useState({});
+  const [currentTabData, setCurrentTabData] = useState({});
+
+  const [oldFilter, setOldFilter] = useState({});
+
+  
+  useEffect(() => {
+    if (Object.keys(allTabRecord).length > 0) {
+      if(activeTab !='Team'){
+        setExpandedRows({4:4});
+      }else{
+        setExpandedRows({});
+      }
+
+      setLeadTaData({ ...allTabRecord });
+      if (!activeTab) {
+        setActiveTab(allTabRecord['source'].tabName);
+        setActiveTabVal(allTabRecord['source'].value);
+        setCurrentTabData({ ...allTabRecord['source'] });
+      }
+    }
+  }, [allTabRecord, activeTab ,activeCategoryVal]);
+
+  useEffect(() => {
+    
+    if (Object.keys(LeadTaData).length && activeTab){
+      setIsLoading(true);
+      const selectedTab = LeadTaData[activeTabVal];
+      setCurrentTabData({...selectedTab});
+      //const defaultCategory = activeCategoryVal?activeCategoryVal:selectedTab['categories']['all'];
+      const defaultCategory =selectedTab['categories'][activeCategoryVal];
+      if (defaultCategory?.breakdown) {
+        setBreakdownData(defaultCategory.breakdown);
+        const allDates = Object.values(defaultCategory.breakdown).flatMap((category) =>
+          Object.keys(category.date)
+        );
+        const uniqueSortedDates = [...new Set(allDates)].sort((a, b) => new Date(b) - new Date(a));
+        setDates(uniqueSortedDates);
+      }
+      setIsLoading(false);
+    }
+  }, [activeTab, LeadTaData]);
+
+  const handleTabClick = (tab) => {
+    setIsLoading(true);
+    setActiveTab(tab.tabName);
+    setActiveTabVal(tab.value);
+    setActiveCategory("All");
+    setActiveCategoryVal("all");
+    setActiveSubCategory("All");
+    setActiveSubCategoryVal("all");
+    setSelectedIndex(null);
+    setExpandedTabData({});
+  };
+
+  const handleCategoryClick = (category) => {
+    setIsLoading(true);
+    setActiveCategory(category.name);
+    setActiveCategoryVal(category.value);
+    setSelectedIndex(null);
+    setExpandedTabData({});
+    const selectedCategory = currentTabData['categories'][category.value];
+    if (selectedCategory?.breakdown) {
+      setBreakdownData(selectedCategory.breakdown);
+      
+
+      const allDates = Object.values(selectedCategory.breakdown).flatMap((category) =>
+        Object.keys(category.date)
+      );
+      const uniqueSortedDates = [...new Set(allDates)].sort((a, b) => new Date(b) - new Date(a));
+      setDates(uniqueSortedDates);
+    
+    } else {
+      setBreakdownData([]);
+      setDates([]);
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleSubCategoryItemClick = (categoryExp, index) => {
+    setIsLoading(true);
+    setSelectedIndex(index);
+    setActiveSubCategoryVal(categoryExp.value);
+    setActiveSubCategory(categoryExp.name);
+    const selectedCategory = currentTabData['categories'][categoryExp.value];
+
+    if (selectedCategory?.expandBreakdown) {
+      const filterData = selectedCategory['expandBreakdown'][categoryExp.value]
+      setBreakdownData(filterData?.breakdown || []);
+      const allDates = Object.values(selectedCategory.breakdown).flatMap((category) =>
+        Object.keys(category.date)
+      );
+      const uniqueSortedDates = [...new Set(allDates)].sort((a, b) => new Date(b) - new Date(a));
+      setDates(uniqueSortedDates);
+      
+    } else {
+      setBreakdownData([]);
+      setDates([]);
+    }
+
+    setIsLoading(false);
+  };
+
+  const toggleExpand = (index) => {
+    setExpandedRows((prevState) => ({ [index]: !prevState[index] }));
+  };
+
+  const handleRedirectSetFilter = (
+    // pageTab, 
+    // dateOption, 
+    // dateRangeValue
+    pageTab,
+    pageType,
+    dateOption,
+    status_type,
+    dateRangeValue,
+    amountType
+  ) => {
+    // const updateFilter = {
+    //   page_type: pageTab,
+    //   datetypefilter: dateOption,
+    //   dateRangeValue: `${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+    //   checkedTeamItems: [],
+    //   planStatus: { label: "Select Stage", value: "" },
+    //   leadStatus: "",
+    //   leadSource: { label: "Select Source", value: "" },
+    //   selectedState: [],
+    //   assignee: { label: "Assigned Status", value: "" },
+    //   categoryCheckedItems: [],
+    //   selectedCourses: [],
+    //   companyType: { label: "User Type", value: "" },
+    //   selectedVerified: leadVerified,
+    //   dateRangeValuefilter: dateRangeValue,
+    //   statusCheckedItems: [],
+    //   dateMonthOptions: { label: "Day", value: "day" },
+    //   dateRangeTimeType: "Custom",
+    // };
+
+    // console.log(amountType,"amountType");
+    //  return false;
+
+    let updateFilter = {
+          page_type: pageType,
+          searchtext: "",
+          listStatusOptions: [],
+          serviceStatus: "",
+          leadSource: "",
+          dateRangeValue: `${format(dateRangeValue[0].startDate, "dd-MM-yyyy")} | ${format(dateRangeValue[0].endDate, "dd-MM-yyyy")}`,
+          dateRangeValuefilter: dateRangeValue,
+          paymentType: "",
+          paymentMode: [],
+          teamSearch: [],
+          workOrderStatus: status_type,
+          paymentStatus: status_type,
+          dateOption: dateOption,
+          selectedTab: pageTab,
+          categoryCheckedItems: [],
+          amountType: amountType || [],
+        };
+
+    setOldFilter((prevState) => {
+      const newFilter = { ...prevState, [pageTab]: updateFilter };
+      localStorage.setItem("allfilteroption", JSON.stringify(newFilter));
+      return newFilter;
+    });
+  };
+
+
+  const newFormatDateRangeSales = (dateRange) => {
+    const [startDateStr, endDateStr] = dateRange;
+  
+    const parseDate = (dateStr) => {
+      const [day, month, year] = dateStr
+        .split("-")
+        .map((part) => parseInt(part, 10));
+      return new Date(year, month - 1, day);
+    };
+  
+    const start = parseDate(startDateStr);
+    const end = parseDate(endDateStr);
+  
+    const startDate = new Date(start.setHours(18, 30, 0, 0)).toISOString();
+    const endDate = new Date(end.setHours(18, 29, 59, 999)).toISOString();
+  
+    return [
+      {
+        startDate,
+        endDate,
+        key: "selection",
+      },
+    ];
+  };
+
+  const handleSegmentClick = (item, date) => {
+    
+    const newdate = formatDateRange(date);
+    let DateArr=[];
+
+    let newDateFormat='';
+    if (item) {
+    if(item.column_type ==='date_range'){
+       DateArr = newdate.split('|').map(date => date.trim());
+       const newStartDate = format(dateRangeValue[0].startDate, "dd-MM-yyyy");
+       DateArr[0] = newStartDate;
+       newDateFormat = DateArr;
+    }
+
+      const dateToUse = date === "totalCount"
+        ? dateRangeValue
+        : item.column_type ==='date_range' ?newFormatDateRangeSales(newDateFormat):newFormatDateRange(newdate);
+
+      window.open(`/${item.url}/${item.tab}`, "_blank");
+      handleRedirectSetFilter(
+        // item.tab, 
+        // item.date_type, 
+        // dateToUse
+        item.tab,
+        item.page_type,
+        item.date_type,
+        item.status_type,
+        dateToUse,
+        item.amountType
+      );
+    }
+  };
+
+  return (
+    <>
+      {isSecondDateVisible && (
+        <div className="fs14 ls1 fc5">Compare Dates is not applicable on Tables</div>
+      )}
+
+      {Object.keys(LeadTaData).length > 0 && (
+        <div className="container">
+          {/* Tabs */}
+          <div className="tabs">
+            {Object.entries(LeadTaData).map(([tabName, tab], index) => (
+              <div
+                key={tab.tabName}
+                className={`tab ${activeTab === tab.tabName ? "active" : ""}`}
+                onClick={() => handleTabClick(tab)}
+              >
+                {tab.tabName}
+              </div>
+            ))}
+          </div>
+
+          {/* Category Buttons */}
+          <div className="buttons">
+ 
+          {/* {currentTabData?.categories && Object.values(currentTabData.categories).length > 0 && (
+            Object.values(currentTabData.categories).map((category, index) => (
+              <p
+                key={category.name}
+                className={`btn ${activeCategory === category.name ? "active" : ""}`}
+                onClick={() => {handleCategoryClick(category);
+                  if(category?.expandBreakdown){
+                  setExpandedTabData(category?.expandBreakdown)}}}
+              >
+                {category.name}
+                {category.percentage !== undefined && category.percentage !== null && ` (${category.percentage}%)`}
+              </p>
+            ))
+          ) } */}
+
+          {currentTabData?.categories && Object.values(currentTabData.categories).length > 0 && (
+          Object.values(currentTabData.categories)
+            .sort((a, b) => (a.name === "All" ? -1 : b.name === "All" ? 1 : 0)) 
+            .map((category, index) => (
+              <p
+                key={category.name}
+                className={`btn ${activeCategory === category.name ? "active" : ""}`}
+                onClick={() => {
+                  handleCategoryClick(category);
+                  if (category?.expandBreakdown) {
+                    setExpandedTabData(category.expandBreakdown);
+                  }
+                }}
+              >
+                {category.name}
+                {category.percentage !== undefined && category.percentage !== null && ` (${category.percentage}%)`}
+              </p>
+            ))
+        )}
+
+        </div>
+
+          {/* Subcategory Buttons */}
+
+          {/* {Object.keys(expandedTabData)?.length > 0 && (
+            <div className="buttons">
+            {Object.values(expandedTabData).map((expData, index) => (
+                <p
+                  key={expData.name}
+                  className={`btn ${activeSubCategory === expData.name ? "active" : ""}`}
+                  onClick={() => handleSubCategoryItemClick(expData, index)}
+                >
+                  {expData.name}
+                  {expData.percentage !== undefined && expData.percentage !== null && ` (${expData.percentage}%)`}
+                </p>
+              ))}
+            </div>
+          )} */}
+
+          {Object.keys(expandedTabData)?.length > 0 && (
+            <div className="buttons">
+            {Object.values(expandedTabData)
+      .sort((a, b) => (a.name === "All" ? -1 : b.name === "All" ? 1 : 0)) // Sort All to top
+      .map((expData, index) => (
+                <p
+                  key={expData.name}
+                  className={`btn ${activeSubCategory === expData.name ? "active" : ""}`}
+                  onClick={() => handleSubCategoryItemClick(expData, index)}
+                >
+                  {expData.name}
+                  {expData.percentage !== undefined && expData.percentage !== null && ` (${expData.percentage}%)`}
+                </p>
+              ))}
+            </div>
+          )}
+
+         
+
+          {/* Table Content */}
+          {isLoading ? (
+            <div className="content ld-dash box-center loader">
+              <SmallLoader />
+            </div>
+          ) : (Object.keys(breakdownData).length === 0) ? (
+            <div className="content ld-dash box-center no-data ls1">
+            <SmallLoader />
+            </div>
+          ) : (
+            <div className="content ld-dash">
+              <div className="table-wrapper lead-tb">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{activeTab === "Team" ? "Name" : "Heading"}</th>
+                      {!(activeTab == "Team" && (activeCategoryVal =='all' || activeSubCategoryVal =='all')) && <th>Total</th>}
+                      {dates.map((date, index) => (
+                        <th key={index}>{date}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                   
+                    { Object.values(breakdownData)?.map((item, index) => (
+                      <React.Fragment key={index}>
+                        <tr>
+                          <td
+                            className={`tal v-center ls1 ${item.expandBreakdown && "cp fw6"}`}
+                            onClick={() =>{ if(item.expandBreakdown) {toggleExpand(index)}}}
+                          >
+                            {item.name}
+                            {item.expandBreakdown && (
+                              <button className="expand-btn">
+                                {expandedRows[index] ? <FaMinus /> : <FaPlus />}
+                              </button>
+                            )}
+                          </td>
+                          {!(activeTab == "Team" && (activeCategoryVal =='all' || activeSubCategoryVal =='all')) && (
+                            <td
+                              onClick={() => handleSegmentClick(item.redirectData, "totalCount")}
+                              className="leads-tool-fix"
+                            >
+                              <DynamicTooltip direction="left" text={`${item.name} amount as per filter`}>
+                                <span className="lc2 text-row">{item.totalCount}</span>
+                              </DynamicTooltip>
+                            </td>
+                          )}
+
+
+                          {dates.map((date, subIndex) => (
+                            <td
+                              key={subIndex}
+                              onClick={() => handleSegmentClick(item.redirectData, date)}
+                              className="cp"
+                            >
+                              <DynamicTooltip direction="left" text={`${item.name} on ${date}`}>
+                                <span className="lc2 text-row">{item.date[date] || "0"}</span>
+                              </DynamicTooltip>
+                            </td>
+                          ))}
+                        </tr>
+                        {expandedRows[index] && Object.values(item.expandBreakdown)?.map((subItem, subIndex) => (
+                          <tr key={`${index}-${subIndex}`} className="expanded-row ml16">
+                            <td className="tal">{subItem.name}</td>
+                            <td
+                              onClick={() => handleSegmentClick(subItem.redirectData, "totalCount")}
+                              className="cp"
+                            >
+                              {subItem.totalCount}
+                            </td>
+                            {dates.map((date, dateIndex) => (
+                              <td
+                                key={dateIndex}
+                                onClick={() => handleSegmentClick(subItem.redirectData, date)}
+                                className="cp"
+                              >
+                                <DynamicTooltip direction="left" text={`${subItem.name} on ${date}`}>
+                                  <span className="lc2 text-row">{subItem.date[date] || "0"}</span>
+                                </DynamicTooltip>
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default SalesNestTab;

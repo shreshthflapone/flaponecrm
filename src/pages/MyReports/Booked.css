@@ -1,0 +1,7 @@
+.booked tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+.booked tbody tr:nth-child(even) {
+  background-color: #f0f0f0;
+}

@@ -1,0 +1,192 @@
+
+.checkbox-label {
+  margin-right: 15px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.attendance-checkbox {
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.present-label {
+  margin-left: 3px;
+  color: green;
+}
+
+.absent-label {
+  color: red;
+}
+
+.notification-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #e1effe;
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 4px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.notification-content strong {
+  margin-left: 10px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #cf4141;
+  position: absolute;
+  right: 15px;
+  top: 10px;
+}
+
+.close-btn:hover {
+  color: #e21c1c;
+}
+.stud-filter .selected-role {
+  margin-top: 0 !important;
+  border-style: none none solid none !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+  height: 28px !important;
+}
+.present,
+.absent,
+.mark {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: block;
+  margin-left: 4px;
+}
+
+.absent {
+  background-color: #c00000;
+}
+.present {
+  background-color: #23a965;
+}
+
+.mark {
+  background-color: #616161;
+}
+.attendance-dropdown {
+  background-color: transparent;
+}
+.attendance-st {
+  width: 160px;
+}
+.attendance-st select {
+  outline: none;
+}
+.class-calendar input {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 8px;
+  outline: none;
+  height: 40px;
+  cursor: pointer;
+}
+
+.slider-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  overflow: auto;
+  width: calc(100% + 50px);
+  padding: 8px 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.classes-list {
+  display: flex;
+  justify-content: space-between;
+  transition: transform 0.5s ease;
+}
+
+.slider-controls {
+  display: flex;
+  position: absolute;
+  width: 100%;
+  justify-content: space-between;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.prev-button,
+.next-button {
+  background-color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #ccc;
+  color: #f4836c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  pointer-events: all;
+  transition: background-color 0.3s ease;
+}
+
+.prev-button:hover,
+.next-button:hover {
+  background-color: #f0f0f0;
+}
+
+.prev-button {
+  position: absolute;
+  left: -12px;
+  top: -8px;
+}
+
+.next-button {
+  position: absolute;
+  right: -16px;
+  top: -8px;
+}
+
+.prev-button span,
+.next-button span {
+  display: inline-block;
+  pointer-events: none;
+}
+
+.slider-container::-webkit-scrollbar {
+  display: none;
+}
+.slider-container::-webkit-scrollbar {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+@media only screen and (max-width: 480px) {
+  .classes-list {
+    flex-direction: column;
+  }
+  .class-card {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 8px;
+  }
+}

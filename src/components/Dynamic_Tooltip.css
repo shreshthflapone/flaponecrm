@@ -1,0 +1,60 @@
+.dtooltip-container {
+  position: relative;
+  display: inline-block;
+  width: auto;
+}
+
+
+.dtooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  border-radius: 5px;
+  padding: 5px;
+  text-align: center;
+  font-size: 12px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+
+.dtooltip-container:hover .dtooltip {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+
+.dtooltip-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 5px;
+}
+
+.dtooltip-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+}
+
+.dtooltip-left {
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  margin-right: 5px;
+}
+
+.dtooltip-right {
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 5px;
+}

@@ -1,0 +1,93 @@
+.react-datepicker__day--highlighted{
+  background-color: #216ba5 !important;
+  color: #fff !important;
+}
+
+/* .react-datepicker__day--keyboard-selected {
+  background-color: #fff;
+}  */
+.cls-freq .rdrDefinedRangesWrapper{
+  display: none !important;
+}
+.cls-freq .rdrDateRangePickerWrapper{
+  position: absolute !important;
+    z-index: 1 !important;
+}
+
+.batch-course-name .multi-select-dropdown{
+  background-color: #fff;
+}
+
+.batch-course-name input{
+  background-color: transparent;
+}
+
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.toast-msg {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 16px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  z-index: 9;
+  animation: slideIn 0.5s ease-in-out;
+}
+.toast-msg .close-btn {
+  font-size: 22px !important;
+  right: 10px;
+  top: 0;
+}
+.conflict{
+  color: #ff0000 !important;
+  font-weight: bold;
+
+}
+
+@media screen and (max-width: 767px) {
+  .batch-main-grp-inputs .flx31,
+  .batch-main-grp-inputs .time-picker .time-row,
+  .day-wise-records-grp .flx31,
+  .day-wise-records-grp .time-picker .time-row {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+  .batch-main-grp-inputs .time-picker .time-row,
+  .day-wise-records-grp .time-picker .time-row,
+  .form-group-settings.batch-name,
+  .form-group-settings.course-name,
+  .form-group-settings.searching-drop {
+    margin-bottom: 24px;
+  }
+  .time-picker input[type="text"],
+  .time-picker select {
+    width: 100px;
+  }
+  .time-inp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hy{
+    display: none;
+  }
+}
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+
+.batch-form-grp  .flx31, .day-wise-records-grp .flx31{
+    flex: 0 0 48%;
+    max-width: 48%;
+  }
+}

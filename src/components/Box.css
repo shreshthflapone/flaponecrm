@@ -1,0 +1,51 @@
+.boxbd {
+  background: #fff;
+  border: 1px solid #d4d9e6;
+  border-radius: 4px;
+  flex: 0 0 49%;
+  max-width: 49%;
+  margin-bottom: 24px;
+}
+.plan ul li {
+  list-style-type: disc !important;
+}
+@media only screen and (max-width: 480px) {
+  .boxbd {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .box-container {
+    justify-content: center;
+  }
+  .total-fee {
+    margin-top: 16px;
+  }
+  .account-details.pr20 {
+    padding-right:12px;
+  }  
+  .account-details.pl20 {
+    padding-left:12px;
+  }
+}
+
+@media only screen and (max-width: 540px) {
+  .box-container {
+    justify-content: center;
+  }
+  .total-fee {
+    margin-top: 16px;
+  }
+  .account-details.pr20 {
+    padding-right:12px;
+  }  
+  .account-details.pl20 {
+    padding-left:12px;
+  }
+}
+
+@media only screen and (min-width: 481px) and (max-width: 768px) {
+  .boxbd {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

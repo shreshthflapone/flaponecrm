@@ -1,0 +1,114 @@
+.card-item.work-order-section {
+  flex: 0 0 15%;
+  max-width: 15%;
+}
+.sortby-filter .selected-role {
+  margin-right: 16px;
+  padding: 0 16px;
+  height: 24px;
+}
+.report-date .react-datepicker__input-container input {
+  cursor: pointer;
+  padding: 10px;
+  border-bottom: 1px solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 132px;
+  font-size: 13px;
+  color: #000;
+  padding-right: 8px;
+}
+.highlight {
+  color: #f4836c; 
+}
+.team-filter .multi-level-dropdown{
+  width: 100%;
+}
+.search-filter-finance .search-input input{
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+.search-filter-finance {
+  width: 100% !important;
+}
+.rotate {
+  transform: rotate(180deg);
+}
+.mylead-table tbody tr:hover {
+  background-color: #eaeaea;
+  box-shadow: 0 0 10px #0000001a;
+  cursor: pointer;
+  transform: translateY(-5px);
+}
+.mylead-table tbody tr {
+  transition: transform 0.2s ease;
+}
+.course-list {
+  position: absolute;
+  background: #fff;
+  list-style: none;
+  padding: 8px;
+  z-index: 9;
+}
+.custom-dropdown input {
+  min-width: 120px;
+  max-width: 220px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  min-height: 40px;
+  outline: none;
+}
+
+.finance-invoice-btn {
+  left: 95%;
+  top: -40px;
+  width: 140px;
+}
+.bg-outstanding{
+  background: #fdf2ee;
+}
+
+@media screen and (max-width: 767px) {
+  .card-item.work-order-section {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .hide-desktop{
+    display: block;
+  }
+  .hide-mobile{
+    display: none;
+  }
+  .myteam-filters.pl16{
+    padding-left: 4px;
+  }
+  .report-date .rdrDateRangePickerWrapper{
+    left: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .two-inputs {
+    flex-direction: column;
+  }
+  .two-inputs {
+    padding-bottom: 0;
+    padding-top: 0;
+  }
+  .two-inputs .flx48 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .activity,
+  .plan-st,
+  .dep,
+  .team {
+    margin-bottom: 12px;
+  }
+  .activity {
+    margin-top: 0;
+  }
+}

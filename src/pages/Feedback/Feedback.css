@@ -1,0 +1,50 @@
+.desc-area textarea {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 100px;
+  max-width: 100%;
+  outline: none;
+  padding: 13px 12px;
+  resize: none;
+  width: 100%;
+}
+.rm .multi-level-dropdown {
+  width: 100%;
+}
+.contact-rm-form .timeline {
+  padding: 0 !important;
+}
+.feed-assign select {
+  outline: none;
+  background: transparent;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  max-width: 160px;
+  min-width: 100px;
+}
+.feedback-inquiry,
+.feedback-last-comment {
+  max-width: 200px;
+  min-width: 200px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+.scrollable-cell p{
+    max-height: 60px;
+    overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .reply-input {
+    flex-direction: column;
+  }
+  .reply-input .flx48 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .reply-to {
+    margin-bottom: 16px;
+  }
+}

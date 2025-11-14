@@ -1,0 +1,67 @@
+.plan-name,
+.plan-validity {
+  flex: 0 0 48%;
+  max-width: 48%;
+}
+.share-package-form input[type="text"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex-grow: 1;
+  outline: none;
+  height: 40px;
+}
+.share-package-form button[type="submit"] {
+  padding: 10px 20px;
+  background-color: #f4836c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 136px;
+  height: 40px;
+}
+.share-package-form button[type="submit"] span {
+  width: 70px;
+}
+
+.price-emi {
+  max-width: 100px;
+  min-width: 88px;
+  text-align: right;
+  font-size: 14px;
+}
+.amount-input input[type="number"] {
+  outline: none;
+  font-size: 16px;
+  height: 40px;
+}
+.pay-price {
+  height: 48px;
+}
+@media only screen and (max-width: 480px) {
+  .form-input,
+  .payment-plan {
+    flex-direction: column;
+  }
+  .form-input input {
+    margin-bottom: 8px;
+  }
+  .share-package-form button[type="submit"] {
+    margin: 0 auto;
+  }
+  .plan-name {
+    margin-bottom: 12px;
+  }
+  .plan-name,
+  .plan-validity {
+    width: 100%;
+    margin-right: 0;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .plan-name.flx50 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

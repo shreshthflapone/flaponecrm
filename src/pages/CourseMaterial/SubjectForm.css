@@ -1,0 +1,63 @@
+.fixed-buttons {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding-bottom: 8px;
+  background-color: #fff;
+}
+.course-grp-container {
+  padding-bottom: 64px;
+}
+
+.preview-pop-show {
+  width: 80%;
+  margin: 0 auto;
+}
+@media screen and (max-width: 480px) {
+  .course-duration,
+  .topic-pos{
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .course-dur-top{
+    flex-direction: column;
+  }
+  .topic-pos.ml16{
+    margin-left: 0;
+    padding-right: 0 !important;
+  }
+}
+@media screen and (max-width: 768px) {
+  .batch-name.flx48,
+  .course-name.flx48,
+  .chapter-name.flx48,
+  .course-topic .flx66
+ {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .preview-pop-show {
+    width: 100%;
+    margin: 0;
+  }
+  .course-topic {
+    flex-direction: column;
+  }
+  .course-topic .flx1 {
+    width: 100%;
+  }
+  .course-duration,
+  .topic-pos{
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .topic-pos{
+    padding-right: 20px;
+  }
+  .course-topic .form-group-settings.ml16{
+    margin-left: 0;
+  }
+}
