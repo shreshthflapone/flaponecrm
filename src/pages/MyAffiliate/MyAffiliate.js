@@ -47,9 +47,10 @@ const affiliateData = [
     contact_info: [
       { verified: "1", mobile_number: "+91 9876543210", email: "rahul@techinnovators.com" }
     ],
+    rm: "Shivam Kumar",
     leads_generated: 150,
     leads_converted: 45,
-    conversions_breakup: { "30": 0, "60": 5, "90": 8, "180": 10, "360": 15 },
+    conversions_breakup: { "30": 0, "60": 5, "90": 8, "180": 10, "360": 15, "all":200 },
     sale_amount: 125000,
     total_commission_earned: 18500,
     pending_payout: 3500,
@@ -64,9 +65,10 @@ const affiliateData = [
     contact_info: [
       { verified: "1", mobile_number: "+91 9812345678", email: "priya@nextgensol.com" }
     ],
+    rm: "Nand Kumar",
     leads_generated: 180,
     leads_converted: 60,
-    conversions_breakup: { "30": 20, "60": 15, "90": 10, "180": 10, "360": 5 },
+    conversions_breakup: { "30": 20, "60": 15, "90": 10, "180": 10, "360": 5, "all":250 },
     sale_amount: 152000,
     total_commission_earned: 23000,
     pending_payout: 4000,
@@ -83,7 +85,7 @@ const affiliateData = [
     ],
     leads_generated: 95,
     leads_converted: 25,
-    conversions_breakup: { "30": 5, "60": 8, "90": 6, "180": 4, "360": 2 },
+    conversions_breakup: { "30": 5, "60": 8, "90": 6, "180": 4, "360": 2, "all":""  },
     sale_amount: 83000,
     total_commission_earned: 11500,
     pending_payout: 2500,
