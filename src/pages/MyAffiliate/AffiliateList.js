@@ -53,7 +53,7 @@ const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortC
     const [comment, setComment] = useState("");
     const [updateStatusPopup, setUpdateStatusPopup] = useState(false);
 
-    const CONVERSION_ORDER = ["30", "60", "90", "180", "360"];
+    const CONVERSION_ORDER = ["30", "60", "90", "180", "360", "all"];
 
     const toggleMenu = (rowIndex) => {
         setOpenMenuRow(openMenuRow === rowIndex ? null : rowIndex);
@@ -148,6 +148,10 @@ const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortC
                     </p>
                     </th>
                     <th onClick={() => handleSortByChange("company_name")} className={activeSortColumn === "company_name" ? "fc1 min-w100" : "min-w100"}><p className="box-center">Company <br />Name<RiArrowUpDownFill className="cp ml4" /></p></th>
+                    <th onClick={() => handleSortByChange("rm")} className={activeSortColumn === "rm" ? "fc1" : ""}>
+                        <DynamicTooltip direction="right" text="Relationship Manager"> RM</DynamicTooltip>
+                        <RiArrowUpDownFill className="cp ml4" />
+                    </th>
                     <th><p className="box-center">Contact <br/> Info</p></th>
                     <th onClick={() => handleSortByChange("leads_generated")} className={activeSortColumn === "leads_generated" ? "fc1" : ""}>
                         <p className="box-center">
@@ -227,6 +231,7 @@ const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortC
                                     </Tooltip>
                                 )}
                                 </td>
+                                <td className="leads-tool-fix">{affiliate.rm || "--"}</td>
                                 <td>
                                     {Array.isArray(affiliate.contact_info) && affiliate.contact_info.length > 0 ? (
                                         <div className="df jcc">
@@ -298,7 +303,7 @@ const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortC
                                                 return (
                                                     count > 0 ?
                                                     <>
-                                                    <Tooltip title={"Last "+days+" Days"}>
+                                                    <Tooltip title={days !== "all" ? "Last "+days+" Days" : "Total"}>
                                                     <div
                                                         key={idx}
                                                         onClick={
