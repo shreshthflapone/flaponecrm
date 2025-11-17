@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import Card from "../../components/Card";
 import Tabs from "../../components/Tabs";
-import InnerHeader from "../../components/InnerHeader";
+import InnerHeaderMultiButton from "../../components/InnerHeaderMultiButton.js";
 import "../MyReports/MyReports.css";
 import "./MyAffiliate.css";
 import Dropdown from "../../components/Dropdown";
@@ -45,11 +45,11 @@ const affiliateData = [
     name: "Rahul Sharma",
     company_name: "Tech Innovators Pvt Ltd",
     contact_info: [
-      { mobile_number: "+91 9876543210", email: "rahul@techinnovators.com" }
+      { verified: "1", mobile_number: "+91 9876543210", email: "rahul@techinnovators.com" }
     ],
     leads_generated: 150,
     leads_converted: 45,
-    conversions_breakup: { "30": 10, "60": 12, "90": 8, "180": 10, "360": 5 },
+    conversions_breakup: { "30": 0, "60": 5, "90": 8, "180": 10, "360": 15 },
     sale_amount: 125000,
     total_commission_earned: 18500,
     pending_payout: 3500,
@@ -62,7 +62,7 @@ const affiliateData = [
     name: "Priya Mehta",
     company_name: "NextGen Solutions",
     contact_info: [
-      { mobile_number: "+91 9812345678", email: "priya@nextgensol.com" }
+      { verified: "1", mobile_number: "+91 9812345678", email: "priya@nextgensol.com" }
     ],
     leads_generated: 180,
     leads_converted: 60,
@@ -487,6 +487,8 @@ const studentData = [
     enquiry_date: "2025-09-25",
     updated_date: "2025-11-08",
     booking_date: "2025-12-25",
+    sale_amount: "15,75,000",
+    pending_amount: "75,000",
   },
   {
     user_id: 2,
@@ -506,6 +508,8 @@ const studentData = [
     enquiry_date: "2025-09-25",
     updated_date: "2025-11-08",
     booking_date: "2025-12-25",
+    sale_amount: "15,75,000",
+    pending_amount: "75,000",
   },
 ];
 
@@ -938,13 +942,31 @@ const MyAffiliate = () => {
       setInactiveDaysLabel(option.label);
     };
 
+    const openAffiliatesDetail = () => {
+      navigate("/affiliate-details/affiliate_form");
+    };
+
+    const handleAddStudent = () => {
+      window.open("https://www.flapone.com/enquiry", "_blank");
+    };
+
     return (
         <>
-            <InnerHeader
-                heading="Inventory & Activity Records"
-                txtSubHeading="A centralized log of drones, batteries, and training exercises. Keeping these records up-to-date is critical for efficient resource management and training effectiveness."
-                showButton={false}
-                iconText="Add New Lead"
+            <InnerHeaderMultiButton
+                heading="My Affiliates"
+                txtSubHeading="View, manage, and analyze all affiliates in one place."
+                buttons={[
+                  {
+                    text: "Add Affiliates",
+                    icon: "",
+                    onClick: openAffiliatesDetail,
+                  },
+                  {
+                    text: "Add Student",
+                    icon: "",
+                    onClick: handleAddStudent,
+                  }
+                ]}
             />
             <Card className="bg5 mt16 pb16">
               <Tabs
@@ -1008,7 +1030,7 @@ const MyAffiliate = () => {
                       </div>
                       <div className="mr8 wo-status mb8 hide-mobile student-batch-filter searching-drop">
                         <MultiDropdown
-                          label="Select Team"
+                          label="Team"
                           options={teamOptions}
                           selectedValues={selectedTeamOptions}
                           onSelect={handleTeamChange}
@@ -1078,7 +1100,7 @@ const MyAffiliate = () => {
                     <div className="ct-f category-filter searching-drop mb16">
                       <p className="fc15 fw6 fs14 ls1 mb8">Location</p>
                       <MultiDropdown
-                        label="Select Location"
+                        label="Location"
                         options={locationOptions}
                         selectedValues={selectedLocationOptions}
                         onSelect={handleLocationChange}
