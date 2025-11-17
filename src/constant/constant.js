@@ -3,8 +3,8 @@
 // const weburl  = "https://www.flapone.com/";
 
 
-
-const base_url = "http://local.flapone.noida/flapone-api/flapone-api-3.0";
+const base_url = "https://www.flapone.com/flapone-api/flapone-api-3.0";
+//const base_url = "http://local.flapone.noida/flapone-api/flapone-api-3.0";
 const domainurl  = "https://www.flapone.com/";
 const weburl  = "https://www.flapone.com/";
 const invoicepdfurl = "https://www.hlimg.com/images/flapone-crm/assets/flaponeinvoicepdf/";
