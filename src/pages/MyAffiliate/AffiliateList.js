@@ -11,6 +11,7 @@ import { MdCall, MdOutlineMail } from "react-icons/md";
 import { BsToggleOn, BsToggleOff } from "react-icons/bs";
 import Popup from "../../components/Popup/Popup";
 import AffiliateUpdateStatusForm from "../../components/Forms/AffiliateUpdateStatusForm";
+import SingleDropdown from "../../components/SingleDropdown";
 
 //Dummy Data
 
@@ -52,7 +53,8 @@ const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortC
     const [inactiveComment, setInactiveComment] = useState(false);
     const [comment, setComment] = useState("");
     const [updateStatusPopup, setUpdateStatusPopup] = useState(false);
-
+    const [selectedOrderOption, setSelectedOrderOption] = useState({});
+    //
     const CONVERSION_ORDER = ["30", "60", "90", "180", "360", "all"];
 
     const toggleMenu = (rowIndex) => {
@@ -128,10 +130,28 @@ const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortC
     const closeUpdateStatusPopup = () => {
         setUpdateStatusPopup(false);
     }
+    const orderOptions = [
+        { label: "Select Order", value: "" },
+        { label: "Top Performers", value: "top_performers" },
+        { label: "High Conversion", value: "high_conversion" },
+        { label: "Pending Payout", value: "pending_payout" }
+    ];
+    const handleSelectOrder = (option) => {
+        setSelectedOrderOption(option);
+    };
     return (
         <>
         <div className="mylead-filters v-center jcsb pl16 pr16 brd-b1 pb8 pt8 fww fs12 ">
             Total Results: {affiliatesCount}
+            <div className="v-center">
+                <SingleDropdown
+                    label=""
+                    options={orderOptions}
+                    selectedOption={selectedOrderOption}
+                    onSelect={handleSelectOrder}
+                    placeholder="Select Order"
+                />
+            </div>
         </div>
         <div
             className="booked table-container df w100 fdc mt16"
