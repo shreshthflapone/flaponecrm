@@ -9,6 +9,10 @@ import AffiliateStudent from "../../components/AffiliateStudent";
 import StudentHistory from "./History";
 import Tooltip from "../../components/Tooltip";
 import { MdOutlineVerified, MdCall, MdOutlineMail } from "react-icons/md";
+import Popup from "../../components/Popup/Popup.js";
+import AffiliateUpdateStatusForm from "../../components/Forms/AffiliateUpdateStatusForm.js";
+import SingleDropdown from "../../components/SingleDropdown";
+import { HiExternalLink } from "react-icons/hi";
 
 import "../MyReports/MyReports.css";
 import "./MyAffiliate.css";
@@ -27,6 +31,8 @@ const studentData = [
     enquiry_date: "2025-09-25",
     updated_date: "2025-11-08",
     booking_date: "2025-12-25",
+    sale_amount: "15,75,000",
+    pending_amount: "75,000",
   },
   {
     user_id: 2,
@@ -41,6 +47,8 @@ const studentData = [
     enquiry_date: "2025-09-25",
     updated_date: "2025-11-08",
     booking_date: "2025-12-25",
+    sale_amount: "15,75,000",
+    pending_amount: "75,000",
   },
 ];
 
@@ -65,6 +73,14 @@ const AffiliateDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const assignOptions = [
+    { label: "Shivam Kumar", value: "shivam.kumar" },
+    { label: "Rohit Singh", value: "rohit.singh" },
+    { label: "Ankit Sharma", value: "ankit.sharma" },
+    { label: "Nand Kumar Jha HelloTravel", value: "ankit.sharma" },
+  ];
+  const [assign, setAssign] = useState(assignOptions[0]);
+
   const tabs = viewStatus
     ? [
         { label: "Overview", value: "overview" },
@@ -81,6 +97,9 @@ const AffiliateDetails = () => {
   const [sortBy, setSortBy] = useState("id");
   const [sortDirection, setSortDirection] = useState("desc");
   const [activeSortColumn, setActiveSortColumn] = useState("id");
+  const [updateStatusPopup, setUpdateStatusPopup] = useState(false);
+  const [contactVisible, setContactVisible] = useState(false);
+  const [emailVisible, setEmailVisible] = useState(false);
 
   const handleTabChange = (value) => {
     let path = `/affiliate-details/${value}`;
@@ -110,6 +129,25 @@ const AffiliateDetails = () => {
     }
     setActiveSortColumn(field);
   };
+  const handleSetAssign = (option) => {
+    setAssign(option);
+  };
+  const handleShowUpdateForm = () => {
+      setUpdateStatusPopup(true);
+  }
+  const closeUpdateStatusPopup = () => {
+      setUpdateStatusPopup(false);
+  }
+  const handleAddStudent = () => {
+    console.log("Hello");
+  }
+  const handleEditAffiliate = () => {
+    console.log("Hello");
+  }
+  const handleLeadDetails = (id) => {
+    navigate("/my-leads/"+id);
+  }
+
 
   return (
     <>
@@ -135,20 +173,61 @@ const AffiliateDetails = () => {
                           />
                         </Tooltip>
                       </p>
+                      <p className="ml8 mt4 cp" onClick={() => handleLeadDetails(65803)}>
+                        <Tooltip title={"Lead Details"}>
+                          <HiExternalLink
+                            className="fc1 fs20"
+                          />
+                        </Tooltip>
+                      </p>
                     </div>
                     <div className="comp-address df mt4 fs14 aic">
                       <p className="fs10 ls2 pl12 pr12 pt4 pb4 fc2 brd4 mr8 br24">
                         Active
                       </p>
                       <p className="agent-city mr4 v-center">
-                        <span className="lead-id">65803</span>
+                        <span className="lead-id mt0">65803</span>
                         <span className="ml4">|</span>
                       </p>
                       <p className="agent-city mr4 ttc">
-                        <span className="lead-id">Jaipur</span>
+                        <span className="lead-id mt0">Jaipur</span>
                         <span className="ml4">|</span>
                       </p>
-                      <p className="agent-city ml4 ttc">
+                      <p
+                        className={`agent-city ml4 ttc ${
+                          contactVisible ? "df jcsb" : ""
+                        }`}
+                      >
+                        {!contactVisible ? (
+                          <button
+                            className="btn-blue bg1 br16 fs12 cp pl8 pr8 pt4 pb4"
+                            onClick={() => setContactVisible(true)}
+                          >
+                            View Contact
+                          </button>
+                        ) : (
+                          <span className="lead-id mt0">1234567890</span>
+                        )}
+                        <span className="ml4">|</span>
+                      </p>
+                      
+                      <p
+                        className={`agent-city ml4 ttc ${
+                          contactVisible ? "df jcsb" : ""
+                        }`}
+                      >
+                        {!emailVisible ? (
+                          <button
+                            className="btn-blue bg1 br16 fs12 cp pl8 pr8 pt4 pb4"
+                            onClick={() => setEmailVisible(true)}
+                          >
+                            View Email
+                          </button>
+                        ) : (
+                          <span className="lead-id mt0">shreshth@flapone.com</span>
+                        )}
+                      </p>
+                      {/*<p className="agent-city ml4 ttc">
                         <Tooltip title={"1234567890"}>
                           <MdCall className="cp fc1 mr8" size={18} />
                         </Tooltip>
@@ -157,17 +236,35 @@ const AffiliateDetails = () => {
                         <Tooltip title={"shreshth@flapone.com"}>
                           <MdOutlineMail className="cp fc1 mr8" size={18} />
                         </Tooltip>
-                      </p>
+                      </p>*/}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+            <div className="right-side-detail">
+              <div className="df jce detail-side-bar affiliate-dropdown">
+                <div className="mr24 assigned-to rm"  style={{"width":"auto", minWidth: "12%", marginTop: "5px"}}>
+                    <SingleDropdown
+                        label="RM"
+                        options={assignOptions}
+                        selectedOption={assign}
+                        onSelect={handleSetAssign}
+                        cc={true}
+                    />
+                </div>
+                <button className="btn-blue bg1 mr8 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleShowUpdateForm()}>Update Status</button>
+                <button className="btn-blue bg1 mr8 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleAddStudent()}>Add Student</button>
+                {viewStatus == "undefined" && (
+                  <button className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleEditAffiliate()}>Edit</button>
+                )}
+            </div>
+            </div>
         </div>
       ) : (
         <InnerHeader
-          heading="Inventory & Activity Records"
-          txtSubHeading="A centralized log of drones, batteries, and training exercises. Keeping these records up-to-date is critical for efficient resource management and training effectiveness."
+          heading="Affiliate Onboarding"
+          txtSubHeading="Enter all required affiliate information to complete the onboarding workflow."
           showButton={false}
           iconText="Add New Lead"
         />
@@ -202,6 +299,16 @@ const AffiliateDetails = () => {
           <StudentHistory recordList={studentHistoryData} />
         )}
       </Card>
+      {updateStatusPopup && (
+          <Popup
+              onClose={closeUpdateStatusPopup}
+              title={"Update Status"}
+          >
+              <AffiliateUpdateStatusForm
+                  onClose={closeUpdateStatusPopup}
+              />
+          </Popup>
+      )};
     </>
   );
 };
