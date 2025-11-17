@@ -142,13 +142,12 @@ const AffiliateDetails = () => {
     console.log("Hello");
   }
   const handleEditAffiliate = () => {
-    console.log("Hello");
+    navigate("/affiliate-details/affiliate_form/1");
   }
   const handleLeadDetails = (id) => {
     navigate("/my-leads/"+id);
   }
-
-
+  
   return (
     <>
       {id || viewStatus ? (
@@ -255,8 +254,10 @@ const AffiliateDetails = () => {
                 </div>
                 <button className="btn-blue bg1 mr8 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleShowUpdateForm()}>Update Status</button>
                 <button className="btn-blue bg1 mr8 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleAddStudent()}>Add Student</button>
-                {viewStatus == "undefined" && (
-                  <button className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleEditAffiliate()}>Edit</button>
+                {viewStatus !== undefined && (
+                  <button className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleEditAffiliate()}>
+                    Edit Affiliate 
+                  </button>
                 )}
             </div>
             </div>
