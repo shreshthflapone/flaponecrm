@@ -5,11 +5,8 @@ import { MdAutoDelete,MdOutlineEventBusy,MdOutlineFollowTheSigns,MdUpdate} from 
 import { GiReceiveMoney } from "react-icons/gi";
 import { SlCalender } from "react-icons/sl";
 import Tooltip from "../../components/Tooltip";
-import SingleDropdown from "../../components/SingleDropdown";
 import DynamicTooltip from "../../components/Dynamic_Tooltip.js";
 import Dropdown from "../../components/Dropdown";
-import Popup from "../../components/Popup/Popup.js";
-import AffiliateUpdateStatusForm from "../../components/Forms/AffiliateUpdateStatusForm.js";
 
 
 const History = ({ recordList }) => {
@@ -17,25 +14,15 @@ const History = ({ recordList }) => {
     const [historyRecords, setHistoryRecords] = useState([]);
     const [updateStatusPopup, setUpdateStatusPopup] = useState(false);
     const CONVERSION_ORDER = ["30", "60", "90", "180", "360"];
-    const assignOptions = [
-        { label: "Shivam Kumar", value: "shivam.kumar" },
-        { label: "Rohit Singh", value: "rohit.singh" },
-        { label: "Ankit Sharma", value: "ankit.sharma" },
-        { label: "Nand Kumar Jha HelloTravel", value: "ankit.sharma" },
-    ];
     const [historyOptions, setHistoryOptions] = useState([
         { label: "Call Not Connected", value: "call_not_connected" },
         { label: "Call After Sometime", value: "call_after_sometime" },
         { label: "Booked", value: "booked" },
         { label: "Call Later", value: "call_later" },
     ]);
-    const [assign, setAssign] = useState(assignOptions[0]);
     const [selectedHistoryOption, setSelectedHistoryOption] = useState({ label: "Select", value: "" },);
     const [historyOptionLabel, setHistoryOptionLabel] = useState("Select");
 
-    const handleSetAssign = (option) => {
-        setAssign(option);
-    };
     const handleSelectedHistory = (option) => {
         setSelectedHistoryOption(option.value);
         setHistoryOptionLabel(option.label);
@@ -43,27 +30,9 @@ const History = ({ recordList }) => {
     useEffect(() => {
         setHistoryRecords(recordList);
     }, [recordList]);
-    const handleShowUpdateForm = () => {
-        setUpdateStatusPopup(true);
-    }
-    const closeUpdateStatusPopup = () => {
-        setUpdateStatusPopup(false);
-    }
 
     return (
         <>
-            <div className="df jce detail-side-bar affiliate-dropdown">
-                <div className="mr24 assigned-to rm"  style={{"width":"auto", minWidth: "12%", marginTop: "5px"}}>
-                    <SingleDropdown
-                        label="RM"
-                        options={assignOptions}
-                        selectedOption={assign}
-                        onSelect={handleSetAssign}
-                        cc={true}
-                    />
-                </div>
-                <button className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 v-center" onClick={() => handleShowUpdateForm()}>Update Status</button>
-            </div>
             <div className="lead-detail-inofs v-center w100 fww">
                 <div className="sale-status box-center fdc cp">
                     <p className="brd-b1 pb4">Last Status</p>
@@ -247,16 +216,6 @@ const History = ({ recordList }) => {
                     <p className="fs14">No History Available</p>
                 )}
             </div>
-            {updateStatusPopup && (
-                <Popup
-                    onClose={closeUpdateStatusPopup}
-                    title={"Update Status"}
-                >
-                    <AffiliateUpdateStatusForm
-                        onClose={closeUpdateStatusPopup}
-                    />
-                </Popup>
-            )};
         </>
         
     );
