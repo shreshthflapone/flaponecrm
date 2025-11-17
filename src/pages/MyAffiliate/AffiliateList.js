@@ -43,7 +43,7 @@ const studentData = [
   },
 ];
 
-const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortColumn, pageCount }) => {
+const AffiliateList = ({ recordList, allApidata, handleSortByChange, activeSortColumn, pageCount }) => {
     const navigate = useNavigate();
     const [allAffiliateData, setAllAffiliateData] = useState([]);
     const [openMenuRow, setOpenMenuRow] = useState(null);
@@ -69,6 +69,14 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
 
     const handleAddStudent = (affiliate) => {
         window.open("https://www.flapone.com/enquiry", "_blank");
+    };
+
+    const handleEditAffiliate = () => {
+        navigate("/affiliate-details/overview/1/view");
+    };
+
+    const handleViewAffiliate = () => {
+        navigate("/affiliate-details/overview/1/view");
     };
 
     const handleToggleActive = (affiliate) => {
@@ -388,10 +396,12 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                     <FaEye
                                         className="cp mr12"
                                         title="View Affiliates"
+                                        onClick={() => handleViewAffiliate()}
                                     />
                                     <FaPencilAlt
                                         className="cp mr12"
                                         title="Edit Affiliates"
+                                        onClick={() => handleEditAffiliate()}
                                     />
                                     <HiUserAdd
                                         className="fs18 cp"
@@ -469,4 +479,4 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
     );
 };
 
-export default StudentList;
+export default AffiliateList;
