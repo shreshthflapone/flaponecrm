@@ -14,6 +14,9 @@
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+.brd-dashed-t1 {
+  border-top: 1px dashed #d4d9e5;
+}
 .actions-dropdown {
   position: absolute;
   background: #fff;
@@ -22,7 +25,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   padding: 6px 0;
   width: 160px;
-  z-index: 99;
+  z-index: 99999;
   left: auto;
   right: 20px;
 }
@@ -30,6 +33,7 @@
   padding: 8px 12px;
   cursor: pointer;
   font-size: 14px;
+  text-align: left;
 }
 .actions-dropdown div:hover {
   background: #f3f3f3;
@@ -158,4 +162,13 @@
 }
 .timeline.history-timeline h6{
   margin-top: 8px;
+}
+.left-side-detail {
+  flex: 0 0 55% !important;
+  max-width: 55% !important;
+}
+
+.right-side-detail {
+  flex: 0 0 43% !important;
+  max-width: 43% !important;
 }
