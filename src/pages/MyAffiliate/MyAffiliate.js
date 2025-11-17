@@ -981,6 +981,7 @@ const MyAffiliate = () => {
         `https://www.flapone.com/enquiry/${selectedAffiliateOption.value}`,
         "_blank"
       );
+      cancelChooseAffiliatePopup();
     };
 
     return (
