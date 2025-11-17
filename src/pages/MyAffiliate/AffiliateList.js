@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-
+import { HiUserAdd } from "react-icons/hi";
 import { FaEye, FaPencilAlt, FaThList } from "react-icons/fa";
 import { RiArrowUpDownFill } from "react-icons/ri";
 import DynamicTooltip from "../../components/Dynamic_Tooltip";
@@ -9,6 +9,8 @@ import Tooltip from "../../components/Tooltip";
 import { giveTextColor } from "../../helpers/textColors";
 import { MdCall, MdOutlineMail } from "react-icons/md";
 import { BsToggleOn, BsToggleOff } from "react-icons/bs";
+import Popup from "../../components/Popup/Popup";
+import AffiliateUpdateStatusForm from "../../components/Forms/AffiliateUpdateStatusForm";
 
 //Dummy Data
 
@@ -46,26 +48,31 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
     const [allAffiliateData, setAllAffiliateData] = useState([]);
     const [openMenuRow, setOpenMenuRow] = useState(null);
     const [affiliatesCount, setAffiliatesCount] = useState(0);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [inactiveComment, setInactiveComment] = useState(false);
+    const [comment, setComment] = useState("");
+    const [updateStatusPopup, setUpdateStatusPopup] = useState(false);
 
     const CONVERSION_ORDER = ["30", "60", "90", "180", "360"];
 
     const toggleMenu = (rowIndex) => {
         setOpenMenuRow(openMenuRow === rowIndex ? null : rowIndex);
     };
-
-    const handleUpdateStatus = (affiliate) => {
-        console.log("Update Status for:", affiliate.id);
+    const handleClickOutside = () => {
+        alert(1);
+        setOpenMenuRow(openMenuRow === null);
     };
+    
+    useEffect(() => {
+        document.removeEventListener("mousedown", handleClickOutside);
+    });
 
     const handleAddStudent = (affiliate) => {
-        console.log("Add student for:", affiliate.id);
+        window.open("https://www.flapone.com/enquiry", "_blank");
     };
 
     const handleToggleActive = (affiliate) => {
         console.log("Toggle status:", affiliate.id);
-    };
-    const openAffiliatesDetail = () => {
-        navigate("/affiliate-details/affiliate_form");
     };
 
 
@@ -75,26 +82,48 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
     }, [recordList]);
 
     const getBoxColor = (index) => {
-        const colors = ["#6C5CE7", "#00B894", "#0984E3", "#D63031", "#E67E22", "#2D3436"];
+        const colors = ["#4CAF50", "#66BB6A", "#29B6F6", "#0288D1", "#3949AB", "#6A1B9A"];
         return colors[index % colors.length];
     };
     const toggleSwitch = (id, currentStatus) => {
         const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
+        if(newStatus == "Active"){
+            setShowConfirmation(true);
+        } else {
+            setInactiveComment(true);
+        }
         setAllAffiliateData(prev =>
             prev.map(a =>
             a.id === id ? { ...a, user_status: newStatus } : a
             )
         );
     };
+    const handleOverviewList = (id) => {
+        navigate("/affiliate-details/overview/"+id+"/view");
+    }
+    const handleStudentList = (id, action) => {
+        navigate("/affiliate-details/student_list/"+id+"/"+action);
+    }
+    const handleDaysAction = (id, days) => {
+        navigate("/affiliate-details/student_list/"+id+"/"+days);
+    }
+    const cancelConfirmationChange = () => {
+        setShowConfirmation(false);
+    };
+    const cancelInactivePopup = () => {
+        setInactiveComment(false);
+    };
 
+    const handleShowUpdateForm = () => {
+        setUpdateStatusPopup(true);
+    }
+    const closeUpdateStatusPopup = () => {
+        setUpdateStatusPopup(false);
+    }
     return (
         <>
         <div className="mylead-filters v-center jcsb pl16 pr16 brd-b1 pb8 pt8 fww fs12 ">
             Total Results: {affiliatesCount}
-            <button
-                className="btn-blue bg1 br24 fs14 cp pl16 pr16 pt10 pb10 v-center"
-                onClick={openAffiliatesDetail}
-            >Add Affiliates</button>
         </div>
         <div
             className="booked table-container df w100 fdc mt16"
@@ -132,13 +161,13 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                     </th>
                     <th onClick={() => handleSortByChange("sale_amount")} className={activeSortColumn === "sale_amount" ? "fc1" : ""}>
                     <p className="box-center">
-                        <DynamicTooltip direction="left" text="Net Sale Amount">Net <br /> Sale Amt.</DynamicTooltip>
+                        <DynamicTooltip direction="left" text="Net Sale">Net <br /> Sale Amt.</DynamicTooltip>
                         <RiArrowUpDownFill className="cp ml4" />
                     </p>
                     </th>
                     <th onClick={() => handleSortByChange("total_commission_earned")} className={activeSortColumn === "total_commission_earned" ? "fc1 amc-col" : "amc-col"}>
                     <p className="box-center">
-                        <DynamicTooltip direction="left" text="Total Commission Earned">Total Comm. <br /> Earned</DynamicTooltip>
+                        <DynamicTooltip direction="left" text="Total Earned">Total Comm. <br /> Earned</DynamicTooltip>
                         <RiArrowUpDownFill className="cp ml4" />
                     </p>
                     </th>
@@ -179,9 +208,9 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                     ) : (
                         allAffiliateData.map((affiliate, index) => (
                             <tr key={affiliate.id}>
-                                <td>{affiliate.id}</td>
-                                <td>{affiliate.name}</td>
-                                <td className="leads-tool-fix">
+                                <td onClick={()=>handleOverviewList(affiliate.id)}>{affiliate.id}</td>
+                                <td onClick={()=>handleOverviewList(affiliate.id)}>{affiliate.name}</td>
+                                <td onClick={()=>handleOverviewList(affiliate.id)} className="leads-tool-fix">
                                 {affiliate.company_name && (
                                     <Tooltip title={affiliate.company_name}>
                                     {affiliate.company_name.length > 15
@@ -194,15 +223,31 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                     {Array.isArray(affiliate.contact_info) && affiliate.contact_info.length > 0 ? (
                                         <div className="df jcc">
                                             {affiliate.contact_info[0].mobile_number ? (
-                                                <Tooltip title={affiliate.contact_info[0].mobile_number}>
-                                                <MdCall className="cp fc1 mr8" size={18} />
+                                                <Tooltip
+                                                    title={affiliate.contact_info[0].mobile_number}
+                                                >
+                                                    <MdCall
+                                                    className={`${
+                                                        affiliate.contact_info[0].verified === "1" && affiliate.contact_info[0].mobile_number !== ""
+                                                        ? "fc13"
+                                                        : "fc17"
+                                                    } fs18 ml4`}
+                                                    />
                                                 </Tooltip>
                                             ) : (
                                                 "--"
                                             )}
                                             {affiliate.contact_info[0].email ? (
-                                                <Tooltip title={affiliate.contact_info[0].email}>
-                                                <MdOutlineMail className="cp fc1" size={18} />
+                                                <Tooltip
+                                                    title={affiliate.contact_info[0].email}
+                                                >
+                                                    <MdOutlineMail
+                                                    className={`${
+                                                        affiliate.contact_info[0].verified === "1" && affiliate.contact_info[0].email !== ""
+                                                        ? "fc13"
+                                                        : "fc17"
+                                                    } fs18 ml4`}
+                                                    />
                                                 </Tooltip>
                                             ) : (
                                                 "--"
@@ -212,22 +257,45 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                         "--"
                                     )}
                                 </td>
-                                <td>{affiliate.leads_generated ?? "--"}</td>
-                                <td>{affiliate.leads_converted ?? "--"}</td>
+                                <td
+                                    onClick={
+                                        affiliate.leads_generated !== ""
+                                        ? () => handleStudentList(affiliate.id, affiliate.leads_generated)
+                                        : undefined
+                                    }
+                                    className={affiliate.leads_generated !== "" ? "cp" : ""}
+                                    >
+                                    {affiliate.leads_generated ? affiliate.leads_generated : "--"}
+                                </td>
+                                <td
+                                    onClick={
+                                        affiliate.leads_converted !== ""
+                                        ? () => handleStudentList(affiliate.id, affiliate.leads_converted)
+                                        : undefined
+                                    }
+                                    className={affiliate.leads_converted !== "" ? "cp" : ""}
+                                    >
+                                    {affiliate.leads_converted ? affiliate.leads_converted : "--"}
+                                </td>
                                 <td>
                                     {affiliate.conversions_breakup ? (
                                         <div style={{
                                             display: "flex",
                                             borderRadius: "6px",
-                                            overflow: "hidden",
                                             border: "1px solid #ddd",
                                             width: "fit-content"
                                         }}>
                                             {CONVERSION_ORDER.map((days, idx) => {
-                                                const count = affiliate.conversions_breakup[days] ?? 0;
+                                                const count = affiliate.conversions_breakup[days] ? affiliate.conversions_breakup[days] : 0;
                                                 return (
+                                                    count > 0 ?
+                                                    <>
+                                                    <Tooltip title={"Last "+days+" Days"}>
                                                     <div
                                                         key={idx}
+                                                        onClick={
+                                                            () => handleDaysAction(affiliate.id, days)
+                                                        }
                                                         style={{
                                                             backgroundColor: getBoxColor(idx),
                                                             color: "#fff",
@@ -239,6 +307,26 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                                     >
                                                         {count}
                                                     </div>
+                                                    </Tooltip>
+                                                    </>
+                                                    : 
+                                                    <>
+                                                    <Tooltip title={"Last "+days+" Days"}>
+                                                    <div
+                                                        key={idx}
+                                                        style={{
+                                                            backgroundColor: "#808080",
+                                                            color: "#fff",
+                                                            padding: "4px 8px",
+                                                            fontSize: "12px",
+                                                            textAlign: "center",
+                                                            borderRight: idx < CONVERSION_ORDER.length - 1 ? "1px solid #fff" : "none"
+                                                        }}
+                                                    >
+                                                        0
+                                                    </div>
+                                                    </Tooltip>
+                                                    </>
                                                 );
                                             })}
                                         </div>
@@ -246,9 +334,23 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                         "--"
                                     )}
                                 </td>
-                                <td>{affiliate.sale_amount ?? "--"}</td>
-                                <td>{affiliate.total_commission_earned ?? "--"}</td>
-                                <td className="fc6">{affiliate.pending_payout ?? "--"}</td>
+                                <td 
+                                    onClick={
+                                        affiliate.sale_amount !== ""
+                                        ? () => handleStudentList(affiliate.id, affiliate.sale_amount)
+                                        : undefined
+                                    }    
+                                >{affiliate.sale_amount ? affiliate.sale_amount : "--"}</td>
+                                <td>{affiliate.total_commission_earned ? affiliate.total_commission_earned : "--"}</td>
+                                
+                                <td 
+                                    onClick={
+                                        affiliate.pending_payout !== ""
+                                        ? () => handleStudentList(affiliate.id, affiliate.pending_payout)
+                                        : undefined
+                                    }    
+                                    className="fc6"
+                                >{affiliate.pending_payout ? affiliate.pending_payout : "--"}</td>
                                 <td>{affiliate.last_payout_date || "--"}</td>
                                 <td>{affiliate.last_referral || "--"}</td>
                                 <td>
@@ -257,26 +359,26 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                             title={affiliate.user_status === "Active" ? "Active" : "Inactive"}
                                         >
                                             <label style={{ cursor: "pointer" }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={affiliate.user_status === "Active"}
-                                                onChange={() =>
-                                                toggleSwitch(affiliate.id, affiliate.user_status)
-                                                }
-                                                style={{ display: "none" }}
-                                            />
+                                                <input
+                                                    type="checkbox"
+                                                    checked={affiliate.user_status === "Active"}
+                                                    onChange={() =>
+                                                    toggleSwitch(affiliate.id, affiliate.user_status)
+                                                    }
+                                                    style={{ display: "none" }}
+                                                />
 
-                                            <span
-                                                className={`custom-toggle ${
-                                                affiliate.user_status === "Active" ? "toggle-on" : "toggle-off"
-                                                }`}
-                                            >
-                                                {affiliate.user_status === "Active" ? (
-                                                <BsToggleOn />
-                                                ) : (
-                                                <BsToggleOff />
-                                                )}
-                                            </span>
+                                                <span
+                                                    className={`custom-toggle ${
+                                                    affiliate.user_status === "Active" ? "toggle-on" : "toggle-off"
+                                                    }`}
+                                                >
+                                                    {affiliate.user_status === "Active" ? (
+                                                    <BsToggleOn />
+                                                    ) : (
+                                                    <BsToggleOff />
+                                                    )}
+                                                </span>
                                             </label>
                                         </Tooltip>
                                     </div>
@@ -286,37 +388,82 @@ const StudentList = ({ recordList, allApidata, handleSortByChange, activeSortCol
                                     <FaEye
                                         className="cp mr12"
                                         title="View Affiliates"
-                                        style={{ verticalAlign: "super" }}
                                     />
                                     <FaPencilAlt
-                                        className="cp"
+                                        className="cp mr12"
                                         title="Edit Affiliates"
-                                        style={{ verticalAlign: "super" }}
                                     />
-                                    <FaThList
-                                        className="icon mail-icon p8 cp"
-                                        onClick={() => toggleMenu(index)}
+                                    <HiUserAdd
+                                        className="fs18 cp"
+                                        title="Add Student"
+                                        onClick={() => handleAddStudent()}
                                     />
-
-                                    {openMenuRow === index && (
-                                        <div className="actions-dropdown">
-                                            <div onClick={() => handleUpdateStatus(affiliate)}>
-                                                Update Status
-                                            </div>
-                                            <div onClick={() => handleAddStudent(affiliate)}>
-                                                Add Student
-                                            </div>
-                                            <div onClick={() => handleToggleActive(affiliate)}>
-                                                {affiliate.user_status === "active" ? "Set Inactive" : "Set Active"}
-                                            </div>
-                                        </div>
-                                    )}
                                 </td>
                             </tr>
                         ))
                     )}
                 </tbody>
             </table>
+            {showConfirmation && (
+                <div className="student-roaster">
+                    <Popup title="Active Affiliate" onClose={cancelConfirmationChange}>
+                        <p className="ls1 lh22 fs16 mb24 tac">
+                            Are you sure you want to
+                            <strong>active this affiliate</strong>?
+                        </p>
+                        <div className="popup-buttons df jcc">
+                            <button
+                                onClick={cancelConfirmationChange}
+                                className="update-button btn-blue box-center mr24"
+                            >
+                                Yes
+                            </button>
+                            <button onClick={cancelConfirmationChange} className="btn-cancel">
+                                No
+                            </button>
+                        </div>
+                    </Popup>
+                </div>
+            )}
+            {inactiveComment && (
+                <div className="inactive-affiliate">
+                    <Popup title="Inactive Affiliate" onClose={cancelInactivePopup}>
+                        <div className="df">
+                            <div className="flx100 comments-input mt24">
+                                <p className="fc15 fw6 fs14 mb8 ls1">Comment</p>
+                                <textarea
+                                    className="comments p12 br4"
+                                    placeholder="Any Reason..."
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    rows="3"
+                                />
+                            </div>
+                        </div>
+                        <div className="popup-buttons df jce">
+                            <button onClick={cancelInactivePopup} className="btn-cancel">
+                                Cancel
+                            </button>
+                            <button
+                                onClick={cancelInactivePopup}
+                                className="update-button btn-blue box-center"
+                            >
+                                Update
+                            </button>
+                        </div>
+                    </Popup>
+                </div>
+            )}
+            {updateStatusPopup && (
+                <Popup
+                    onClose={closeUpdateStatusPopup}
+                    title={"Update Status"}
+                >
+                    <AffiliateUpdateStatusForm
+                        onClose={closeUpdateStatusPopup}
+                    />
+                </Popup>
+            )};
         </div>
         </>
     );
