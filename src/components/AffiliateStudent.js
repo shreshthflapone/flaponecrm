@@ -178,6 +178,9 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
         setShowSearchInput(false);
         }
     };
+    const filteredSearchByOptions = hiddenFilters.includes("affiliates")
+        ? searchByOptions.filter(opt => !opt.value.startsWith("affiliate_"))
+        : searchByOptions;
     const handleSearchChange = (value) => {
         setSearchLead(value);
     };
@@ -493,6 +496,9 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
     const handleAffiliateList = (affiliate_id) => () => {
         navigate(`/my-affiliate/affiliate/${affiliate_id}`);
     }
+     const handleLeadDetails = (id) => {
+        navigate("/my-leads/"+id);
+    }
 
     return (
         <>
@@ -553,7 +559,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                     {!hiddenFilters.includes("rm") && (
                         <div className="mr8 wo-status mb8 hide-mobile student-batch-filter searching-drop">
                             <MultiDropdown
-                                label="Select RM"
+                                label="RM"
                                 options={teamOptions}
                                 selectedValues={selectedTeamOptions}
                                 onSelect={handleTeamChange}
@@ -586,7 +592,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                 className={activeSortColumn === "user_id" ? "fc1" : ""}
                             >
                                 <p className="box-center">
-                                User Id <RiArrowUpDownFill className="cp ml4" />
+                                Id <RiArrowUpDownFill className="cp ml4" />
                                 </p>
                             </th>
                             )}
@@ -697,6 +703,34 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                             </th>
                             )}
 
+                            {!hiddenColumns.includes("sale_amount") && (
+                            <th
+                                onClick={() => handleSortByChange("sale_amount")}
+                                className={activeSortColumn === "sale_amount" ? "fc1" : ""}
+                            >
+                                <p className="box-center">
+                                <DynamicTooltip direction="left" text="Net Sale Amount">
+                                    Sale <br/> Amount
+                                </DynamicTooltip>
+                                <RiArrowUpDownFill className="cp ml4" />
+                                </p>
+                            </th>
+                            )}
+
+                            {!hiddenColumns.includes("pending_amount") && (
+                            <th
+                                onClick={() => handleSortByChange("pending_amount")}
+                                className={activeSortColumn === "pending_amount" ? "fc1" : ""}
+                            >
+                                <p className="box-center">
+                                <DynamicTooltip direction="left" text="Pending Amount">
+                                    Pending <br /> Amount
+                                </DynamicTooltip>
+                                <RiArrowUpDownFill className="cp ml4" />
+                                </p>
+                            </th>
+                            )}
+
                             {!hiddenColumns.includes("booking_date") && (
                             <th
                                 onClick={() => handleSortByChange("booking_date")}
@@ -786,7 +820,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                             </tr>
                         ) : (
                             allStudentData.map((student) => (
-                                <tr key={student.user_id}>
+                                <tr onClick={()=>handleLeadDetails(student.user_id)} key={student.user_id}>
                                     {!hiddenColumns.includes("user_id") && <td>{student.user_id}</td>}
 
                                     {!hiddenColumns.includes("lead_status") && (
@@ -816,36 +850,36 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                     {!hiddenColumns.includes("verified") && (
                                     <td>
                                         <div className="df jcc">
-                                        <Tooltip
-                                            title={
-                                            student.verified === "1" && student.mobile_number !== ""
-                                                ? student.mobile_number
-                                                : "Not Verified"
-                                            }
-                                        >
-                                            <MdCall
-                                            className={`${
+                                            <Tooltip
+                                                title={
                                                 student.verified === "1" && student.mobile_number !== ""
-                                                ? "fc13"
-                                                : "fc17"
-                                            } fs18 ml4`}
-                                            />
-                                        </Tooltip>
-                                        <Tooltip
-                                            title={
-                                            student.verified === "1" && student.email !== ""
-                                                ? student.email
-                                                : "Not Verified"
-                                            }
-                                        >
-                                            <MdOutlineMail
-                                            className={`${
+                                                    ? student.mobile_number
+                                                    : "Not Verified"
+                                                }
+                                            >
+                                                <MdCall
+                                                className={`${
+                                                    student.verified === "1" && student.mobile_number !== ""
+                                                    ? "fc13"
+                                                    : "fc17"
+                                                } fs18 ml4`}
+                                                />
+                                            </Tooltip>
+                                            <Tooltip
+                                                title={
                                                 student.verified === "1" && student.email !== ""
-                                                ? "fc13"
-                                                : "fc17"
-                                            } fs18 ml4`}
-                                            />
-                                        </Tooltip>
+                                                    ? student.email
+                                                    : "Not Verified"
+                                                }
+                                            >
+                                                <MdOutlineMail
+                                                className={`${
+                                                    student.verified === "1" && student.email !== ""
+                                                    ? "fc13"
+                                                    : "fc17"
+                                                } fs18 ml4`}
+                                                />
+                                            </Tooltip>
                                         </div>
                                     </td>
                                     )}
@@ -871,7 +905,12 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                         )}
                                     </td>
                                     )}
-
+                                    {!hiddenColumns.includes("sale_amount") && (
+                                    <td>{student.sale_amount || "--"}</td>
+                                    )}
+                                    {!hiddenColumns.includes("pending_amount") && (
+                                    <td>{student.pending_amount || "--"}</td>
+                                    )}
                                     {!hiddenColumns.includes("booking_date") && (
                                     <td>{student.booking_date || "--"}</td>
                                     )}
@@ -940,7 +979,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                 <div className="ct-f category-filter searching-drop mb16">
                                     <p className="fc15 fw6 fs14 ls1 mb8">Course</p>
                                     <MultiDropdown
-                                        label="Select Course"
+                                        label="Course"
                                         options={courseOptions}
                                         selectedValues={selectedCourseOptions}
                                         onSelect={handleCourseChange}
@@ -965,7 +1004,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                 <div className="ct-f category-filter searching-drop mb16">
                                     <p className="fc15 fw6 fs14 ls1 mb8">Location</p>
                                     <MultiDropdown
-                                        label="Select Location"
+                                        label="Location"
                                         options={locationOptions}
                                         selectedValues={selectedLocationOptions}
                                         onSelect={handleLocationChange}
@@ -978,7 +1017,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                 <div className="ct-f category-filter searching-drop mb16">
                                     <p className="fc15 fw6 fs14 ls1 mb8">Affiliates</p>
                                     <MultiDropdown
-                                        label="Select Affiliates"
+                                        label="Affiliates"
                                         options={affiliatesOptions}
                                         selectedValues={selectedAffiliatesOptions}
                                         onSelect={handleAffiliatesChange}
@@ -993,7 +1032,7 @@ const AffiliateStudent = ({ recordList, allApidata, handleSortByChange, activeSo
                                         <p className="fc15 fw6 fs14 ls1 mb8">Search By</p>
                                         <Dropdown
                                             label={searchLabel}
-                                            options={searchByOptions}
+                                            options={filteredSearchByOptions}
                                             selectedValue={searchBy}
                                             onValueChange={handleSearchByChange}
                                         />
