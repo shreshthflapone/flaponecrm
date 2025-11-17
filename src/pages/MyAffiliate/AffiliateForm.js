@@ -15,6 +15,11 @@ import "./MyAffiliate.css";
 import { MdDelete } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import countryCodeOptions from "../../data/CountryCodes.js";
+import {
+  FaAngleDown,
+} from "react-icons/fa";
+
 
 const AffiliateForm = ({ view, affiliateid }) => {
     const { id }    = useParams();
@@ -25,15 +30,25 @@ const AffiliateForm = ({ view, affiliateid }) => {
     const [comment, setComment] = useState("");
     const [viewStatus, setViewStatus] = useState("");
     const [formid, setFormId] = useState("");
+    const dropdownRef = useRef(null);
+    const dropdownRef1 = useRef(null);
+    const dropdownRef2 = useRef(null);
 
     const [otherInfoName, setOtherInfoName] = useState("");
     const [otherInfoDesignation, setOtherInfoDesignation] = useState("");
     const [otherInfoEmail, setOtherInfoEmail] = useState("");
     const [otherInfoMobile, setOtherInfoMobile] = useState("");
+    const [countryCode, setCountryCode] = useState("91");
+    const [countryCodeAlt, setCountryCodeAlt] = useState("91");
+    const [countryCodeDropdown, setCountryCodeDropdown] = useState(false);
+    const [countryCodeAltDropdown, setCountryCodeAltDropdown] = useState(false);
 
     const [categoryCommissionCategory, setCategoryCommissionCategory] = useState("");
     const [categoryCommissionSubCategory, setCategoryCommissionSubCategory] = useState("");
-    const [categoryCommissionType, setCategoryCommissionType] = useState("");
+    const [categoryCommissionType, setCategoryCommissionType] = useState({
+        label: "Fixed",
+        value: "fixed"
+    });
     const [categoryCommissionValue, setCategoryCommissionValue] = useState("");
 
     const [affiliateFormData, setAffiliateFormData] = useState({
@@ -124,6 +139,24 @@ const AffiliateForm = ({ view, affiliateid }) => {
             gender: option,
         }));
     };
+    const handleCountryCodeSelect = (selectedCountry) => {
+        setCountryCode(selectedCountry);
+
+        if (selectedCountry.length === 0) {
+            toast.warn("Please select country code!");
+            return false;
+        }
+        setCountryCodeDropdown(false);
+    };
+    const handleCountryCodeAltSelect = (selectedCountry) => {
+        setCountryCodeAlt(selectedCountry);
+
+        if (selectedCountry.length === 0) {
+            toast.warn("Please select country code!");
+            return false;
+        }
+        setCountryCodeAltDropdown(false);
+    };
     const handleSelectAffiliateType = (option) => {
         setAffiliateFormData((prevValues) => ({
         ...prevValues,
@@ -181,7 +214,7 @@ const AffiliateForm = ({ view, affiliateid }) => {
     };
 
     const openPdf = () => {
-        window.open("/pdfs/flapone-affiliate-terms.pdf", "_blank");
+        window.open(constant.terms_pdf_url+"affilites_onborading_terms.pdf.pdf", "_blank");
     };
 
     const handleAddOtherInfo = () => {
@@ -457,8 +490,8 @@ const AffiliateForm = ({ view, affiliateid }) => {
         <>
             <div className="batch-main-grp-inputs mb16 v-center jcsb fww  bg8 pl20 pr20 pt20 pb20">
                 <div className="address-head mb24 w100">
-                    <p className="fs18 fc14 ls1 lh22">Personal Details</p>
-                    <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                    <p className="fs18 fc14 ls1 lh22">Profile Information</p>
+                    <p class="fs14 fc5 ls1 lh18 mt4">Provide basic personal information for affiliate identification.</p>
                 </div>
                 <div className="w100 upload-image v-center mb12">
                     <p className="flx33 fc15 fw6 fs14 mb12 ls1">Upload Photo</p>
@@ -512,30 +545,87 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 </div>
                 <div className="form-group-settings cm-fr flx48">
                     <p className="fc15 fw6 fs14 ls1">Mobile Number<span className="fc4">*</span></p>
-                    <input
-                        type="text"
-                        name="mobile_number"
-                        placeholder="Mobile Number"
-                        autoComplete="off"
-                        value={affiliateFormData.mobile_number}
-                        onChange={handleInputChange}
-                        readOnly={viewStatus !== undefined}
-                        style={{
-                            backgroundColor: viewStatus !== undefined ? "#f9f9f9" : "",
-                            cursor: viewStatus !== undefined ? "not-allowed" : "",
-                        }}
-                    />
+                    <div className="input-group df pr w100 fww aisc">
+                        <div className="input-group-prepend df">
+                            <div className="role-dropdown" ref={dropdownRef}>
+                            <div
+                                className="selected-role fs14 h40 country-code"
+                                onClick={() =>
+                                setCountryCodeDropdown(!countryCodeDropdown)
+                                }
+                            >
+                                {countryCode || "Country Code"}
+                                <FaAngleDown className="fc16 fs14" />
+                            </div>
+                            {countryCodeDropdown && (
+                                <ul className="role-options fs14">
+                                {countryCodeOptions.map((option) => (
+                                    <li
+                                    key={option}
+                                    onClick={() => handleCountryCodeSelect(option)}
+                                    >
+                                    {option}
+                                    </li>
+                                ))}
+                                </ul>
+                            )}
+                            </div>
+                        </div>
+                        <input
+                            className="form-control br4"
+                            type="text"
+                            name="mobile_number"
+                            placeholder="Mobile Number"
+                            autoComplete="off"
+                            value={affiliateFormData.mobile_number}
+                            onChange={handleInputChange}
+                            readOnly={viewStatus !== undefined}
+                            style={{
+                                backgroundColor: viewStatus !== undefined ? "#f9f9f9" : "",
+                                cursor: viewStatus !== undefined ? "not-allowed" : "",
+                            }}
+                        />
+                    </div>
                 </div>
                 <div className="form-group-settings cm-fr flx48">
                     <p className="fc15 fw6 fs14 ls1">Alternate Mobile Number</p>
-                    <input
-                        type="text"
-                        name="alternate_mobile_number"
-                        placeholder="Alternate Mobile Number"
-                        autoComplete="off"
-                        value={affiliateFormData.alternate_mobile_number}
-                        onChange={handleInputChange}
-                    />
+
+                    <div className="input-group df pr w100 fww aisc">
+                        <div className="input-group-prepend df">
+                            <div className="role-dropdown" ref={dropdownRef1}>
+                            <div
+                                className="selected-role fs14 h40 country-code"
+                                onClick={() =>
+                                setCountryCodeAltDropdown(!countryCodeAltDropdown)
+                                }
+                            >
+                                {countryCodeAlt || "Country Code"}
+                                <FaAngleDown className="fc16 fs14" />
+                            </div>
+                            {countryCodeAltDropdown && (
+                                <ul className="role-options fs14">
+                                {countryCodeOptions.map((option) => (
+                                    <li
+                                    key={option}
+                                    onClick={() => handleCountryCodeAltSelect(option)}
+                                    >
+                                    {option}
+                                    </li>
+                                ))}
+                                </ul>
+                            )}
+                            </div>
+                        </div>
+                        <input
+                            className="form-control br4"
+                            type="text"
+                            name="alternate_mobile_number"
+                            placeholder="Alternate Mobile Number"
+                            autoComplete="off"
+                            value={affiliateFormData.alternate_mobile_number}
+                            onChange={handleInputChange}
+                        />
+                    </div>
                 </div>
                 <div className="form-group-settings cm-fr flx48">
                     <SingleDropdown
@@ -559,8 +649,8 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 </div>
                 <div className="v-center brd-t2 pt24 jcsb fww w100">
                     <div className="address-head mb24 w100">
-                        <p className="fs18 fc14 ls1 lh22">Address Information</p>
-                        <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                        <p className="fs18 fc14 ls1 lh22">Address Details</p>
+                        <p class="fs14 fc5 ls1 lh18 mt4">Enter the affiliate’s residential or business address details.</p>
                     </div>
                     <div className="form-group-settings cm-fr flx48">
                         <input
@@ -663,10 +753,10 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 </div>
                 <div className="v-center brd-t2 pt24 jcsb fww w100">
                     <div className="address-head mb24 w100">
-                        <p className="fs18 fc14 ls1 lh22">Other Contact</p>
-                        <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                        <p className="fs18 fc14 ls1 lh22">Additional Contacts</p>
+                        <p class="fs14 fc5 ls1 lh18 mt4">Add additional contact numbers and communication references.</p>
                     </div>
-                    <div className="form-group-settings cm-fr flx48">
+                    <div className="form-group-settings cm-fr flx1 mr8">
                         <input type="text" placeholder="Name"
                         value={otherInfoName}
                         onChange={(e) => setOtherInfoName(e.target.value)}
@@ -677,7 +767,7 @@ const AffiliateForm = ({ view, affiliateid }) => {
                                     }} />
                     </div>
 
-                    <div className="form-group-settings cm-fr flx48">
+                    <div className="form-group-settings cm-fr flx1 mr8">
                         <input type="text" placeholder="Designation"
                         value={otherInfoDesignation}
                         onChange={(e) => setOtherInfoDesignation(e.target.value)}
@@ -688,7 +778,7 @@ const AffiliateForm = ({ view, affiliateid }) => {
                                     }} />
                     </div>
 
-                    <div className="form-group-settings cm-fr flx48">
+                    <div className="form-group-settings cm-fr flx1 mr8">
                         <input type="text" placeholder="Email"
                         value={otherInfoEmail}
                         onChange={(e) => setOtherInfoEmail(e.target.value)}
@@ -699,7 +789,7 @@ const AffiliateForm = ({ view, affiliateid }) => {
                                     }} />
                     </div>
 
-                    <div className="form-group-settings cm-fr flx48">
+                    <div className="form-group-settings cm-fr flx1">
                         <input type="text" placeholder="Mobile Number"
                         value={otherInfoMobile}
                         onChange={(e) => setOtherInfoMobile(e.target.value)}
@@ -709,14 +799,15 @@ const AffiliateForm = ({ view, affiliateid }) => {
                                         cursor: viewStatus !== undefined ? "not-allowed" : "",
                                     }} />
                     </div>
-
-                    <div className="df jce w100 mb12">
-                        <button className="h36 pt8 pb8 pl16 pr16 cp bg1 fc3 br4 mb16"
-                        onClick={handleAddOtherInfo}>Add</button>
-                    </div>
+                    {viewStatus === undefined && (
+                        <div className="df jce w100 mb12">
+                            <button className="h36 pt8 pb8 pl16 pr16 cp bg1 fc3 br4 mb16"
+                            onClick={handleAddOtherInfo}>Add</button>
+                        </div>
+                    )}
                     {affiliateFormData.other_info.map((other_info, index) => (
                         <>
-                            <div className="w100 mt16 mb24">
+                            <div className="w100 pt12 pb12 brd-t1">
                                 <div className="w100" key={other_info.id} >
                                     <div className="df jcsb">
                                         <div className="form-group-settings cm-fr flx1 mb0 mr8">
@@ -777,121 +868,129 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 </div>
                 <div className="v-center brd-t2 pt24 jcsb fww w100">
                     <div className="address-head mb24 w100">
-                        <p className="fs18 fc14 ls1 lh22">Identity/KYC</p>
-                        <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                        <p className="fs18 fc14 ls1 lh22">Identity Verification (KYC)</p>
+                        <p class="fs14 fc5 ls1 lh18 mt4">Upload and verify identity documents required for KYC compliance.</p>
                     </div>
-                    <div className="form-group-settings cm-fr flx48">
-                        <p className="fc15 fw6 fs14 ls1">Pan Card Number<span className="fc4">*</span></p>
-                        <input
-                            type="text"
-                            name="pan_card_number"
-                            placeholder="Pan Card Number"
-                            autoComplete="off"
-                            value={affiliateFormData.pan_card_number}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                    <div className="flx48 upload-image mb24">
-                        <p className="w100 fc15 fw6 fs14 mb12 ls1">Upload PanCard</p>
-                        <div className="w100 image-upload-compoenent affiliate-image">
-                            <DocUpload 
-                                onImageUpload={handleUploadProfileImg}
-                                imgData={profileImg}
-                                imgstatus={ profileImg ? true : false}
-                                disabled={viewStatus !== undefined}
-                                imagedoctrel={true}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group-settings cm-fr flx48">
-                        <p className="fc15 fw6 fs14 ls1">Aaddhar Number<span className="fc4">*</span></p>
-                        <input
-                            type="text"
-                            name="aadhar_number"
-                            placeholder="Aadhar Card Number"
-                            autoComplete="off"
-                            value={affiliateFormData.aadhar_number}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                    <div className="flx48 upload-image mb24">
-                        <p className="flx33 fc15 fw6 fs14 mb12 ls1">Upload Aadhar Card</p>
-                        <div className="image-upload-compoenent affiliate-image">
-                            <DocUpload 
-                                onImageUpload={handleUploadProfileImg}
-                                imgData={profileImg}
-                                imgstatus={ profileImg ? true : false}
-                                disabled={viewStatus !== undefined}
-                                imagedoctrel={true}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group-settings cm-fr flx48">
-                        <p className="fc15 fw6 fs14 ls1">GST Number<span className="fc4">*</span></p>
-                        <input
-                            type="text"
-                            name="gst_number"
-                            placeholder="GST Number"
-                            autoComplete="off"
-                            value={affiliateFormData.gst_number}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                    <div className="flx48 upload-image mb24">
-                        <p className="flx33 fc15 fw6 fs14 mb12 ls1">Upload GST</p>
-                        <div className="image-upload-compoenent affiliate-image">
-                            <DocUpload 
-                                onImageUpload={handleUploadProfileImg}
-                                imgData={profileImg}
-                                imgstatus={ profileImg ? true : false}
-                                disabled={viewStatus !== undefined}
-                                imagedoctrel={true}
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group-settings cm-fr flx48">
-                        <p className="fc15 fw6 fs14 ls1">Business Name<span className="fc4">*</span></p>
-                        <input
-                            type="text"
-                            name="business_name"
-                            placeholder="Business Name"
-                            autoComplete="off"
-                            value={affiliateFormData.business_name}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                    <div className="form-group-settings cm-fr flx48">
-                        <SingleDropdown
-                            label="Business Type"
-                            options={businessTypesOptions}
-                            selectedOption={affiliateFormData.businessType}
-                            onSelect={handleSelectBusinessType}
-                            placeholder="Select Business Type"
-                            compulsory={<span className="fc4">*</span>}
-                        />
-                    </div>
-                    {affiliateFormData.businessType?.value === "other" && (
+                    <div className="w100 df jcsb">
                         <div className="form-group-settings cm-fr flx48">
-                            <p className="fc15 fw6 fs14 ls1">Business Type<span className="fc4">*</span></p>
+                            <p className="fc15 fw6 fs14 ls1">Pan Number</p>
                             <input
                                 type="text"
-                                className="form-control"
-                                placeholder="Enter your business type"
-                                value={affiliateFormData.customBusinessType}
-                                onChange={(e) =>
-                                    setAffiliateFormData((prev) => ({
-                                        ...prev,
-                                        customBusinessType: e.target.value
-                                    }))
-                                }
+                                name="pan_card_number"
+                                placeholder="Pan Card Number"
+                                autoComplete="off"
+                                value={affiliateFormData.pan_card_number}
+                                onChange={handleInputChange}
                             />
                         </div>
-                    )}
+                        <div className="flx48 upload-image mb24">
+                            <p className="w100 fc15 fw6 fs14 mb12 ls1">Upload Pan Card</p>
+                            <div className="w100 image-upload-compoenent affiliate-image">
+                                <DocUpload 
+                                    onImageUpload={handleUploadProfileImg}
+                                    imgData={profileImg}
+                                    imgstatus={ profileImg ? true : false}
+                                    disabled={viewStatus !== undefined}
+                                    imagedoctrel={true}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w100 brd-dashed-t1 df jcsb">
+                        <div className="form-group-settings cm-fr flx48 mt24">
+                            <p className="fc15 fw6 fs14 ls1">Aaddhar Number</p>
+                            <input
+                                type="text"
+                                name="aadhar_number"
+                                placeholder="Aadhar Number"
+                                autoComplete="off"
+                                value={affiliateFormData.aadhar_number}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <div className="flx48 upload-image mb24 mt24">
+                            <p className="flx33 fc15 fw6 fs14 mb12 ls1">Upload Aadhar Card</p>
+                            <div className="image-upload-compoenent affiliate-image">
+                                <DocUpload 
+                                    onImageUpload={handleUploadProfileImg}
+                                    imgData={profileImg}
+                                    imgstatus={ profileImg ? true : false}
+                                    disabled={viewStatus !== undefined}
+                                    imagedoctrel={true}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w100 brd-dashed-t1 df jcsb">
+                        <div className="form-group-settings cm-fr flx48 mt24">
+                            <p className="fc15 fw6 fs14 ls1">GST Number</p>
+                            <input
+                                type="text"
+                                name="gst_number"
+                                placeholder="GST Number"
+                                autoComplete="off"
+                                value={affiliateFormData.gst_number}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <div className="flx48 upload-image mb24 mt24">
+                            <p className="flx33 fc15 fw6 fs14 mb12 ls1">Upload GST</p>
+                            <div className="image-upload-compoenent affiliate-image">
+                                <DocUpload 
+                                    onImageUpload={handleUploadProfileImg}
+                                    imgData={profileImg}
+                                    imgstatus={ profileImg ? true : false}
+                                    disabled={viewStatus !== undefined}
+                                    imagedoctrel={true}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w100 brd-dashed-t1 df jcsb">
+                        <div className="form-group-settings cm-fr flx48 mt24">
+                            <p className="fc15 fw6 fs14 ls1">Business Name</p>
+                            <input
+                                type="text"
+                                name="business_name"
+                                placeholder="Business Name"
+                                autoComplete="off"
+                                value={affiliateFormData.business_name}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <div className="form-group-settings cm-fr flx48 mt24">
+                            <SingleDropdown
+                                label="Business Type"
+                                options={businessTypesOptions}
+                                selectedOption={affiliateFormData.businessType}
+                                onSelect={handleSelectBusinessType}
+                                placeholder="Select Business Type"
+                                compulsory={""}
+                            />
+                        </div>
+                        {affiliateFormData.businessType?.value === "other" && (
+                            <div className="form-group-settings cm-fr flx48">
+                                <p className="fc15 fw6 fs14 ls1">Business Type<span className="fc4">*</span></p>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Enter your business type"
+                                    value={affiliateFormData.customBusinessType}
+                                    onChange={(e) =>
+                                        setAffiliateFormData((prev) => ({
+                                            ...prev,
+                                            customBusinessType: e.target.value
+                                        }))
+                                    }
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="v-center brd-t2 pt24 jcsb fww w100">
                     <div className="address-head mb24 w100">
-                        <p className="fs18 fc14 ls1 lh22">Bank Details</p>
-                        <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                        <p className="fs18 fc14 ls1 lh22">Bank Information</p>
+                        <p class="fs14 fc5 ls1 lh18 mt4">Enter bank account information to enable payouts and settlements.</p>
                     </div>
                     <div className="form-group-settings cm-fr flx48">
                         <p className="fc15 fw6 fs14 ls1">Account Holder Name<span className="fc4">*</span></p>
@@ -962,8 +1061,8 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 </div>
                 <div className="v-center brd-t2 pt24 jcsb fww w100">
                     <div className="address-head mb24 w100">
-                        <p className="fs18 fc14 ls1 lh22">Category Commission</p>
-                        <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                        <p className="fs18 fc14 ls1 lh22">Commission Structure</p>
+                        <p class="fs14 fc5 ls1 lh18 mt4">Set commission structure based on assigned categories.</p>
                     </div>
                     <div className="form-group-settings cm-fr flx48">
                         <SingleDropdown
@@ -988,45 +1087,73 @@ const AffiliateForm = ({ view, affiliateid }) => {
                         </div>
                     )}
                     <div className="form-group-settings cm-fr flx48">
-                        <SingleDropdown
-                            label="Commission Type"
-                            options={commissionTypeOptions}
-                            selectedOption={categoryCommissionType}
-                            onSelect={handleSelectCommissionType}
-                            placeholder="Select Commission Type"
-                            compulsory={<span className="fc4">*</span>}
-                        />
-                    </div>
-                    {categoryCommissionType && categoryCommissionType?.value && (
-                        <div className="form-group-settings cm-fr flx48" style={{ position: "relative" }}>
-                            <p  className="fc15 fw6 fs14 ls1">Commission Value<span className="fc4">*</span></p>
+                        <p className="fc15 fw6 fs14 ls1">
+                            Commission Type And Value <span className="fc4">*</span>
+                        </p>
 
+                        <div className="input-group df pr w100 fww aisc">
+                            <div className="input-group-prepend df">
+                                <div className="role-dropdown" ref={dropdownRef2}>
+                                    <div
+                                        className="selected-role fs14 h40 country-code"
+                                        onClick={() => setCountryCodeDropdown(!countryCodeDropdown)}
+                                    >
+                                        {categoryCommissionType?.label || "Select Type"}
+                                        <FaAngleDown className="fc16 fs14" />
+                                    </div>
+
+                                    {countryCodeDropdown && (
+                                        <ul className="role-options fs14">
+                                            {commissionTypeOptions.map((option) => (
+                                                <li
+                                                    key={option.value}
+                                                    onClick={() => {
+                                                        handleSelectCommissionType(option);
+                                                        setCountryCodeDropdown(false);
+                                                    }}
+                                                >
+                                                    {option.label}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            </div>
                             <input
+                                className="form-control br4"
                                 type="number"
-                                className="form-input"
-                                value={categoryCommissionValue || ""}
+                                name="commission_value"
+                                placeholder={
+                                    categoryCommissionType?.value === "fixed"
+                                        ? "Enter Amount"
+                                        : "Enter Percentage"
+                                }
+                                autoComplete="off"
+                                value={categoryCommissionValue}
                                 onChange={handleCommissionValueChange}
-                                placeholder={categoryCommissionType?.value === "fixed" ? "Enter Amount" : "Enter Percentage"}
                                 style={{ paddingRight: "35px" }}
                             />
-
-                            <span style={{
-                                position: "absolute",
-                                right: "12px",
-                                top: "auto",
-                                transform: "translateY(-50%)",
-                                fontWeight: "600",
-                                color: "#555",
-                                bottom: "-2px",
-                            }}>
-                            {categoryCommissionType?.value === "fixed" ? "₹" : "%"}
-                            </span>
+                            {categoryCommissionType?.value && (
+                                <span
+                                    style={{
+                                        position: "absolute",
+                                        right: "12px",
+                                        bottom: "11px",
+                                        fontWeight: "600",
+                                        color: "#555",
+                                    }}
+                                >
+                                    {categoryCommissionType.value === "fixed" ? "₹" : "%"}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    {viewStatus === undefined && (
+                        <div className="df jce w100 mb12">
+                            <button className="h36 pt8 pb8 pl16 pr16 cp bg1 fc3 br4 mb16"
+                            onClick={handleAddCategoryCommission}>Add</button>
                         </div>
                     )}
-                    <div className="df jce w100 mb12">
-                        <button className="h36 pt8 pb8 pl16 pr16 cp bg1 fc3 br4 mb16"
-                        onClick={handleAddCategoryCommission}>Add</button>
-                    </div>
                     {affiliateFormData.categoryCommission.map((category_commission, index) => (
                         <>
                             <div className="w100 mt16 mb24">
@@ -1092,10 +1219,10 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 </div>
                 <div className="v-center brd-t2 pt24 jcsb fww w100">
                     <div className="address-head mb24 w100">
-                        <p className="fs18 fc14 ls1 lh22">TNC Documents</p>
-                        <p class="fs14 fc5 ls1 lh18 mt4">Please enter your address details accurately to ensure we have accurate information for communication and verification purposes.</p>
+                        <p className="fs18 fc14 ls1 lh22">Agreements & Compliance Documents</p>
+                        <p class="fs14 fc5 ls1 lh18 mt4">Review and upload necessary terms & conditions or agreement documents.</p>
                     </div>
-                    <div className="flx48 upload-image">
+                    <div className="w100 upload-image mb24">
                         <p className="fc15 fw6 fs14 mb12 ls1">Upload T&C Signed Copy/Agreement/Email soft copy</p>
                         <div className="image-upload-compoenent affiliate-image">
                             <DocUpload 
@@ -1107,7 +1234,7 @@ const AffiliateForm = ({ view, affiliateid }) => {
                             />
                         </div>
                     </div>
-                    <div className="flx48 form-group-settings cm-fr affiliates-grp">
+                    <div className="w100 form-group-settings cm-fr affiliates-grp mb0">
                         <p className="fc15 fw6 fs14 mb8 ls1">Comment</p>
                         <textarea
                             className="comments p12 br4"
@@ -1133,29 +1260,8 @@ const AffiliateForm = ({ view, affiliateid }) => {
                 <div className="terms-wrapper">
                     <div className="term-item">
                         <input type="checkbox" id="t1" required className="term-checkbox" />
-                        <label htmlFor="t1" className="term-label">
-                        By submitting this affiliate form, you agree to promote 
-                        <span className="terms-link" onClick={openPdf}> Flapone Aviation’s </span>
-                        services honestly, ethically, and in compliance with all applicable laws. Misleading
-                        promotion, spam, or false claims are strictly prohibited.
-                        </label>
-                    </div>
-
-                    <div className="term-item">
-                        <input type="checkbox" id="t2" required className="term-checkbox" />
-                        <label htmlFor="t2" className="term-label">
-                        Commissions will be paid only on verified and completed sales generated through your unique affiliate link. 
-                        <span className="terms-link" onClick={openPdf}> Flapone Aviation </span>
-                        reserves the right to withhold or cancel commissions for fraudulent or cancelled transactions.
-                        </label>
-                    </div>
-
-                    <div className="term-item">
-                        <input type="checkbox" id="t3" required className="term-checkbox" />
-                        <label htmlFor="t3" className="term-label">
-                        <span className="terms-link" onClick={openPdf}> Flapone Aviation Private Limited </span>
-                        reserves the right to modify these terms or terminate any affiliate account at any time if misuse, fraud, or violation of terms is detected.
-                        </label>
+                        <label htmlFor="t1" className="term-label" onClick={openPdf}>
+                        I confirm that the information provided is accurate and entered with full responsibility, without any intent of misuse or unauthorized benefit. </label>
                     </div>
                 </div>
             </div>
@@ -1170,13 +1276,15 @@ const AffiliateForm = ({ view, affiliateid }) => {
                     <input type="radio" className="mr8 cp" id="reject" value="3" checked={affiliateFormData.status === "0"} onChange={handleStatusChange} />Reject
                 </label>
             </div>
-            <div className="add-more box-center mt24">
-                <button
-                    type="button"
-                    className="btn-blue bg1 br24 fs14 cp pl24 pr24 pt10 pb10 ml24 ls2"
-                    onClick={handleSubmit}
-                >Submit</button>
-            </div>
+            {viewStatus === undefined && (
+                <div className="add-more box-center mt24">
+                    <button
+                        type="button"
+                        className="btn-blue bg1 br24 fs14 cp pl24 pr24 pt10 pb10 ml24 ls2"
+                        onClick={handleSubmit}
+                    >Submit</button>
+                </div>
+            )}
             <ToastContainer position="bottom-right" />
         </>
     );
