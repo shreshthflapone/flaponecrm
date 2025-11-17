@@ -39,6 +39,8 @@ import MultiLevelDropdown from "../../components/MultiLevelDropdown";
 import SearchInput from "../../components/SearchInput";
 import Popup from "../../components/Popup/Popup";
 import SingleDropdownMultiSearch from "../../components/SingleDropdownMultiSearch.js";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 //Dummy Data
 const affiliateData = [
@@ -970,7 +972,10 @@ const MyAffiliate = () => {
       setSelectedAffiliateOption(option);
     }
     const handleSelectAffiliate = () => {
-      if (!selectedAffiliateOption?.value) return;
+      if (!selectedAffiliateOption?.value){
+        toast.warn("Please select atleast 1 Affiliate");
+        return;
+      };
 
       window.open(
         `https://www.flapone.com/enquiry/${selectedAffiliateOption.value}`,
@@ -1225,6 +1230,7 @@ const MyAffiliate = () => {
                 </Popup>
               </div>
             )}
+            <ToastContainer position="bottom-right" />
         </>
     );
 
