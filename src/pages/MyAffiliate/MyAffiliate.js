@@ -37,6 +37,8 @@ import SidePopup from "../../components/Popup/SidePopup.js";
 import Tooltip from "../../components/Tooltip.js";
 import MultiLevelDropdown from "../../components/MultiLevelDropdown";
 import SearchInput from "../../components/SearchInput";
+import Popup from "../../components/Popup/Popup";
+import SingleDropdownMultiSearch from "../../components/SingleDropdownMultiSearch.js";
 
 //Dummy Data
 const affiliateData = [
@@ -645,6 +647,15 @@ const MyAffiliate = () => {
       { label: "Mobile No.", value: "mobile_number" },
       { label: "Company Name", value: "company_name" },
     ];
+    const [showChooseAffiliatePopup, setShowChooseAffiliatePopup] = useState(false);
+    const [affiliateOptions, setAffiliateOptions] = useState([
+      { label: "Select Affiliate", value: "" },
+      { label: "Nand Kumar Jha", value: "1" },
+      { label: "Dushyant Kumar", value: "2" },
+      { label: "Kamlesh Gupta", value: "3" },
+      { label: "Sanjay Gupta", value: "4" },
+    ]);
+    const [selectedAffiliateOption, setSelectedAffiliateOption] = useState({});
     const [searchBy, setSearchBy] = useState("");
     const handleSearchByChange = (option) => {
       setSearchBy(option.value);
@@ -949,7 +960,22 @@ const MyAffiliate = () => {
     };
 
     const handleAddStudent = () => {
-      window.open("https://www.flapone.com/enquiry", "_blank");
+      //window.open("https://www.flapone.com/enquiry", "_blank");
+      setShowChooseAffiliatePopup(true);
+    };
+    const cancelChooseAffiliatePopup = () => {
+      setShowChooseAffiliatePopup(false);
+    };
+    const handleSetAffiliate = (option) => {
+      setSelectedAffiliateOption(option);
+    }
+    const handleSelectAffiliate = () => {
+      if (!selectedAffiliateOption?.value) return;
+
+      window.open(
+        `https://www.flapone.com/enquiry/${selectedAffiliateOption.value}`,
+        "_blank"
+      );
     };
 
     return (
@@ -1169,6 +1195,35 @@ const MyAffiliate = () => {
                   </div>
                 </div>
               </SidePopup>
+            )}
+            {showChooseAffiliatePopup && (
+              <div className="inactive-affiliate">
+                <Popup title="Choose Affiliate" onClose={cancelChooseAffiliatePopup}>
+                  <div className="df">
+                    <div className="flx100 up-status1 mr12 inp-design">
+                      <SingleDropdownMultiSearch
+                        label="Affiliate List"
+                        options={affiliateOptions}
+                        selectedOption={selectedAffiliateOption}
+                        onSelect={handleSetAffiliate}
+                        cc={true}
+                        search={true}
+                      />
+                    </div>
+                  </div>
+                  <div className="popup-buttons df jce">
+                    <button onClick={cancelChooseAffiliatePopup} className="btn-cancel">
+                        Cancel
+                    </button>
+                    <button
+                      onClick={handleSelectAffiliate}
+                      className="update-button btn-blue box-center"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </Popup>
+              </div>
             )}
         </>
     );
