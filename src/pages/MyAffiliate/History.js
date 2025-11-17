@@ -89,11 +89,13 @@ const History = ({ recordList }) => {
                 <div className="sale-status box-center fdc cp">
                     <p className="brd-b1 pb4">Conversion Breakup</p>
                     <div style={{display: "flex",borderRadius: "6px",border: "1px solid rgb(221, 221, 221)",width: "fit-content",marginTop: "5px"}}>
-                        <div style={{ backgroundColor: "rgb(108, 92, 231)", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }}><DynamicTooltip text="Last 30 Days">5</DynamicTooltip></div>
-                        <div style={{ backgroundColor: "rgb(0, 184, 148)", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }} ><DynamicTooltip text="Last 60 Days">7</DynamicTooltip></div>
-                        <div style={{ backgroundColor: "rgb(9, 132, 227)", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }} > <DynamicTooltip text="Last 90 Days">8</DynamicTooltip></div>
-                        <div style={{ backgroundColor: "rgb(214, 48, 49)", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }} ><DynamicTooltip text="Last 180 Days">10</DynamicTooltip></div>
-                        <div style={{ backgroundColor: "rgb(230, 126, 34)", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "none", }}><DynamicTooltip text="Last 360 Days">12</DynamicTooltip></div>
+                        <div style={{ backgroundColor: "#808080", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }}>0</div>
+                        <div style={{ backgroundColor: "#4CAF50", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }}><DynamicTooltip text="Last 30 Days">5</DynamicTooltip></div>
+                        <div style={{ backgroundColor: "#66BB6A ", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }} ><DynamicTooltip text="Last 60 Days">7</DynamicTooltip></div>
+                        <div style={{ backgroundColor: "#29B6F6", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }} > <DynamicTooltip text="Last 90 Days">8</DynamicTooltip></div>
+                        <div style={{ backgroundColor: "#0288D1", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "1px solid #fff", }} ><DynamicTooltip text="Last 180 Days">10</DynamicTooltip></div>
+                        <div style={{ backgroundColor: "#3949AB", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "none", }}><DynamicTooltip text="Last 360 Days">12</DynamicTooltip></div>
+                        <div style={{ backgroundColor: "#6A1B9A", color: "#fff", padding: "4px 8px", fontSize: "12px", textAlign: "center", borderRight: "none", }}><DynamicTooltip text="Total">120</DynamicTooltip></div>
                     </div>
                 </div>
             </div>
