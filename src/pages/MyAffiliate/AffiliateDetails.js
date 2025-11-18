@@ -152,7 +152,7 @@ const AffiliateDetails = () => {
     <>
       {id || viewStatus ? (
         <div className="lead-detail-container df">
-            <div className="left-side-detail">
+            <div className="left-side-detail affiliate-left-side-detail">
               <div className="detail-header mb16 df jcsb fww pl12 desk-lead-detail">
                 <div className="header-left v-center left-header-tooltip">
                   <Tooltip
@@ -241,7 +241,7 @@ const AffiliateDetails = () => {
                 </div>
               </div>
             </div>
-            <div className="right-side-detail">
+            <div className="right-side-detail affiliate-right-side-detail">
               <div className="df jce detail-side-bar affiliate-dropdown">
                 <div className="mr24 assigned-to rm"  style={{"width":"auto", minWidth: "12%", marginTop: "5px"}}>
                     <SingleDropdown
