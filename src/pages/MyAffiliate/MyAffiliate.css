@@ -163,12 +163,12 @@
 .timeline.history-timeline h6{
   margin-top: 8px;
 }
-.left-side-detail {
+.left-side-detail.affiliate-left-side-detail {
   flex: 0 0 55% !important;
   max-width: 55% !important;
 }
 
-.right-side-detail {
+.right-side-detail.affiliate-right-side-detail {
   flex: 0 0 43% !important;
   max-width: 43% !important;
 }
